@@ -1,7 +1,13 @@
+[![Maven Central][maven-badge]]([maven-url])
+[![Bintray][bintray-badge]](bintray-url)
+[![Issues][issues-badge]](issues-url)
+[![Gitter][gitter-badge]](gitter-url)
+
 # IoTHubReact 
 IoTHub React is an Akka Stream library that can be used to read data from 
-[Azure IoTHub](https://azure.microsoft.com/en-us/services/iot-hub/). 
-Azure IoTHub is used to connect devices to the Azure cloud.
+[Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/), via a 
+reactive stream with asynchronous back pressure. Azure IoT Hub is a service
+used to connect thousands to millions of devices to the Azure cloud.
 
 A simple example on how to use the library is the following:
 ```scala
@@ -11,12 +17,12 @@ new IoTHub().source()
     .to(console)
     .run()
 ```    
-A stream of incoming telemetry data is read, parse and converted to a 
-`Temperature` object and filtered based on its value. 
+A stream of incoming telemetry data is read, parsed and converted to a 
+`Temperature` object and filtered based on the temperature value. 
 
 
 A more interesting example is reading telemetry data from Azure IoTHub, and
-send it to a Kafka topic so it can be consumed by other services downstream
+sending it to a Kafka topic, so it can be consumed by other services downstream:
 ```scala
 ... 
 import org.apache.kafka.common.serialization.StringSerializer
@@ -35,7 +41,6 @@ case class KafkaProducer(bootstrapServer: String)(implicit val system: ActorSyst
   def packageMessage(elem: String, topic: String): ProducerRecord[Array[Byte], String] = {
     new ProducerRecord[Array[Byte], String](topic, elem)
   }
-
 }
 ```
 
@@ -56,12 +61,12 @@ process them independently.
 val partitionNumber = 1
 IoTHub.source(partitionNumber)
     .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
-     .filter(_.value > 100)
+    .filter(_.value > 100)
     .to(console)
     .run()
 ```    
 
-## Configuration
+## Build configuration
 IoTHubReact is available on Maven Central, you just need to add the following 
 reference in your `build.sbt` file:
 
@@ -75,16 +80,26 @@ libraryDependencies ++= {
 }
 ```
 
+or this dependency in `pom.xml` file if working with Maven:
+
+```xml
+<dependency>
+    <groupId>com.microsoft.azure.iot</groupId>
+    <artifactId>iothub-react_2.11</artifactId>
+    <version>0.6.0</version>
+</dependency>
+```
+
 ### IoTHub configuration
 IoTHubReact uses a configuration file to fetch the parameters required to 
 connect to Azure IoTHub.  
-The exact values to use can be found in the Azure Portal:
+The exact values to use can be found in the [Azure Portal](https://portal.azure.com):
 
 * **namespace**: it is the first part of the _Event Hub-compatible endpoint_,
-  which usually has this format: `sb://<IoTHub namespace>.servicebus.windows.net/`
+  which usually has this format: `sb://<namespace>.servicebus.windows.net/`
 * **name**: see _Event Hub-compatible name_
 * **keyname**: usually the value is `service`
-* **key**: the Primary Key that you can find under 
+* **key**: the Primary Key can be found under 
   _shared access policies/service_ policy (it's a base64 encoded string)
 
 The values should be stored in your `application.conf` resource (or equivalent),
@@ -147,5 +162,17 @@ If you want/plan to contribute, we ask you to sign a
 [CLA](https://cla.microsoft.com/) (Contribution license Agreement). A friendly
 bot will remind you about it when you submit a pull-request.
 
-If you are sending a pull request we kindly request to check the code style
+If you are sending a pull request, we kindly request to check the code style
 with IntelliJ IDEA, importing the settings from `Codestyle.IntelliJ.xml`.
+
+
+
+
+[maven-badge]: https://img.shields.io/maven-central/v/com.microsoft.azure.iot/iothub-react_2.11.svg
+[maven-url]: http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22iothub-react_2.11%22
+[bintray-badge]: https://img.shields.io/bintray/v/microsoftazuretoketi/toketi-repo/iothub-react.svg?maxAge=2592000
+[bintray-url]: https://bintray.com/microsoftazuretoketi/toketi-repo/iothub-react
+[issues-badge]: https://img.shields.io/github/issues/azure/toketi-iothubreact.svg?style=flat-square
+[issues-url]: https://github.com/azure/toketi-iothubreact/issues
+[gitter-badge]: https://img.shields.io/gitter/room/azure/toketi-repo.js.svg?maxAge=2592000
+[gitter-url]: https://gitter.im/azure-toketi/iothub-react
