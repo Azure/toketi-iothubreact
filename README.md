@@ -1,7 +1,7 @@
-[![Maven Central][maven-badge]]([maven-url])
-[![Bintray][bintray-badge]](bintray-url)
-[![Issues][issues-badge]](issues-url)
-[![Gitter][gitter-badge]](gitter-url)
+[![Maven Central][maven-badge]][maven-url]
+[![Bintray][bintray-badge]][bintray-url]
+[![Issues][issues-badge]][issues-url]
+[![Gitter][gitter-badge]][gitter-url]
 
 # IoTHubReact 
 IoTHub React is an Akka Stream library that can be used to read data from 
