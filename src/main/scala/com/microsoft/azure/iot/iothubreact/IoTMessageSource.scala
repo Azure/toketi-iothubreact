@@ -53,13 +53,13 @@ private class IoTMessageSource(val partition: Int, val offset: String)
 
   abstract class OffsetType
 
-  case class SequenceOffset() extends OffsetType
+  case object SequenceOffset extends OffsetType
 
-  case class TimeOffset() extends OffsetType
+  case object TimeOffset extends OffsetType
 
   def this(partition: Int, startTime: Instant) {
     this(partition, "*not used*")
-    offsetType = TimeOffset()
+    offsetType = TimeOffset
     _startTime = startTime
   }
 
@@ -67,7 +67,7 @@ private class IoTMessageSource(val partition: Int, val offset: String)
   private[this] val OFFSET_INCLUSIVE = true
 
   // Time of offset used when defining the start of the stream
-  private[this] var offsetType: OffsetType = SequenceOffset()
+  private[this] var offsetType: OffsetType = SequenceOffset
 
   private[this] var _startTime: Instant = Instant.MIN
 
@@ -84,7 +84,7 @@ private class IoTMessageSource(val partition: Int, val offset: String)
 
     // Connect to the IoT hub storage
     lazy val receiver: PartitionReceiver = offsetType match {
-      case SequenceOffset() ⇒ {
+      case SequenceOffset ⇒ {
         log.info(s"Connecting to partition ${partition.toString} starting from ${offset}")
         IoTHubStorage
           .createClient()
@@ -94,7 +94,7 @@ private class IoTMessageSource(val partition: Int, val offset: String)
             offset,
             OFFSET_INCLUSIVE)
       }
-      case TimeOffset()     ⇒ {
+      case TimeOffset     ⇒ {
         log.info(s"Connecting to partition ${partition.toString} starting from ${_startTime}")
         IoTHubStorage
           .createClient()
