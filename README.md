@@ -133,7 +133,7 @@ There are other settings, to tune performance and connection details:
   [consumer group](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview)
   used during the connection
 * **receiverBatchSize**: the number of messages retrieved on each call to 
-  Azure IoT hub. The default (an maximum) value is 999.
+  Azure IoT hub. The default (and maximum) value is 999.
 * **receiverTimeout**: timeout applied to calls while retrieving messages. The
   default value is 3 seconds.
 
