@@ -10,7 +10,7 @@ import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import akka.stream.{Attributes, Outlet, SourceShape}
 import com.microsoft.azure.eventhubs.{EventData, PartitionReceiver}
 
-import scala.collection.convert.decorateAsScala._
+import scala.collection.JavaConverters._
 
 private object IoTMessageSource {
 
