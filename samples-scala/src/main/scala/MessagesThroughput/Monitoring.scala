@@ -7,6 +7,7 @@ import com.typesafe.config.ConfigFactory
 import scala.collection.parallel.mutable.ParArray
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{FiniteDuration, _}
+import scala.language.postfixOps
 
 /** Monitoring logic, some properties to keep count and a method to print the
   * statistics.

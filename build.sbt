@@ -5,38 +5,51 @@ organization := "com.microsoft.azure.iot"
 version := "0.6.0"
 
 scalaVersion := "2.11.8"
-
-// @todo Akka version depends on Scala version (2.10 => 2.3.15, 2.11 => 2.4.9)
-//crossScalaVersions := Seq("2.10.6", "2.11.8")
+crossScalaVersions := Seq("2.11.8", "2.12.0-RC1")
 
 logLevel := Level.Warn // Debug|Info|Warn|Error
-scalacOptions ++= Seq("-deprecation", "-explaintypes", "-optimise",
-  "-unchecked", "-verbose")
+scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 
-libraryDependencies ++= {
-  val akkaStreamVersion = "2.4.9"
-  val azureEventHubSDKVersion = "0.8.2"
+def scalaArmPackage(scalaVersion: String) = scalaVersion match {
+  case version if version startsWith "2.11" => "scala-arm_2.11"
+  case version if version startsWith "2.12" => "scala-arm_2.11"
+  case _                                    => sys.error("unsupported scala version [scala-arm]")
+}
 
-  Seq(
-    // Library dependencies
-    "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
-    "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
+def jacksonModulePackage(scalaVersion: String) = scalaVersion match {
+  case version if version startsWith "2.11" => "jackson-module-scala_2.11"
+  case version if version startsWith "2.12" => "jackson-module-scala_2.11"
+  case _                                    => sys.error("unsupported scala version [jackson-module-scala]")
+}
 
-    // Tests dependencies
-    "org.scalatest" %% "scalatest" % "3.0.0" % "test",
-    "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % "1.0.14" % "test",
-    "com.jsuereth" %% "scala-arm" % "1.4" % "test",
+libraryDependencies <++= (scalaVersion) {
+  scalaVersion ⇒
+    val azureEventHubSDKVersion = "0.8.2"
+    val iothubClientVersion = "1.0.14"
+    val scalaTestVersion = "3.0.0"
+    val jacksonCoreVersion = "2.8.3"
+    val jacksonModuleVersion = "2.8.2"
+    val akkaStreamVersion = "2.4.11"
 
-    // Remove < % "test" > to run samples-scala against the local workspace
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.3" % "test",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.8.2" % "test"
-  )
+    Seq(
+      // Library dependencies
+      "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
+      "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
+
+      // Tests dependencies
+      "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
+      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubClientVersion % "test",
+      "com.jsuereth" % scalaArmPackage(scalaVersion) % "1.4" % "test",
+
+      // Remove < % "test" > to run samples-scala against the local workspace
+      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonCoreVersion % "test",
+      "com.fasterxml.jackson.module" % jacksonModulePackage(scalaVersion) % jacksonModuleVersion % "test"
+    )
 }
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
 
-/*
- * Publishing options
+/* Publishing options
  * see http://www.scala-sbt.org/0.13/docs/Artifacts.html
  */
 publishArtifact in Test := true

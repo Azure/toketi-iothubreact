@@ -9,6 +9,7 @@ import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 
 import scala.concurrent.duration._
 import scala.io.StdIn
+import scala.language.postfixOps
 
 /** Retrieve messages from IoT hub managing the stream velocity
   *
