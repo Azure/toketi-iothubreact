@@ -2,6 +2,8 @@
 
 package com.microsoft.azure.iot.iothubreact.test.helpers
 
+import java.nio.file.{Files, Paths}
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.microsoft.azure.eventhubs.EventHubClient
@@ -29,8 +31,13 @@ private object Configuration {
   // Read devices configuration from JSON file
   private[this] val jsonParser = new ObjectMapper()
   jsonParser.registerModule(DefaultScalaModule)
-  private[this] lazy val devicesJson = File(conf.getString("iothub.devices")).slurp()
-  private[this] lazy val devices     = jsonParser.readValue(devicesJson, classOf[Array[DeviceCredentials]])
+  private[this] lazy val devicesJsonFile = conf.getString("iothub.devices")
+  private[this] lazy val devicesJson     = File(devicesJsonFile).slurp()
+  private[this] lazy val devices         = jsonParser.readValue(devicesJson, classOf[Array[DeviceCredentials]])
 
   def deviceCredentials(id: String): DeviceCredentials = devices.find(x ⇒ x.deviceId == id).get
+
+  if (!Files.exists(Paths.get(devicesJsonFile))) {
+    throw new RuntimeException("Devices credentials not found")
+  }
 }
