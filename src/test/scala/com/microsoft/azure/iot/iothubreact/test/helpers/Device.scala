@@ -3,19 +3,9 @@
 package com.microsoft.azure.iot.iothubreact.test.helpers
 
 import com.microsoft.azure.iothub._
-import resource.Resource
-
-/* Companion object required by `Resource` for type inference */
-object Device {
-
-  implicit object TypeClassResourceHelper extends Resource[Device] {
-    override def close(r: Device): Unit = r.disconnect()
-  }
-
-}
 
 /* Test helper to send messages to the hub */
-class Device(deviceId: String) extends Resource[Device] with Logger {
+class Device(deviceId: String) extends Logger {
 
   private[this] class EventCallback extends IotHubEventCallback {
     override def execute(status: IotHubStatusCode, context: scala.Any): Unit = {
@@ -33,14 +23,6 @@ class Device(deviceId: String) extends Resource[Device] with Logger {
 
   // Prepare client to send messages
   private[this] lazy val client = new DeviceClient(connString, IotHubClientProtocol.AMQPS)
-
-  /** Note: automatically invoked by Resource[A]
-    *
-    * @param resource Resource being disposed
-    */
-  override def close(resource: Device): Unit = {
-    resource.disconnect()
-  }
 
   def disconnect(): Unit = {
     client.close()

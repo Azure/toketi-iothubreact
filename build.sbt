@@ -10,12 +10,6 @@ crossScalaVersions := Seq("2.11.8", "2.12.0-RC1")
 logLevel := Level.Warn // Debug|Info|Warn|Error
 scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 
-def scalaArmPackage(scalaVersion: String) = scalaVersion match {
-  case version if version startsWith "2.11" => "scala-arm_2.11"
-  case version if version startsWith "2.12" => "scala-arm_2.11"
-  case _                                    => sys.error("unsupported scala version [scala-arm]")
-}
-
 def jacksonModulePackage(scalaVersion: String) = scalaVersion match {
   case version if version startsWith "2.11" => "jackson-module-scala_2.11"
   case version if version startsWith "2.12" => "jackson-module-scala_2.11"
@@ -39,7 +33,6 @@ libraryDependencies <++= (scalaVersion) {
       // Tests dependencies
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
       "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubClientVersion % "test",
-      "com.jsuereth" % scalaArmPackage(scalaVersion) % "1.4" % "test",
 
       // Remove < % "test" > to run samples-scala against the local workspace
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonCoreVersion % "test",
