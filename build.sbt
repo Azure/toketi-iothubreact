@@ -10,19 +10,12 @@ crossScalaVersions := Seq("2.11.8", "2.12.0-RC1")
 logLevel := Level.Warn // Debug|Info|Warn|Error
 scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 
-def jacksonModulePackage(scalaVersion: String) = scalaVersion match {
-  case version if version startsWith "2.11" => "jackson-module-scala_2.11"
-  case version if version startsWith "2.12" => "jackson-module-scala_2.11"
-  case _                                    => sys.error("unsupported scala version [jackson-module-scala]")
-}
-
 libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
     val azureEventHubSDKVersion = "0.8.2"
     val iothubClientVersion = "1.0.14"
     val scalaTestVersion = "3.0.0"
-    val jacksonCoreVersion = "2.8.3"
-    val jacksonModuleVersion = "2.8.2"
+    val jacksonVersion = "2.8.3"
     val akkaStreamVersion = "2.4.11"
 
     Seq(
@@ -35,8 +28,8 @@ libraryDependencies <++= (scalaVersion) {
       "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubClientVersion % "test",
 
       // Remove < % "test" > to run samples-scala against the local workspace
-      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonCoreVersion % "test",
-      "com.fasterxml.jackson.module" % jacksonModulePackage(scalaVersion) % jacksonModuleVersion % "test"
+      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion % "test",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion % "test"
     )
 }
 
