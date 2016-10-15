@@ -1,5 +1,6 @@
 [![Maven Central][maven-badge]][maven-url]
 [![Bintray][bintray-badge]][bintray-url]
+[![Build][build-badge]][build-url]
 [![Issues][issues-badge]][issues-url]
 [![Gitter][gitter-badge]][gitter-url]
 
@@ -170,9 +171,11 @@ with IntelliJ IDEA, importing the settings from `Codestyle.IntelliJ.xml`.
 
 [maven-badge]: https://img.shields.io/maven-central/v/com.microsoft.azure.iot/iothub-react_2.11.svg
 [maven-url]: http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22iothub-react_2.11%22
-[bintray-badge]: https://img.shields.io/bintray/v/microsoftazuretoketi/toketi-repo/iothub-react.svg?maxAge=2592000
+[bintray-badge]: https://img.shields.io/bintray/v/microsoftazuretoketi/toketi-repo/iothub-react.svg
 [bintray-url]: https://bintray.com/microsoftazuretoketi/toketi-repo/iothub-react
+[build-badge]: https://img.shields.io/travis/Azure/toketi-iothubreact.svg
+[build-url]: https://travis-ci.org/Azure/toketi-iothubreact
 [issues-badge]: https://img.shields.io/github/issues/azure/toketi-iothubreact.svg?style=flat-square
 [issues-url]: https://github.com/azure/toketi-iothubreact/issues
-[gitter-badge]: https://img.shields.io/gitter/room/azure/toketi-repo.js.svg?maxAge=2592000
+[gitter-badge]: https://img.shields.io/gitter/room/azure/toketi-repo.js.svg
 [gitter-url]: https://gitter.im/azure-toketi/iothub-react
