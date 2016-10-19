@@ -6,7 +6,7 @@ import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
 
 private[iothubreact] trait CheckpointBackend {
 
-  def checkpointNamespace: String = Configuration.storageNamespace
+  def checkpointNamespace: String = "" //Configuration.storageNamespace
 
   /** Read the offset of the last record processed for the given partition
     *
