@@ -13,6 +13,7 @@ scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
     val azureEventHubSDKVersion = "0.8.2"
+    val azureStorageSDKVersion = "4.4.0"
     val iothubClientVersion = "1.0.14"
     val scalaTestVersion = "3.0.0"
     val jacksonVersion = "2.8.3"
@@ -22,6 +23,7 @@ libraryDependencies <++= (scalaVersion) {
       // Library dependencies
       "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
       "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
+      "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
 
       // Tests dependencies
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
