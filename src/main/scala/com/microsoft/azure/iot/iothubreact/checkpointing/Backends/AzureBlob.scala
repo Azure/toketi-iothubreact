@@ -47,7 +47,7 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
     } catch {
       case e: StorageException ⇒ {
         if (e.getErrorCode == "BlobNotFound") {
-          IoTHub.OffsetNotFound
+          "" //IoTHub.OffsetNotFound
         } else {
           log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
           throw e
