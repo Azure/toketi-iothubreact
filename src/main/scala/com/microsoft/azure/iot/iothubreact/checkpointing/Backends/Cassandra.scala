@@ -6,6 +6,8 @@ import com.microsoft.azure.iot.iothubreact.Logger
 
 private[iothubreact] class Cassandra extends CheckpointBackend with Logger {
 
+  def tableName = checkpointNamespace
+
   /** Read the offset of the last record processed for the given partition
     *
     * @param partition IoT hub partition number

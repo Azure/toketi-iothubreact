@@ -2,19 +2,11 @@
 
 package com.microsoft.azure.iot.iothubreact.checkpointing.Backends
 
-trait CheckpointBackend {
+import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
 
-  private[this] var _CPBackendNS: String = "iothub-react-checkpoints";
+private[iothubreact] trait CheckpointBackend {
 
-  /** Set the namespace for the data stored by the backend
-    *
-    * @param ns Namespace value
-    */
-  def setNamespace(ns: String): Unit = {
-    _CPBackendNS = ns
-  }
-
-  def checkpointNamespace: String = _CPBackendNS
+  def checkpointNamespace: String = Configuration.storageNamespace
 
   /** Read the offset of the last record processed for the given partition
     *
