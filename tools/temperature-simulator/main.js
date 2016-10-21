@@ -1,17 +1,29 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+/*
+
+  How to prepare the devices:
+
+  1. Setup an Azure IoT hub and get the "iothubowner" connection string
+
+  2. Download iothub-explorer.js from
+
+        https://github.com/Azure/azure-iot-sdks/tree/master/tools/iothub-explorer
+
+  3. > npm install
+  4. > iothub-explorer.js login "conn string"
+  5. > for i in {1000..1010}; do node iothub-explorer.js create device$i --display="deviceId"; done
+  6. > node iothub-explorer.js list --display="deviceId,authentication.SymmetricKey.primaryKey" --raw|sort
+
+*/
+
 'use strict';
 
 var frequency   = 1000
 var randomness  = 10
+
 var hub_name    = 'my-iothub'
 
-// How to create devices:
-// 1. Setup an Azure IoT hub and get the "iothubowner" connection string
-// 2. Download iothub-explorer.js from Github
-// 3. > iothub-explorer.js login "conn string"
-// 4. > for i in {1000..1010}; do node iothub-explorer.js create device$i --display="deviceId"; done
-// 5. > node iothub-explorer.js list --display="deviceId,authentication.SymmetricKey.primaryKey" --raw|sort
 var hub_devices = [
   [{"deviceId":"device1000","authentication":{"SymmetricKey":{"primaryKey":"............"}}}],
   [{"deviceId":"device1001","authentication":{"SymmetricKey":{"primaryKey":"............"}}}],

@@ -48,7 +48,6 @@ TemperatureSimulator.prototype.getConnectCallback = function() {
 
 TemperatureSimulator.prototype.connect = function() {
   this.connectionStatus = 'connecting';
-  console.log(this.connectionString)
   this.client = Client.fromConnectionString(this.connectionString, this.protocol);
   this.client.open(this.getConnectCallback());
 };
