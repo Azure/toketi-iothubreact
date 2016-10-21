@@ -1,5 +1,6 @@
 ### Project specific ###
 .idea
+tools/temperature-simulator/test.js
 
 ### MacOS ###
 .DS_Store
@@ -26,6 +27,9 @@ project/plugins/project/
 # ENSIME specific
 .ensime_cache/
 .ensime
+
+### Node.js ###
+node_modules/
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm

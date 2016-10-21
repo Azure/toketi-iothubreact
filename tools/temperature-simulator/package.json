@@ -1,0 +1,14 @@
+{
+  "name": "iothub-react-temperature-simulator",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Simple simulator sending Temperature data to Azure IoT Hub",
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "dependencies": {
+    "azure-iot-device": "1.0.9",
+    "azure-iot-device-amqp": "1.0.9",
+    "azure-iot-device-http": "1.0.10",
+    "azure-iot-device-mqtt": "1.0.9"
+  }
+}
