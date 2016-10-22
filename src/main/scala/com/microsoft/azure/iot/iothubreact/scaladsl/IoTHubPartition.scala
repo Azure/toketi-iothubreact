@@ -169,16 +169,16 @@ class IoTHubPartition(val partition: Int) extends Logger {
     }
   }
 
-  /** Get the offset saved for the specified partition
+  /** Get the offset saved for the current partition
     *
     * @return Offset
     */
   private[this] def GetSavedOffset(): String = {
     val partitionCp = CheckpointActorSystem.getCheckpointService(partition)
+    implicit val rwTimeout = Timeout(CPConfiguration.checkpointRWTimeout)
     try {
       Retry(3, 5 seconds) {
         log.debug(s"Loading the stream position for partition ${partition}")
-        implicit val rwTimeout = Timeout(CPConfiguration.checkpointRWTimeout)
         val future = (partitionCp ? GetOffset).mapTo[String]
         Await.result(future, rwTimeout.duration)
       }

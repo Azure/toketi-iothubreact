@@ -35,8 +35,6 @@ private[iothubreact] object Retry extends Logger {
             throw e
           }
         }
-
-        //case _ if remaining > 0 ⇒ Thread.sleep(pause.toMillis)
       }
     }
     result.get

@@ -26,9 +26,8 @@ private[iothubreact] object CheckpointService {
 
 }
 
-/** Checkpointing agent. Takes care of initializing the right storage,
-  * reading and writing to it. Each agent instance work on a single
-  * IoT hub partition
+/** Checkpointing agent. Takes care of initializing the right storage, reading and writing to it.
+  * Each agent instance work on a single IoT hub partition
   *
   * @param partition IoT hub partition number [0..N]
   */
@@ -49,9 +48,7 @@ private[iothubreact] class CheckpointService(partition: Int)
   private[this] var currentOffset: String = IoTHubPartition.OffsetStartOfStream
   private[this] val storage               = getCheckpointBackend
 
-  /** Before the actor starts we schedule a recurring
-    * storage write
-    */
+  // Before the actor starts we schedule a recurring storage write
   override def preStart(): Unit = {
     val time = Configuration.checkpointFrequency
     context.system.scheduler.schedule(time, time, self, StoreOffset)
@@ -87,12 +84,12 @@ private[iothubreact] class CheckpointService(partition: Int)
     }
   }
 
-  // While reading the state we stash all commands, to avoid concurrent GetOffset commands
+  // While reading the offset, we stash all commands, to avoid concurrent GetOffset commands
   def busyReading: Receive = {
     case _ ⇒ stash()
   }
 
-  // After loading the position from the storage, the actor is ready process all commands
+  // After loading the offset from the storage, the actor is ready process all commands
   def ready: Receive = {
 
     case GetOffset ⇒ sender() ! currentOffset
@@ -122,11 +119,11 @@ private[iothubreact] class CheckpointService(partition: Int)
           if (offsetToStore == "") {
             log.debug(s"Checkpoint skipped: partition=${partition}, count ${queuedOffsets} < threshold ${Configuration.checkpointCountThreshold}")
           } else {
-            log.info(s"Writing checkpoint: partition=${partition}, storing ${offsetToStore}, current offset=${currentOffset}")
+            log.info(s"Writing checkpoint: partition=${partition}, storing ${offsetToStore} (current offset=${currentOffset})")
             storage.writeOffset(partition, offsetToStore)
           }
         } else {
-          log.debug(s"Partition=${partition}, checkpoint queue is empty [count ${queuedOffsets}]")
+          log.debug(s"Partition=${partition}, checkpoint queue is empty [count ${queuedOffsets}, current offset=${currentOffset}]")
         }
       } catch {
         case e: Exception => log.error(e, e.getMessage)
@@ -136,7 +133,7 @@ private[iothubreact] class CheckpointService(partition: Int)
     }
   }
 
-  // While writing we ignore StoreOffset signals
+  // While writing we discard StoreOffset signals
   def busyWriting: Receive = {
 
     case GetOffset ⇒ sender() ! currentOffset
@@ -154,14 +151,13 @@ private[iothubreact] class CheckpointService(partition: Int)
       //  queue.enqueue -> queue.last == queue(queue.size -1)
       //  queue.dequeue -> queue.head == queue(0)
 
-      // If the tail of the queue contains an offset stored in the current second then increment
-      // the count of messages for that second. Otherwise enqueue a new element
+      // If the tail of the queue contains an offset stored in the current second, then increment
+      // the count of messages for that second. Otherwise enqueue a new element.
       if (queue.size > 0 && epoch == timeOf(queue.last))
         queue.update(queue.size - 1, Tuple3(offset, epoch, countOf(queue.last) + 1))
       else
         queue.enqueue(Tuple3(offset, epoch, 1))
 
-      // Note: this is not the queue size
       queuedOffsets += 1
       currentOffset = offset
     }
