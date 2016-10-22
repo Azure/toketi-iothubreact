@@ -16,6 +16,7 @@ trait ReactiveStreaming {
       Supervision.Resume
   }
 
-  implicit val actorSystem  = ActorSystem("Demo")
-  implicit val materializer = ActorMaterializer(ActorMaterializerSettings(actorSystem).withSupervisionStrategy(decider))
+  implicit val actorSystem = ActorSystem("Demo")
+  val settings = ActorMaterializerSettings(actorSystem).withSupervisionStrategy(decider)
+  implicit val materializer = ActorMaterializer(settings)
 }

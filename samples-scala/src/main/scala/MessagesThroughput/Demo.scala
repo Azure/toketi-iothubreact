@@ -8,7 +8,6 @@ import com.microsoft.azure.iot.iothubreact.IoTMessage
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 
 import scala.concurrent.duration._
-import scala.io.StdIn
 import scala.language.postfixOps
 
 /** Retrieve messages from IoT hub managing the stream velocity
@@ -51,11 +50,11 @@ object Demo extends App with ReactiveStreaming {
 
   // Start processing the stream
   if (throttling) {
-    new IoTHub().source
+    IoTHub().source
       .to(throttleAndMonitor)
       .run()
   } else {
-    new IoTHub().source
+    IoTHub().source
       .to(monitor)
       .run()
   }
