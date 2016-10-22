@@ -6,29 +6,43 @@ import java.io.IOException
 import java.net.URISyntaxException
 import java.util.UUID
 
-import com.microsoft.azure.iot.iothubreact.Logger
 import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
-import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
+import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
+import com.microsoft.azure.iot.iothubreact.{Logger, Retry}
 import com.microsoft.azure.storage.blob.CloudBlockBlob
 import com.microsoft.azure.storage.{AccessCondition, CloudStorageAccount, OperationContext, StorageException}
 
+import scala.concurrent.duration._
+import scala.language.{implicitConversions, postfixOps}
+
 private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
 
+  // Set the account to point either to Azure or the emulator
   val account: CloudStorageAccount = if (Configuration.azureBlobEmulator)
     CloudStorageAccount.getDevelopmentStorageAccount()
   else
     CloudStorageAccount.parse(Configuration.azureBlobConnectionString)
 
-  val client    = account.createCloudBlobClient()
+  val client = account.createCloudBlobClient()
+
+  // Set the container, ensure it's ready
   val container = client.getContainerReference(checkpointNamespace)
   try {
-    container.createIfNotExists()
+    Retry(2, 5 seconds) {
+      container.createIfNotExists()
+    }
   } catch {
     case e: StorageException ⇒ {
       log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
       throw e
     }
-    case e: IOException      ⇒ {
+
+    case e: IOException ⇒ {
+      log.error(e, e.getMessage)
+      throw e
+    }
+
+    case e: Exception ⇒ {
       log.error(e, e.getMessage)
       throw e
     }
@@ -47,17 +61,19 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
     } catch {
       case e: StorageException ⇒ {
         if (e.getErrorCode == "BlobNotFound") {
-          "" //IoTHub.OffsetNotFound
+          IoTHubPartition.OffsetCheckpointNotFound
         } else {
           log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
           throw e
         }
       }
-      case e: IOException      ⇒ {
+
+      case e: IOException ⇒ {
         log.error(e, e.getMessage)
         throw e
       }
-      case e: Exception        ⇒ {
+
+      case e: Exception ⇒ {
         log.error(e, e.getMessage)
         throw e
       }
@@ -77,29 +93,35 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
 
   private[this] def getBlockBlobReference(partition: Int): CloudBlockBlob = {
     try {
-      container.getBlockBlobReference(filename(partition))
+      Retry(2, 2 seconds) {
+        container.getBlockBlobReference(filename(partition))
+      }
     } catch {
-      // @todo manage exceptions
-      case e: StorageException   ⇒ {
-        println(e)
+
+      case e: StorageException ⇒ {
+        log.error(e, e.getMessage)
         throw e
       }
+
       case e: URISyntaxException ⇒ {
-        println(e)
+        log.error(e, e.getMessage)
         throw e
       }
-      case e: Exception          ⇒ {
-        println(e)
+
+      case e: Exception ⇒ {
+        log.error(e, e.getMessage)
         throw e
       }
     }
   }
 
   private[this] def acquireLease(file: CloudBlockBlob): String = {
+    // Note: the lease ID must be a Guid otherwise the service returs 400
     var leaseId = UUID.randomUUID().toString
     try {
       file.acquireLease(Configuration.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
     } catch {
+
       case e: StorageException ⇒ {
         if (e.getErrorCode == "BlobNotFound") {
           leaseId = ""
@@ -108,7 +130,8 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
           throw e
         }
       }
-      case e: Exception        ⇒ {
+
+      case e: Exception ⇒ {
         log.error(e, e.getMessage)
         throw e
       }
@@ -118,6 +141,8 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
   }
 
   private[this] def writeAndRelease(file: CloudBlockBlob, leaseId: String, content: String): Unit = {
+
+    // The access condition depends on the file existing
     val accessCondition = if (leaseId == "")
       AccessCondition.generateEmptyCondition()
     else
@@ -125,19 +150,23 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
 
     try {
       file.uploadText(content, "UTF-8", accessCondition, null, new OperationContext)
+
+      // If this is a new file, there is no lease to release
       if (leaseId != "") file.releaseLease(accessCondition)
     } catch {
-      // @todo manage exceptions
+
       case e: StorageException ⇒ {
-        println(e)
+        log.error(e, e.getMessage)
         throw e
       }
-      case e: IOException      ⇒ {
-        println(e)
+
+      case e: IOException ⇒ {
+        log.error(e, e.getMessage)
         throw e
       }
-      case e: Exception        ⇒ {
-        println(e)
+
+      case e: Exception ⇒ {
+        log.error(e, e.getMessage)
         throw e
       }
     }
