@@ -13,7 +13,7 @@ libraryDependencies ++= {
   val devVersion = "0.7.0-DEVSNAPSHOT"
 
   Seq(
-    "com.microsoft.azure.iot" %% "iothub-react" % prodVersion,
+    "com.microsoft.azure.iot" %% "iothub-react" % devVersion,
 
     // Jackson libraries for JSON marshalling and unmarshalling
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.3",

@@ -26,7 +26,7 @@ object Demo extends App with ReactiveStreaming {
   val showStatsEvery = 1 second
 
   print(s"Do you want to test throttling (${maxSpeed} msg/sec) ? [y/N] ")
-  val input      = StdIn.readLine()
+  val input      = scala.io.StdIn.readLine()
   val throttling = input.size > 0 && input(0).toUpper == 'Y'
 
   // Stream throttling sink
