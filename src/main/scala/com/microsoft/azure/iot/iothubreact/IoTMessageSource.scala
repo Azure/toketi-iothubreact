@@ -150,7 +150,7 @@ private class IoTMessageSource() extends GraphStage[SourceShape[IoTMessage]] wit
       def getIoTHubReceiver: PartitionReceiver = Retry(3, 2 seconds) {
         offsetType match {
           case SequenceOffset ⇒ {
-            log.info(s"Connecting to partition ${partition.toString} starting from ${offset}")
+            log.info(s"Connecting to partition ${partition.toString} starting from offset '${offset}'")
             IoTHubStorage
               .createClient()
               .createReceiverSync(
@@ -160,7 +160,7 @@ private class IoTMessageSource() extends GraphStage[SourceShape[IoTMessage]] wit
                 OffsetInclusive)
           }
           case TimeOffset     ⇒ {
-            log.info(s"Connecting to partition ${partition.toString} starting from ${startTime}")
+            log.info(s"Connecting to partition ${partition.toString} starting from time '${startTime}'")
             IoTHubStorage
               .createClient()
               .createReceiverSync(

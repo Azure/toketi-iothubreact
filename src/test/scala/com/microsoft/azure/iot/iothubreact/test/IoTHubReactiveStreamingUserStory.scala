@@ -44,13 +44,13 @@ class IoTHubReactiveStreamingUserStory
     scenario("Developer wants to retrieve IoT messages") {
 
       Given("An IoT hub is configured")
-      val hub = new IoTHub()
-      val hubPartition = new IoTHubPartition(1)
+      val hub = IoTHub()
+      val hubPartition = IoTHubPartition(1)
 
       When("A developer wants to fetch messages from Azure IoT hub")
-      val messagesFromOnePartition: Source[IoTMessage, NotUsed] = hubPartition.source
-      val messagesFromAllPartitions: Source[IoTMessage, NotUsed] = hub.source
-      val messagesFromNowOn: Source[IoTMessage, NotUsed] = hub.source(Instant.now())
+      val messagesFromOnePartition: Source[IoTMessage, NotUsed] = hubPartition.source(false)
+      val messagesFromAllPartitions: Source[IoTMessage, NotUsed] = hub.source(false)
+      val messagesFromNowOn: Source[IoTMessage, NotUsed] = hub.source(Instant.now(), false)
 
       Then("The messages are presented as a stream")
       messagesFromOnePartition.to(Sink.ignore)
@@ -74,7 +74,7 @@ class IoTHubReactiveStreamingUserStory
       log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
 
       Given("An IoT hub is configured")
-      val messages = new IoTHub().source(startTime)
+      val messages = IoTHub().source(startTime, false)
 
       And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
       for (i ← 0 until DevicesCount) {
@@ -129,7 +129,7 @@ class IoTHubReactiveStreamingUserStory
       log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
 
       Given("An IoT hub is configured")
-      val messages = new IoTHub().source(startTime)
+      val messages = IoTHub().source(startTime, false)
 
       And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
       val devices = new collection.mutable.ListMap[Int, Device]()

@@ -61,11 +61,10 @@ class IoTHub extends Logger {
     * @return A source of IoT messages
     */
   def source(withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
-    val _withCheckpoints = withCheckpoints && CPConfiguration.isEnabled
     getSource(
       withTimeOffset = false,
       offsets = fromStart,
-      withCheckpoints = _withCheckpoints)
+      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given offset, from all
