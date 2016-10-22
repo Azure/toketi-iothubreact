@@ -9,7 +9,7 @@ import akka.actor.Props
 import akka.pattern.ask
 import akka.stream.scaladsl.{Sink, Source}
 import com.microsoft.azure.iot.iothubreact.IoTMessage
-import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
+import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
 import com.microsoft.azure.iot.iothubreact.test.helpers._
 import org.scalatest._
 
@@ -45,9 +45,10 @@ class IoTHubReactiveStreamingUserStory
 
       Given("An IoT hub is configured")
       val hub = new IoTHub()
+      val hubPartition = new IoTHubPartition(1)
 
       When("A developer wants to fetch messages from Azure IoT hub")
-      val messagesFromOnePartition: Source[IoTMessage, NotUsed] = hub.source(1)
+      val messagesFromOnePartition: Source[IoTMessage, NotUsed] = hubPartition.source
       val messagesFromAllPartitions: Source[IoTMessage, NotUsed] = hub.source
       val messagesFromNowOn: Source[IoTMessage, NotUsed] = hub.source(Instant.now())
 
