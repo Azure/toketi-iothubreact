@@ -25,8 +25,8 @@ private object Configuration {
 
   // Tests can override these
   var iotReceiverConsumerGroup: String = EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
-  var receiverTimeout         : Long   = conf.getDuration("iothub.receiverTimeout").toMillis
-  var receiverBatchSize       : Int    = conf.getInt("iothub.receiverBatchSize")
+  var receiverTimeout         : Long   = conf.getDuration("iothub-stream.receiverTimeout").toMillis
+  var receiverBatchSize       : Int    = conf.getInt("iothub-stream.receiverBatchSize")
 
   // Read devices configuration from JSON file
   private[this] val jsonParser = new ObjectMapper()

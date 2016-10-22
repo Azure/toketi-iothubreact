@@ -9,7 +9,7 @@ import akka.event.{LogSource, Logging}
   *
   * @see http://doc.akka.io/docs/akka/2.4.10/scala/logging.html
   */
-private trait Logger {
+private[iothubreact] trait Logger {
 
   implicit val logSource = new LogSource[AnyRef] {
     def genString(o: AnyRef): String = o.getClass.getName
