@@ -2,7 +2,7 @@
 
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
-version := "0.7.0-DEV.161021A"
+version := "0.7.0-DEV.161024A"
 
 scalaVersion := "2.11.8"
 crossScalaVersions := Seq("2.11.8", "2.12.0-RC1")
