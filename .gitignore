@@ -1,6 +1,7 @@
 ### Project specific ###
 .idea
-tools/temperature-simulator/test.js
+tools/devices-simulator/credentials.js
+tools/devices-simulator/test.js
 
 ### MacOS ###
 .DS_Store
