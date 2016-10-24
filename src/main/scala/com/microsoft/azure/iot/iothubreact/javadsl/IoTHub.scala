@@ -6,7 +6,7 @@ import java.time.Instant
 
 import akka.NotUsed
 import akka.stream.javadsl.{Source ⇒ SourceJavaDSL}
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.{IoTMessage, Offset}
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
 
 import scala.collection.JavaConverters._
@@ -58,7 +58,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: java.util.Collection[String]): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(offsets: java.util.Collection[Offset]): SourceJavaDSL[IoTMessage, NotUsed] = {
     new SourceJavaDSL(iotHub.source(offsets.asScala.toList))
   }
 
@@ -82,7 +82,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: java.util.Collection[String], withCheckpoints: Boolean): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(offsets: java.util.Collection[Offset], withCheckpoints: Boolean): SourceJavaDSL[IoTMessage, NotUsed] = {
     new SourceJavaDSL(iotHub.source(offsets.asScala.toList, withCheckpoints))
   }
 }

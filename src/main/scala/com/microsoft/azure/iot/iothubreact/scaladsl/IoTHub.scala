@@ -23,7 +23,7 @@ object IoTHub {
 class IoTHub extends Logger {
 
   private[this] def fromStart =
-    Some(List.fill[String](Configuration.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream))
+    Some(List.fill[Offset](Configuration.iotHubPartitions)(Offset(IoTHubPartition.OffsetStartOfStream)))
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise
@@ -74,7 +74,7 @@ class IoTHub extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: List[String]): Source[IoTMessage, NotUsed] = {
+  def source(offsets: List[Offset]): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = Some(offsets),
@@ -104,7 +104,7 @@ class IoTHub extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: List[String], withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(offsets: List[Offset], withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = Some(offsets),
@@ -122,7 +122,7 @@ class IoTHub extends Logger {
     * @return A source of IoT messages
     */
   private[this] def getSource(
-      offsets: Option[List[String]] = None,
+      offsets: Option[List[Offset]] = None,
       startTime: Instant = Instant.MIN,
       withTimeOffset: Boolean = false,
       withCheckpoints: Boolean = true): Source[IoTMessage, NotUsed] = {

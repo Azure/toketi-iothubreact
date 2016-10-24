@@ -54,7 +54,7 @@ class IoTHubPartition(val partition: Int) extends Logger {
   def source(): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
-      offset = IoTHubPartition.OffsetStartOfStream,
+      offset = Offset(IoTHubPartition.OffsetStartOfStream),
       withCheckpoints = CPConfiguration.isEnabled)
   }
 
@@ -81,7 +81,7 @@ class IoTHubPartition(val partition: Int) extends Logger {
   def source(withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
-      offset = IoTHubPartition.OffsetStartOfStream,
+      offset = Offset(IoTHubPartition.OffsetStartOfStream),
       withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
   }
 
@@ -91,7 +91,7 @@ class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offset: String): Source[IoTMessage, NotUsed] = {
+  def source(offset: Offset): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offset = offset,
@@ -119,7 +119,7 @@ class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offset: String, withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(offset: Offset, withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offset = offset,
@@ -138,12 +138,12 @@ class IoTHubPartition(val partition: Int) extends Logger {
     */
   private[this] def getSource(
       withTimeOffset: Boolean,
-      offset: String = "",
+      offset: Offset = Offset(""),
       startTime: Instant = Instant.MIN,
       withCheckpoints: Boolean = true): Source[IoTMessage, NotUsed] = {
 
     // Load the offset from the storage (if needed)
-    var _offset = offset
+    var _offset = offset.value
     var _withTimeOffset = withTimeOffset
     if (withCheckpoints) {
       val savedOffset = GetSavedOffset()
