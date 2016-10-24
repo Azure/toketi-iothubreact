@@ -32,7 +32,7 @@ public class Demo extends ReactiveStreamingApp {
         Source<IoTMessage, NotUsed> messagesFromAllPartitions = new IoTHub().source();
 
         messagesFromAllPartitions
-                .filter(m -> m.schema() == "temperature")
+                .filter(m -> m.model() == "temperature")
                 .map(m -> parseTemperature(m))
                 .filter(x -> x != null && x.value > 100)
                 .to(console())

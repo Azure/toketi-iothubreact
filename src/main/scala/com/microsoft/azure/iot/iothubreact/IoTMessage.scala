@@ -41,7 +41,7 @@ class IoTMessage(data: Option[EventData], val partition: Option[Int]) {
 
   // Content type, e.g. how to interpret/deserialize the content
   // Note: empty when using MQTT
-  lazy val schema: String = properties.getOrDefault("schema", "")
+  lazy val model: String = properties.getOrDefault("model", "")
 
   /** Time when the message was received by IoT hub service
     * Note that this might differ from the time set by the device, e.g. in case

@@ -7,7 +7,7 @@ var AbstractSimulator = require("./abstract_simulator.js");
 // Inheritance
 var TemperatureSimulator = function () {
     AbstractSimulator.apply(this, arguments);
-    this.schema = "temperature";
+    this.model = "temperature";
 
     // (15-25) .. (15+25) => -10 .. 40
     this.mid = 15;

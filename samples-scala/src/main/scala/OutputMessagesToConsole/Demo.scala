@@ -5,7 +5,7 @@ package OutputMessagesToConsole
 import akka.stream.scaladsl.Sink
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import com.microsoft.azure.iot.iothubreact.filters.Schema
+import com.microsoft.azure.iot.iothubreact.filters.Model
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
 
 import scala.language.{implicitConversions, postfixOps}
@@ -34,7 +34,7 @@ object Demo extends App with ReactiveStreaming {
 
   // Stream
   messagesFromAllPartitions
-    .filter(Schema("temperature"))
+    .filter(Model("temperature"))
     .map(m ⇒ {
       val temperature = jsonParser.readValue(m.contentAsString, classOf[Temperature])
       temperature.deviceId = m.deviceId
