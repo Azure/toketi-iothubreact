@@ -34,7 +34,7 @@ public class Demo extends ReactiveStreamingApp {
         messagesFromAllPartitions
                 .filter(m -> m.model() == "temperature")
                 .map(m -> parseTemperature(m))
-                .filter(x -> x != null && x.value > 100)
+                .filter(x -> x != null && x.value > 60)
                 .to(console())
                 .run(streamMaterializer);
     }
