@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package MessagesThroughput
+package B_MessagesThroughput
 
 import com.typesafe.config.ConfigFactory
 

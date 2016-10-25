@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package OutputMessagesToConsole
+package A_OutputMessagesToConsole
 
 import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.filters.Model

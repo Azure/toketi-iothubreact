@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package MessagesThroughput
+package B_MessagesThroughput
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}

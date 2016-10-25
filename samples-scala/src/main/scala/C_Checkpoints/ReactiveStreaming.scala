@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package OutputMessagesToConsole
+package C_Checkpoints
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
@@ -16,6 +16,7 @@ trait ReactiveStreaming {
       Supervision.Resume
   }
 
-  implicit val actorSystem  = ActorSystem("Demo")
-  implicit val materializer = ActorMaterializer(ActorMaterializerSettings(actorSystem).withSupervisionStrategy(decider))
+  implicit val actorSystem = ActorSystem("Demo")
+  val settings = ActorMaterializerSettings(actorSystem).withSupervisionStrategy(decider)
+  implicit val materializer = ActorMaterializer(settings)
 }
