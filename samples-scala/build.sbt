@@ -10,15 +10,9 @@ resolvers += "Dev Snapshots" at "https://dl.bintray.com/microsoftazuretoketi/tok
 
 libraryDependencies ++= {
   val prodVersion = "0.6.0"
-  val devVersion = "0.7.0-DEV.161024B"
+  val devVersion = "0.7.0-DEV.161025A"
 
   Seq(
-    "com.microsoft.azure.iot" %% "iothub-react" % devVersion,
-
-    // Jackson libraries for JSON marshalling and unmarshalling
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.3",
-
-    // Jackson module for scala object marshalling and unmarshalling
-    "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.8.2"
+    "com.microsoft.azure.iot" %% "iothub-react" % devVersion
   )
 }
