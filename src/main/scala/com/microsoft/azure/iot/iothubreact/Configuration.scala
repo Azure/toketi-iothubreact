@@ -2,8 +2,13 @@
 
 package com.microsoft.azure.iot.iothubreact
 
+import java.util.concurrent.TimeUnit
+
 import com.microsoft.azure.eventhubs.EventHubClient
 import com.typesafe.config.{Config, ConfigFactory}
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 /** Hold IoT Hub configuration settings
   *
@@ -11,13 +16,13 @@ import com.typesafe.config.{Config, ConfigFactory}
   *      configuration file formats
   * @todo dependency injection
   */
-private object Configuration {
+private[iothubreact] object Configuration {
 
   // Maximum size supported by the client
   private[this] val MaxBatchSize = 999
 
-  // Maximum size supported by the client
-  private[this] val DefaultReceiverTimeout = 3000
+  // Default IoThub client timeout
+  private[this] val DefaultReceiverTimeout = 3 seconds
 
   private[this] val conf: Config = ConfigFactory.load()
 
@@ -41,15 +46,15 @@ private object Configuration {
     }
 
   // Message retrieval timeout in milliseconds
-  private[this] val tmpRTO = conf.getDuration("iothub.receiverTimeout").toMillis
-  val receiverTimeout: Long =
+  private[this] val tmpRTO = conf.getDuration("iothub-stream.receiverTimeout").toMillis
+  val receiverTimeout: FiniteDuration =
     if (tmpRTO > 0)
-      tmpRTO
+      FiniteDuration(tmpRTO, TimeUnit.MILLISECONDS)
     else
       DefaultReceiverTimeout
 
   // How many messages to retrieve on each call to the storage
-  private[this] val tmpRBS = conf.getInt("iothub.receiverBatchSize")
+  private[this] val tmpRBS = conf.getInt("iothub-stream.receiverBatchSize")
   val receiverBatchSize: Int =
     if (tmpRBS > 0 && tmpRBS <= MaxBatchSize)
       tmpRBS

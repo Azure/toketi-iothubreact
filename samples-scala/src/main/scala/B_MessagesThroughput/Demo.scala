@@ -1,14 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package MessagesThroughput
+package B_MessagesThroughput
 
 import akka.stream.ThrottleMode
 import akka.stream.scaladsl.{Flow, Sink}
 import com.microsoft.azure.iot.iothubreact.IoTMessage
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
+import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 
 import scala.concurrent.duration._
-import scala.io.StdIn
+import scala.language.postfixOps
 
 /** Retrieve messages from IoT hub managing the stream velocity
   *
@@ -18,7 +19,7 @@ import scala.io.StdIn
   * - How to combine multiple destinations
   * - Back pressure
   */
-object Demo extends App with ReactiveStreaming {
+object Demo extends App {
 
   // Maximum speed allowed
   val maxSpeed = 200
@@ -26,7 +27,7 @@ object Demo extends App with ReactiveStreaming {
   val showStatsEvery = 1 second
 
   print(s"Do you want to test throttling (${maxSpeed} msg/sec) ? [y/N] ")
-  val input      = StdIn.readLine()
+  val input      = scala.io.StdIn.readLine()
   val throttling = input.size > 0 && input(0).toUpper == 'Y'
 
   // Stream throttling sink
@@ -50,11 +51,11 @@ object Demo extends App with ReactiveStreaming {
 
   // Start processing the stream
   if (throttling) {
-    new IoTHub().source
+    IoTHub().source
       .to(throttleAndMonitor)
       .run()
   } else {
-    new IoTHub().source
+    IoTHub().source
       .to(monitor)
       .run()
   }
