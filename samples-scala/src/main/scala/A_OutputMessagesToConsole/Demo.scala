@@ -7,21 +7,22 @@ import com.microsoft.azure.iot.iothubreact.filters.Model
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 
 import scala.language.{implicitConversions, postfixOps}
 
 /** Retrieve messages from IoT hub and display the data sent from Temperature devices
   */
-object Demo extends App with ReactiveStreaming {
+object Demo extends App {
+
+  // Source retrieving messages from one IoT hub partition (e.g. partition 2)
+  //val messagesFromOnePartition = IoTHubPartition(2).source()
+
+  // Source retrieving only recent messages
+  //val messagesFromNowOn = IoTHub().source(java.time.Instant.now())
 
   // Source retrieving messages from all IoT hub partitions
   val messagesFromAllPartitions = IoTHub().source()
-
-  // Source retrieving messages from one IoT hub partition (e.g. partition 2)
-  val messagesFromOnePartition = IoTHubPartition(2).source()
-
-  // Source retrieving only recent messages
-  val messagesFromNowOn = IoTHub().source(java.time.Instant.now())
 
   // Sink printing to the console
   val console = Sink.foreach[Temperature] {
