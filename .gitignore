@@ -1,8 +1,7 @@
 ### Project specific ###
 .idea
 tools/devices-simulator/credentials.js
-tools/devices-simulator/test.js
-cert.crt
+*.crt
 
 ### MacOS ###
 .DS_Store

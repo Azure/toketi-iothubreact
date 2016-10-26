@@ -22,7 +22,8 @@ the command line.
 
 From here on you should use a terminal with Node.js and Node Package Manager (npm) ready to use.
 
-To install IoT hub explorer, open a terminal and execute  
+To install IoT hub explorer, open a terminal and execute
+
 ```bash
 npm install -g iothub-explorer
 ```
@@ -32,7 +33,8 @@ Once you have IoT hub explorer installed, let's create the devices:
 1. **Login, using the connection string obtained earlier:**
 
 ```bash
-iothub-explorer login "iothubowner connection string"
+CONNSTRING="... iothubowner connection string ..."
+iothub-explorer login '$CONNSTRING'
 ```
 
 2. **Using a bash terminal, create some devices**
@@ -48,19 +50,19 @@ create a `credentials.js` file with the settings required.
 
 Open a bash terminal in the same folder of this README document and execute:
 
-```
+```bash
+CONNSTRING="... iothubowner connection string ..."
 DATA=$(iothub-explorer list --display="deviceId,authentication.SymmetricKey.primaryKey," --raw|sort|awk '{ print $0 ","}')
-echo "var hubDevices = [$DATA];" > credentials.js
+echo "var connString = '$CONNSTRING';" > credentials.js
+echo "var hubDevices = [$DATA];" >> credentials.js
 ```
-
-Lastly, edit `main.js` and set the `hubName` variable to your hub name.
 
 ## Run the simulator
 
 Open a bash terminal in the same folder of this README document and execute:
 
-```
-node main.js
+```bash
+npm run send
 ```
 
 At this point you should see that the simulator will be sending data every second, for

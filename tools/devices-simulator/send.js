@@ -1,25 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-/*
-    See README.md for the instructions to prepare this script
-
-*/
-
 "use strict";
 
 // How frequently to send data
 var frequency = 1000;
 
-// Name of your Azure IoT hub (if truncated, use the value from the connection string)
-var hubName = "my-iothub";
-
 // Available protocols
-//var Protocol = require("azure-iot-device-amqp-ws").AmqpWs;
 //var Protocol = require("azure-iot-device-amqp").Amqp;
 var Protocol = require("azure-iot-device-http").Http;
 
 // Load credentials
-require("vm").runInThisContext(require("fs").readFileSync(__dirname + "/credentials.js"))
+require("vm").runInThisContext(require("fs").readFileSync(__dirname + "/credentials.js"));
+var hubName = connString.substring(connString.indexOf("=") + 1, connString.indexOf(".azure-devices.net"));
 
 // Instantiate simulators
 var TemperatureSimulator = require("./temperature_simulator.js");
