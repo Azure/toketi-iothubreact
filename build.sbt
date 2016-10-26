@@ -59,3 +59,9 @@ bintrayOrganization := Some("microsoftazuretoketi")
 bintrayRepository := "toketi-repo"
 bintrayPackage := "iothub-react"
 bintrayReleaseOnPublish in ThisBuild := true
+
+// Required in Sonatype
+pomExtra :=
+    <url>https://github.com/Azure/toketi-iothubreact</url>
+    <scm><url>https://github.com/Azure/toketi-iothubreact</url></scm>
+    <developers><developer><id>microsoft</id><name>Microsoft</name></developer></developers>

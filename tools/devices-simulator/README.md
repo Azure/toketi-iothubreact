@@ -28,14 +28,14 @@ npm install -g iothub-explorer
 
 Once the IoT hub explorer is installed, proceed to create the devices:
  
-1. **Login, using the connection string obtained earlier:**
+* **Login, using the connection string obtained earlier:**
 
 ```bash
 CONNSTRING="... iothubowner connection string ..."
 iothub-explorer login '$CONNSTRING'
 ```
 
-2. **Create some devices**, e.g. using using a Bash terminal:
+* **Create some devices**, e.g. using using a Bash terminal:
 
 ```bash
 for i in {1000..1010}; do iothub-explorer create device$i --display="deviceId"; done

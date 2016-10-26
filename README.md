@@ -14,7 +14,7 @@ A simple example on how to use the library in Scala is the following:
 
 ```scala
 IoTHub().source()
-    .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -65,7 +65,7 @@ case class KafkaProducer(bootstrapServer: String)(implicit val system: ActorSyst
 val kafkaProducer = KafkaProducer(bootstrapServer)
  
 IoTHub().source()
-    .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .runWith(kafkaProducer.getSink())
 ```
@@ -82,7 +82,7 @@ so a service that consumes IoTHub events can create multiple streams and process
 val partitionNumber = 1
 
 IoTHub.source(partitionNumber)
-    .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -97,7 +97,7 @@ It's possible to start the stream from a given date and time too:
 val start = java.time.Instant.now()
 
 IoTHub.source(start)
-    .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -147,7 +147,7 @@ val start = java.time.Instant.now()
 val withCheckpoints = false
 
 IoTHub.source(start, withCheckpoints)
-    .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -159,7 +159,7 @@ your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= {
-  val iothubReactV = "0.6.0"
+  val iothubReactV = "0.7.0"
   
   Seq(
     "com.microsoft.azure.iot" %% "iothub-react" % iothubReactV
@@ -173,7 +173,7 @@ or this dependency in `pom.xml` file if working with Maven:
 <dependency>
     <groupId>com.microsoft.azure.iot</groupId>
     <artifactId>iothub-react_2.11</artifactId>
-    <version>0.6.0</version>
+    <version>0.7.0</version>
 </dependency>
 ```
 
