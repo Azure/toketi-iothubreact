@@ -9,8 +9,9 @@ import akka.stream.javadsl.Source;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.iot.iothubreact.IoTMessage;
 import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub;
-import com.microsoft.azure.iot.iothubreact.javadsl.IoTHubPartition;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
@@ -26,28 +27,34 @@ public class Demo extends ReactiveStreamingApp {
     public static void main(String args[]) {
 
         // Source retrieving messages from one IoT hub partition (e.g. partition 2)
-        Source<IoTMessage, NotUsed> messagesFromOnePartition = new IoTHubPartition(2).source();
+        //Source<IoTMessage, NotUsed> messages = new IoTHubPartition(2).source();
 
-        // Source retrieving messages from all IoT hub partitions
-        Source<IoTMessage, NotUsed> messagesFromAllPartitions = new IoTHub().source();
+        // Source retrieving from all IoT hub partitions for the past 24 hours
+        Source<IoTMessage, NotUsed> messages = new IoTHub().source(Instant.now().minus(1, ChronoUnit.DAYS));
 
-        messagesFromAllPartitions
-                .filter(m -> m.model() == "temperature")
+        messages
+                .filter(m -> m.model().equals("temperature"))
                 .map(m -> parseTemperature(m))
-                .filter(x -> x != null && x.value > 60)
+                .filter(x -> x != null && (x.value < 18 || x.value > 22))
                 .to(console())
                 .run(streamMaterializer);
     }
 
     public static Sink<Temperature, CompletionStage<Done>> console() {
-        return Sink.foreach(m -> out.println("Device: " + m.deviceId + ": temperature: " + m.value));
+        return Sink.foreach(m -> {
+            if (m.value <= 18) {
+                out.println("Device: " + m.deviceId + ": temperature too LOW: " + m.value);
+            } else {
+                out.println("Device: " + m.deviceId + ": temperature to HIGH: " + m.value);
+            }
+        });
     }
 
     public static Temperature parseTemperature(IoTMessage m) {
         try {
             Map<String, Object> hash = jsonParser.readValue(m.contentAsString(), Map.class);
             Temperature t = new Temperature();
-            t.value = (Double) hash.get("value");
+            t.value = Double.parseDouble(hash.get("value").toString());
             t.deviceId = m.deviceId();
             return t;
         } catch (Exception e) {
