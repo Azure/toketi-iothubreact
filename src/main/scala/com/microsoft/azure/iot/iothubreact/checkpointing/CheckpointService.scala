@@ -7,8 +7,8 @@ import java.util.concurrent.Executors
 
 import akka.actor.{Actor, Stash}
 import com.microsoft.azure.iot.iothubreact.Logger
-import com.microsoft.azure.iot.iothubreact.checkpointing.Backends.{AzureBlob, CheckpointBackend}
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{GetOffset, StoreOffset, UpdateOffset}
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.{AzureBlob, CassandraTable, CheckpointBackend}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 
 import scala.concurrent.ExecutionContext
@@ -168,6 +168,7 @@ private[iothubreact] class CheckpointService(partition: Int)
     val conf = Configuration.checkpointBackendType
     conf.toUpperCase match {
       case "AZUREBLOB" ⇒ new AzureBlob
+      case "CASSANDRA" ⇒ new CassandraTable
       case _           ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${conf}")
     }
   }

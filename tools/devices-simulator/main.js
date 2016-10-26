@@ -1,23 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 /*
-    SETUP
-
-     CONFIGURE DEVICES IN AZURE IOT HUB
-
-        1. Create an Azure IoT hub, and get the "iothubowner" connection string form the portal
-        2. # npm install -g iothub-explorer
-        3. # iothub-explorer login "conn string"
-        4. # for i in {1000..1010}; do iothub-explorer create device$i --display="deviceId"; done
-
-    EXPORT CREDENTIALS TO 'credentials.js' (in the folder of main.js)
-
-        1. # DATA=$(iothub-explorer list --display="deviceId,authentication.SymmetricKey.primaryKey," --raw|sort|awk '{ print $0 ","}')
-        2. # echo "var hubDevices = [$DATA];" > credentials.js
-
-    RUN
-
-        # node main.js
+    See README.md for the instructions to prepare this script
 
 */
 

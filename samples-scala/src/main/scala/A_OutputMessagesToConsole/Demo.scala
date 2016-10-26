@@ -1,42 +1,42 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package OutputMessagesToConsole
+package A_OutputMessagesToConsole
 
 import akka.stream.scaladsl.Sink
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.microsoft.azure.iot.iothubreact.filters.Model
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 
 import scala.language.{implicitConversions, postfixOps}
 
 /** Retrieve messages from IoT hub and display the data sent from Temperature devices
   */
-object Demo extends App with ReactiveStreaming {
+object Demo extends App {
+
+  // Source retrieving messages from one IoT hub partition (e.g. partition 2)
+  //val messagesFromOnePartition = IoTHubPartition(2).source()
+
+  // Source retrieving only recent messages
+  //val messagesFromNowOn = IoTHub().source(java.time.Instant.now())
 
   // Source retrieving messages from all IoT hub partitions
   val messagesFromAllPartitions = IoTHub().source()
 
-  // Source retrieving messages from one IoT hub partition (e.g. partition 2)
-  val messagesFromOnePartition = IoTHubPartition(2).source()
-
-  // Source retrieving only recent messages
-  val messagesFromNowOn = IoTHub().source(java.time.Instant.now())
-
   // Sink printing to the console
   val console = Sink.foreach[Temperature] {
-    t ⇒ println(s"Device ${t.deviceId}: temperature: ${t.value}C ; T=${t.time}")
+    t ⇒ println(s"Device ${t.deviceId}: temperature: ${t.value}C ; T=${t.datetime}")
   }
 
-  // JSON parser setup
-  val jsonParser = new ObjectMapper()
-  jsonParser.registerModule(DefaultScalaModule)
+  // JSON parser setup, brings in default date formats etc.
+  implicit val formats = DefaultFormats
 
   // Stream
   messagesFromAllPartitions
     .filter(Model("temperature"))
     .map(m ⇒ {
-      val temperature = jsonParser.readValue(m.contentAsString, classOf[Temperature])
+      val temperature = parse(m.contentAsString).extract[Temperature]
       temperature.deviceId = m.deviceId
       temperature
     })

@@ -55,7 +55,7 @@ class IoTHubPartition(val partition: Int) extends Logger {
     getSource(
       withTimeOffset = false,
       offset = Offset(IoTHubPartition.OffsetStartOfStream),
-      withCheckpoints = CPConfiguration.isEnabled)
+      withCheckpoints = false)
   }
 
   /** Stream returning all the messages from the given offset
@@ -68,7 +68,7 @@ class IoTHubPartition(val partition: Int) extends Logger {
     getSource(
       withTimeOffset = true,
       startTime = startTime,
-      withCheckpoints = CPConfiguration.isEnabled)
+      withCheckpoints = false)
   }
 
   /** Stream returning all the messages. If checkpointing, the stream starts from the last position
@@ -95,7 +95,7 @@ class IoTHubPartition(val partition: Int) extends Logger {
     getSource(
       withTimeOffset = false,
       offset = offset,
-      withCheckpoints = CPConfiguration.isEnabled)
+      withCheckpoints = false)
   }
 
   /** Stream returning all the messages from the given offset

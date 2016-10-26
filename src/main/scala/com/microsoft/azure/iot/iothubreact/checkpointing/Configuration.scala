@@ -106,6 +106,10 @@ private[iothubreact] object Configuration {
     15 seconds,
     60 seconds)
 
+  // Cassandra cluster address
+  lazy val cassandraCluster          : String = conf.getString(confPath + "storage.cassandra.cluster")
+  lazy val cassandraReplicationFactor: Int    = conf.getInt(confPath + "storage.cassandra.replicationFactor")
+
   /** Load Azure blob connection string, taking care of the Azure storage emulator case
     *
     * @return Connection string

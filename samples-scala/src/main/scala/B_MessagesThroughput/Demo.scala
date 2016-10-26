@@ -1,11 +1,12 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package MessagesThroughput
+package B_MessagesThroughput
 
 import akka.stream.ThrottleMode
 import akka.stream.scaladsl.{Flow, Sink}
 import com.microsoft.azure.iot.iothubreact.IoTMessage
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
+import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -18,7 +19,7 @@ import scala.language.postfixOps
   * - How to combine multiple destinations
   * - Back pressure
   */
-object Demo extends App with ReactiveStreaming {
+object Demo extends App {
 
   // Maximum speed allowed
   val maxSpeed = 200

@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.checkpointing.Backends
+package com.microsoft.azure.iot.iothubreact.checkpointing.backends
 
 import java.io.IOException
 import java.net.URISyntaxException
@@ -15,6 +15,8 @@ import com.microsoft.azure.storage.{AccessCondition, CloudStorageAccount, Operat
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
+/** Storage logic to write checkpoints to Azure blobs
+  */
 private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
 
   // Set the account to point either to Azure or the emulator

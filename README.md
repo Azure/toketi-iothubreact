@@ -228,9 +228,26 @@ The complete configuration reference is available in
 
 ## Samples
 
-In order to run the samples you need to have either the IoTHub settings defined via environment 
-variables, or in the config file. Follow the instructions in the previous section on how to set 
-the correct values.
+The project includes 4 demos, showing some of the use cases and how IoThub React API works. 
+All the demos require an instance of Azure IoT hub, with some devices, and messages.
+
+1. **DisplayMessages** [Java]: how to stream Azure IoT hub withing a Java application, filtering 
+   temperature values greater than 60C
+2. **OutputMessagesToConsole** [Scala]: stream all Temeprature events to console
+3. **MessagesThroughput** [Scala]: stream all IoT hub messages, showing the current speed, and
+   optionally throttling the speed to 200 msg/sec
+4. **Checkpoints** [Scala]: demonstrate how the stream can be restarted without losing its position.
+   The current position is stored in a Cassandra table (we suggest to run a docker container for
+   the purpose of the demo, e.g. `docker run -ip 9042:9042 --rm cassandra`)
+
+We provide a [device simulator](tools/devices-simulator/README.md) in the tools section, 
+which will help setting up these requirements.
+
+When ready, you should either edit the `application.conf` configuration files 
+([scala](samples-scala/src/main/resources/application.conf) and
+[java](samples-java/src/main/resources/application.conf)) 
+with your credentials, or set the corresponding global variables.
+Follow the instructions in the previous section on how to set the correct values.
 
 * [`samples-scala`](samples-scala/src/main/scala):
   You can use `sbt run` to run the demos (or the `run_samples.*` scripts)

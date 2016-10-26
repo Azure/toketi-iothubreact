@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.checkpointing.Backends
+package com.microsoft.azure.iot.iothubreact.checkpointing.backends
 
 import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
 

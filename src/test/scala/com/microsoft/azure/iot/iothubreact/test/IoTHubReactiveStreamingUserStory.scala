@@ -103,7 +103,7 @@ class IoTHubReactiveStreamingUserStory
         Thread.sleep(pause)
         time -= pause
         actualMessageCount = readCounter
-        log.info(s"Messages received so far: ${actualMessageCount} [Time left ${time / 1000} secs]")
+        log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
       }
 
       assert(
@@ -175,13 +175,13 @@ class IoTHubReactiveStreamingUserStory
 
       // Wait till all messages have been verified
       var time = TestTimeout.toMillis.toInt
-      val pause = time / 10
+      val pause = time / 12
       var actualMessageCount = readCounter
       while (time > 0 && actualMessageCount < expectedMessageCount) {
         Thread.sleep(pause)
         time -= pause
         actualMessageCount = readCounter
-        log.info(s"Messages received so far: ${actualMessageCount} [Time left ${time / 1000} secs]")
+        log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
       }
 
       assert(

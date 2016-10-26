@@ -2,7 +2,7 @@
 
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
-version := "0.7.0-DEV.161024B"
+version := "0.7.0-DEV.161025c"
 
 scalaVersion := "2.11.8"
 crossScalaVersions := Seq("2.11.8", "2.12.0-RC1")
@@ -18,12 +18,17 @@ libraryDependencies <++= (scalaVersion) {
     val scalaTestVersion = "3.0.0"
     val jacksonVersion = "2.8.3"
     val akkaStreamVersion = "2.4.11"
+    val datastaxDriverVersion = "3.0.2"
+    val json4sVersion = "3.4.1"
 
     Seq(
       // Library dependencies
       "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
       "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
       "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
+      "com.datastax.cassandra" % "cassandra-driver-core" % datastaxDriverVersion,
+      "org.json4s" %% "json4s-native" % json4sVersion,
+      "org.json4s" %% "json4s-jackson" % json4sVersion,
 
       // Tests dependencies
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",

@@ -35,7 +35,7 @@ class IoTHub extends Logger {
     getSource(
       withTimeOffset = false,
       offsets = fromStart,
-      withCheckpoints = CPConfiguration.isEnabled)
+      withCheckpoints = false)
   }
 
   /** Stream returning all the messages starting from the given time, from all
@@ -49,7 +49,7 @@ class IoTHub extends Logger {
     getSource(
       withTimeOffset = true,
       startTime = startTime,
-      withCheckpoints = CPConfiguration.isEnabled)
+      withCheckpoints = false)
   }
 
   /** Stream returning all the messages from all the configured partitions.
@@ -78,7 +78,7 @@ class IoTHub extends Logger {
     getSource(
       withTimeOffset = false,
       offsets = Some(offsets),
-      withCheckpoints = CPConfiguration.isEnabled)
+      withCheckpoints = false)
   }
 
   /** Stream returning all the messages starting from the given time, from all
