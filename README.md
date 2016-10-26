@@ -238,7 +238,7 @@ All the demos require an instance of Azure IoT hub, with some devices, and messa
    optionally throttling the speed to 200 msg/sec
 4. **Checkpoints** [Scala]: demonstrate how the stream can be restarted without losing its position.
    The current position is stored in a Cassandra table (we suggest to run a docker container for
-   the purpose of the demo, e.g. `docker run --name iothub-react-cassandra -i -p 9042:9042 cassandra:latest`)
+   the purpose of the demo, e.g. `docker run -ip 9042:9042 --rm cassandra`)
 
 We provide a [device simulator](tools/devices-simulator/README.md) in the tools section, 
 which will help setting up these requirements.
