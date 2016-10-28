@@ -26,14 +26,6 @@ object IoTHubPartition extends Logger {
   // Public constant: used internally to signal when there is no position saved in the storage
   // To be used by custom backend implementations
   final val OffsetCheckpointNotFound: String = "{offset checkpoint not found}"
-
-  /** Create a streaming source to retrieve messages from one Azure IoT Hub partition
-    *
-    * @param partition IoT hub partition number
-    *
-    * @return IoT hub instance
-    */
-  def apply(partition: Int): IoTHubPartition = new IoTHubPartition(partition)
 }
 
 /** Provide a streaming source to retrieve messages from one Azure IoT Hub partition
@@ -44,7 +36,7 @@ object IoTHubPartition extends Logger {
   * @todo (*) Provide ClearCheckpoints() method to clear the state
   * @todo Support reading the same partition from multiple clients
   */
-class IoTHubPartition(val partition: Int) extends Logger {
+case class IoTHubPartition(val partition: Int) extends Logger {
 
   /** Stream returning all the messages. If checkpointing is enabled in the global configuration
     * then the stream starts from the last position saved, otherwise it starts from the beginning.
