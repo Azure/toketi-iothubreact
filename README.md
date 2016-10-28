@@ -159,7 +159,7 @@ your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= {
-  val iothubReactV = "0.7.0"
+  val iothubReactV = "0.8.0"
   
   Seq(
     "com.microsoft.azure.iot" %% "iothub-react" % iothubReactV
@@ -173,7 +173,7 @@ or this dependency in `pom.xml` file if working with Maven:
 <dependency>
     <groupId>com.microsoft.azure.iot</groupId>
     <artifactId>iothub-react_2.11</artifactId>
-    <version>0.7.0</version>
+    <version>0.8.0</version>
 </dependency>
 ```
 

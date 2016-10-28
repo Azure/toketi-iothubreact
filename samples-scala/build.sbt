@@ -9,10 +9,10 @@ scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 resolvers += "Dev Snapshots" at "https://dl.bintray.com/microsoftazuretoketi/toketi-repo"
 
 libraryDependencies ++= {
-  val prodVersion = "0.7.0"
-  val devVersion = "0.7.0-DEV.161025c"
+  val prodVersion = "0.8.0"
+  val devVersion = "0.8.0-DEV.161028a"
 
   Seq(
-    "com.microsoft.azure.iot" %% "iothub-react" % prodVersion
+    "com.microsoft.azure.iot" %% "iothub-react" % devVersion
   )
 }
