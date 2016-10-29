@@ -7,8 +7,10 @@ import java.time.Instant
 import akka.NotUsed
 import akka.actor.Props
 import akka.pattern.ask
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.KillSwitches
+import akka.stream.scaladsl.{Keep, Sink, Source}
 import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
 import com.microsoft.azure.iot.iothubreact.test.helpers._
 import org.scalatest._
@@ -22,11 +24,8 @@ import scala.language.postfixOps
   *
   * Note: the tests require an actual hub ready to use
   */
-class IoTHubReactiveStreamingUserStory
-  extends FeatureSpec
-    with GivenWhenThen
-    with ReactiveStreaming
-    with Logger {
+
+class IoTHubReactiveStreamingUserStory extends FeatureSpec with GivenWhenThen {
 
   info("As a client of Azure IoT hub")
   info("I want to be able to receive all the messages as a stream")
@@ -70,7 +69,7 @@ class IoTHubReactiveStreamingUserStory
       val testRunId: String = "[RetrieveAll-" + java.util.UUID.randomUUID().toString + "]"
 
       // We'll use this as the streaming start date
-      val startTime = Instant.now()
+      val startTime = Instant.now().minusSeconds(30)
       log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
 
       Given("An IoT hub is configured")
@@ -90,9 +89,10 @@ class IoTHubReactiveStreamingUserStory
         m ⇒ counter ! "inc"
       }
 
-      messages
+      val (killSwitch, last) = messages
+        .viaMat(KillSwitches.single)(Keep.right)
         .filter(m ⇒ m.contentAsString contains testRunId)
-        .to(count)
+        .toMat(count)(Keep.both)
         .run()
 
       Then("Then the client application receives all the messages sent")
@@ -105,6 +105,8 @@ class IoTHubReactiveStreamingUserStory
         actualMessageCount = readCounter
         log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
       }
+
+      killSwitch.shutdown()
 
       assert(
         actualMessageCount == expectedMessageCount,
@@ -125,7 +127,7 @@ class IoTHubReactiveStreamingUserStory
       val testRunId: String = "[VerifyOrder-" + java.util.UUID.randomUUID().toString + "]"
 
       // We'll use this as the streaming start date
-      val startTime = Instant.now()
+      val startTime = Instant.now().minusSeconds(30)
       log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
 
       Given("An IoT hub is configured")
@@ -168,9 +170,10 @@ class IoTHubReactiveStreamingUserStory
         }
       }
 
-      messages
+      val (killSwitch, last) = messages
+        .viaMat(KillSwitches.single)(Keep.right)
         .filter(m ⇒ m.contentAsString contains (testRunId))
-        .to(verifier)
+        .toMat(verifier)(Keep.both)
         .run()
 
       // Wait till all messages have been verified
@@ -183,6 +186,8 @@ class IoTHubReactiveStreamingUserStory
         actualMessageCount = readCounter
         log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
       }
+
+      killSwitch.shutdown()
 
       assert(
         actualMessageCount == expectedMessageCount,

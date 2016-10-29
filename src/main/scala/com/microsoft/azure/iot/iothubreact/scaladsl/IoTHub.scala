@@ -12,15 +12,11 @@ import com.microsoft.azure.iot.iothubreact.checkpointing.{Configuration ⇒ CPCo
 
 import scala.language.postfixOps
 
-object IoTHub {
-  def apply(): IoTHub = new IoTHub
-}
-
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   *
   * @todo (*) Provide ClearCheckpoints() method to clear the state
   */
-class IoTHub extends Logger {
+case class IoTHub() extends Logger {
 
   private[this] def fromStart =
     Some(List.fill[Offset](Configuration.iotHubPartitions)(Offset(IoTHubPartition.OffsetStartOfStream)))
@@ -74,7 +70,7 @@ class IoTHub extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: List[Offset]): Source[IoTMessage, NotUsed] = {
+  def source(offsets: Seq[Offset]): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = Some(offsets),
@@ -104,7 +100,7 @@ class IoTHub extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: List[Offset], withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(offsets: Seq[Offset], withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = Some(offsets),
@@ -122,7 +118,7 @@ class IoTHub extends Logger {
     * @return A source of IoT messages
     */
   private[this] def getSource(
-      offsets: Option[List[Offset]] = None,
+      offsets: Option[Seq[Offset]] = None,
       startTime: Instant = Instant.MIN,
       withTimeOffset: Boolean = false,
       withCheckpoints: Boolean = true): Source[IoTMessage, NotUsed] = {

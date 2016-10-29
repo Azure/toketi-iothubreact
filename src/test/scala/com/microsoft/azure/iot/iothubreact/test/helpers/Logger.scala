@@ -5,6 +5,10 @@ package com.microsoft.azure.iot.iothubreact.test.helpers
 import akka.actor.ActorSystem
 import akka.event.{LogSource, Logging}
 
+object Logger {
+  val actorSystem = ActorSystem("IoTHubReactTests")
+}
+
 /** Common logger via Akka
   *
   * @see http://doc.akka.io/docs/akka/2.4.10/scala/logging.html
@@ -17,5 +21,5 @@ trait Logger {
     override def getClazz(o: AnyRef): Class[_] = o.getClass
   }
 
-  val log = Logging(ActorSystem("IoTHubReactTests"), this)
+  val log = Logging(Logger.actorSystem, this)
 }

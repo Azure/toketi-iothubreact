@@ -166,7 +166,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     * @return Offset
     */
   private[this] def GetSavedOffset(): String = {
-    val partitionCp = CheckpointActorSystem.getCheckpointService(partition)
+    val partitionCp = CheckpointActorSystem.getCheckpointService(partition, false)
     implicit val rwTimeout = Timeout(CPConfiguration.checkpointRWTimeout)
     try {
       Retry(3, 5 seconds) {

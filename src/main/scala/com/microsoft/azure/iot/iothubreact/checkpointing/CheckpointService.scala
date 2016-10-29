@@ -31,7 +31,7 @@ private[iothubreact] object CheckpointService {
   *
   * @param partition IoT hub partition number [0..N]
   */
-private[iothubreact] class CheckpointService(partition: Int)
+private[iothubreact] class CheckpointService(partition: Int, scheduleCheckpoint: Boolean)
   extends Actor
     with Stash
     with Logger {
@@ -50,9 +50,11 @@ private[iothubreact] class CheckpointService(partition: Int)
 
   // Before the actor starts we schedule a recurring storage write
   override def preStart(): Unit = {
-    val time = Configuration.checkpointFrequency
-    context.system.scheduler.schedule(time, time, self, StoreOffset)
-    log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
+    if (scheduleCheckpoint) {
+      val time = Configuration.checkpointFrequency
+      context.system.scheduler.schedule(time, time, self, StoreOffset)
+      log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
+    }
   }
 
   override def receive: Receive = notReady
