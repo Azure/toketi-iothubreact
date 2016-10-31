@@ -26,7 +26,7 @@ private[iothubreact] class SavePositionOnPull(partition: Int)
   override def createLogic(attr: Attributes): GraphStageLogic = {
     new GraphStageLogic(shape) {
 
-      val checkpointService = CheckpointActorSystem.getCheckpointService(partition, true)
+      val checkpointService = CheckpointActorSystem.getCheckpointService(partition)
       var lastOffsetSent    = none
 
       // when a message enters the stage we safe its offset

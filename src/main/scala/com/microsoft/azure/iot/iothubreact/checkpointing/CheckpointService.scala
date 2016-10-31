@@ -31,7 +31,7 @@ private[iothubreact] object CheckpointService {
   *
   * @param partition IoT hub partition number [0..N]
   */
-private[iothubreact] class CheckpointService(partition: Int, scheduleCheckpoint: Boolean)
+private[iothubreact] class CheckpointService(partition: Int)
   extends Actor
     with Stash
     with Logger {
@@ -42,20 +42,12 @@ private[iothubreact] class CheckpointService(partition: Int, scheduleCheckpoint:
     .fromExecutorService(Executors.newFixedThreadPool(sys.runtime.availableProcessors))
 
   // Contains the offsets up to one hour ago, max 1 offset per second (max size = 3600)
-  private[this] val queue                 = new scala.collection.mutable.Queue[OffsetsData]
+  private[this] val queue                     = new scala.collection.mutable.Queue[OffsetsData]
   // Count the offsets tracked in the queue (!= queue.size)
-  private[this] var queuedOffsets: Long   = 0
-  private[this] var currentOffset: String = IoTHubPartition.OffsetStartOfStream
-  private[this] val storage               = getCheckpointBackend
-
-  // Before the actor starts we schedule a recurring storage write
-  override def preStart(): Unit = {
-    if (scheduleCheckpoint) {
-      val time = Configuration.checkpointFrequency
-      context.system.scheduler.schedule(time, time, self, StoreOffset)
-      log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
-    }
-  }
+  private[this] var queuedOffsets   : Long    = 0
+  private[this] var currentOffset   : String  = IoTHubPartition.OffsetStartOfStream
+  private[this] val storage                   = getCheckpointBackend
+  private[this] var schedulerStarted: Boolean = false
 
   override def receive: Receive = notReady
 
@@ -146,6 +138,14 @@ private[iothubreact] class CheckpointService(partition: Int, scheduleCheckpoint:
   }
 
   def updateOffsetAction(offset: String) = {
+
+    if (!schedulerStarted) {
+      val time = Configuration.checkpointFrequency
+      schedulerStarted = true
+      context.system.scheduler.schedule(time, time, self, StoreOffset)
+      log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
+    }
+
     if (offset.toLong > currentOffset.toLong) {
       val epoch = Instant.now.getEpochSecond
 
