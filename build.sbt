@@ -2,9 +2,9 @@
 
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
-version := "0.8.0-DEV.161029a"
+version := "0.8.0-DEV.161031a"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.0"
 crossScalaVersions := Seq("2.11.8", "2.12.0")
 
 logLevel := Level.Warn // Debug|Info|Warn|Error

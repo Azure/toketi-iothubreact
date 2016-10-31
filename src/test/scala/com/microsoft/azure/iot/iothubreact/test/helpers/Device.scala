@@ -26,10 +26,13 @@ class Device(deviceId: String) extends Logger {
 
   def disconnect(): Unit = {
     client.close()
+    log.debug(s"Device '$deviceId' disconnected")
   }
 
   def sendMessage(text: String, sequenceNumber: Int): Unit = {
+    // Open internally checks if it is already connected
     client.open()
+
     log.debug(s"Device '$deviceId' sending '$text'")
     val message = new Message(text)
     client.sendEventAsync(message, new EventCallback(), sequenceNumber)
