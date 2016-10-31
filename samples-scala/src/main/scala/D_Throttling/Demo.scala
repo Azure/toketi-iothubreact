@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package B_MessagesThroughput
+package D_Throttling
 
 import akka.stream.ThrottleMode
 import akka.stream.scaladsl.{Flow, Sink}
 import com.microsoft.azure.iot.iothubreact.IoTMessage
-import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
+import com.microsoft.azure.iot.iothubreact.scaladsl._
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 
 import scala.concurrent.duration._
@@ -13,22 +13,22 @@ import scala.language.postfixOps
 
 /** Retrieve messages from IoT hub managing the stream velocity
   *
-  * Demo showing how to:
-  * - Measure the streaming throughput
+  * Demo showing:
   * - Traffic shaping by throttling the stream speed
   * - How to combine multiple destinations
   * - Back pressure
   */
 object Demo extends App {
 
-  // Maximum speed allowed
-  val maxSpeed = 200
-
+  val maxSpeed       = 50
   val showStatsEvery = 1 second
 
-  print(s"Do you want to test throttling (${maxSpeed} msg/sec) ? [y/N] ")
-  val input      = scala.io.StdIn.readLine()
-  val throttling = input.size > 0 && input(0).toUpper == 'Y'
+  println(s"Streaming messages at ${maxSpeed} msg/sec")
+
+  // Sink combining throttling and monitoring
+  lazy val throttleAndMonitor = Flow[IoTMessage]
+    .alsoTo(throttler)
+    .to(monitor)
 
   // Stream throttling sink
   val throttler = Flow[IoTMessage]
@@ -43,22 +43,10 @@ object Demo extends App {
     }
   }
 
-  // Sink combining throttling and monitoring
-  val throttleAndMonitor = Flow[IoTMessage]
-    .alsoTo(throttler)
-    // .alsoTo(...) // Using alsoTo it's possible to deliver to multiple destinations
-    .to(monitor)
-
   // Start processing the stream
-  if (throttling) {
-    IoTHub().source
-      .to(throttleAndMonitor)
-      .run()
-  } else {
-    IoTHub().source
-      .to(monitor)
-      .run()
-  }
+  IoTHub().source
+    .to(throttleAndMonitor)
+    .run()
 
   // Print statistics at some interval
   Monitoring.printStatisticsWithFrequency(showStatsEvery)

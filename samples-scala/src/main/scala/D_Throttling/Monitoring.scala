@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package B_MessagesThroughput
+package D_Throttling
 
 import com.typesafe.config.ConfigFactory
 

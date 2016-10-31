@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package A_OutputMessagesToConsole
+package B_PrintTemperature
 
 import java.time.{ZoneId, ZonedDateTime}
 
