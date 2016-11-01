@@ -7,9 +7,6 @@ version := "0.8.0-DEV.161031b"
 scalaVersion := "2.12.0"
 crossScalaVersions := Seq("2.11.8", "2.12.0")
 
-logLevel := Level.Warn // Debug|Info|Warn|Error
-scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
-
 libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
     val azureEventHubSDKVersion = "0.8.2"
@@ -71,6 +68,14 @@ def scalaTestPackage(scalaVersion: String): String = scalaVersion match {
 }
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
+
+/** Miscs
+  */
+logLevel := Level.Warn // Debug|Info|Warn|Error
+scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
+showTiming := true
+fork := true
+parallelExecution := true
 
 /* Publishing options
  * see http://www.scala-sbt.org/0.13/docs/Artifacts.html
