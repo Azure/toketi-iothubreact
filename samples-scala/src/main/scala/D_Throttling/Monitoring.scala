@@ -11,12 +11,12 @@ import scala.language.postfixOps
 
 /** Monitoring logic, some properties to keep count and a method to print the
   * statistics.
-  * Note: for demo readability the monitoring Sink is in the Demo class
+  * Note: for readability the monitoring Sink is in the Demo class
   */
 object Monitoring {
 
   // Auxiliary vars
-  private[this] val iotHubPartitions    = ConfigFactory.load().getInt("iothub.partitions")
+  private[this] val iotHubPartitions    = ConfigFactory.load().getInt("iothub-react.connection.partitions")
   private[this] var previousTime : Long = 0
   private[this] var previousTotal: Long = 0
 

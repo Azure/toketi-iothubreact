@@ -18,6 +18,9 @@ import scala.language.postfixOps
   */
 private[iothubreact] object Configuration {
 
+  private[this] val confConnPath      = "iothub-react.connection."
+  private[this] val confStreamingPath = "iothub-react.streaming."
+
   // Maximum size supported by the client
   private[this] val MaxBatchSize = 999
 
@@ -27,26 +30,24 @@ private[iothubreact] object Configuration {
   private[this] val conf: Config = ConfigFactory.load()
 
   // IoT hub storage details
-  val iotHubPartitions: Int    = conf.getInt("iothub.partitions")
-  val iotHubNamespace : String = conf.getString("iothub.namespace")
-  val iotHubName      : String = conf.getString("iothub.name")
-  val iotHubKeyName   : String = conf.getString("iothub.keyName")
-  val iotHubKey       : String = conf.getString("iothub.key")
+  val iotHubPartitions: Int    = conf.getInt(confConnPath + "partitions")
+  val iotHubNamespace : String = conf.getString(confConnPath + "namespace")
+  val iotHubName      : String = conf.getString(confConnPath + "name")
+  val iotHubKeyName   : String = conf.getString(confConnPath + "keyName")
+  val iotHubKey       : String = conf.getString(confConnPath + "key")
 
   // Consumer group used to retrieve messages
   // @see https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview
-  private[this] val tmpCG = conf.getString("iothub.consumerGroup")
+  private[this] val tmpCG = conf.getString(confConnPath + "consumerGroup")
   val receiverConsumerGroup: String =
-    tmpCG match {
-      case "$Default" ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
-      case "Default"  ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
-      case "default"  ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
+    tmpCG.toUpperCase match {
+      case "$DEFAULT" ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
       case "DEFAULT"  ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
       case _          ⇒ tmpCG
     }
 
   // Message retrieval timeout in milliseconds
-  private[this] val tmpRTO = conf.getDuration("iothub-stream.receiverTimeout").toMillis
+  private[this] val tmpRTO = conf.getDuration(confStreamingPath + "receiverTimeout").toMillis
   val receiverTimeout: FiniteDuration =
     if (tmpRTO > 0)
       FiniteDuration(tmpRTO, TimeUnit.MILLISECONDS)
@@ -54,7 +55,7 @@ private[iothubreact] object Configuration {
       DefaultReceiverTimeout
 
   // How many messages to retrieve on each call to the storage
-  private[this] val tmpRBS = conf.getInt("iothub-stream.receiverBatchSize")
+  private[this] val tmpRBS = conf.getInt(confStreamingPath + "receiverBatchSize")
   val receiverBatchSize: Int =
     if (tmpRBS > 0 && tmpRBS <= MaxBatchSize)
       tmpRBS

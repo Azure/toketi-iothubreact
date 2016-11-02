@@ -16,7 +16,7 @@ import scala.language.postfixOps
   */
 private[iothubreact] object Configuration {
 
-  private[this] val confPath = "iothub-checkpointing."
+  private[this] val confPath = "iothub-react.checkpointing."
 
   private[this] val conf: Config = ConfigFactory.load()
 

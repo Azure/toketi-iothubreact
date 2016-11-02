@@ -10,7 +10,7 @@ resolvers += "Dev Snapshots" at "https://dl.bintray.com/microsoftazuretoketi/tok
 
 libraryDependencies ++= {
   val prodVersion = "0.7.0"
-  val devVersion = "0.8.0-DEV.161031b"
+  val devVersion = "0.8.0-DEV.161101a"
 
   Seq(
     "com.microsoft.azure.iot" %% "iothub-react" % devVersion

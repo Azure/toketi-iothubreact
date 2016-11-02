@@ -81,7 +81,7 @@ so a service that consumes IoTHub events can create multiple streams and process
 ```scala
 val partitionNumber = 1
 
-IoTHub.source(partitionNumber)
+IoTHubPartition(partitionNumber).source()
     .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
@@ -96,7 +96,7 @@ It's possible to start the stream from a given date and time too:
 ```scala
 val start = java.time.Instant.now()
 
-IoTHub.source(start)
+IoTHub().source(start)
     .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
@@ -108,27 +108,54 @@ IoTHub.source(start)
 The library provides a mechanism to restart the stream from a recent *checkpoint*, to be resilient
 to restarts and crashes. 
 *Checkpoints* are saved automatically, with a configured frequency, on a storage provided.
-For instance, the stream position can be saved every 15 seconds, in a table in Cassandra, on Azure 
-blobs, or a custom backend.
+For instance, the stream position can be saved every 15 seconds, in a table in Cassandra, or using 
+Azure blobs, or a custom backend.
 
 To store checkpoints in Azure blobs the configuration looks like this:
 
 ```
-iothub-checkpointing {
-  enabled = true
-  frequency = 15s
-  countThreshold = 1000
-  timeThreshold = 30s
-  storage {
-    rwTimeout = 5s
-    backendType = "AzureBlob"
-    namespace = "iothub-react-checkpoints"
-    azureblob {
-      lease = 15s
-      useEmulator = false
-      protocol = "https"
-      account = "..."
-      key = "..."
+iothub-react{
+
+  [... other settings ...]
+  
+  checkpointing {
+    enabled = true
+    frequency = 15s
+    countThreshold = 1000
+    timeThreshold = 30s
+    
+    storage {
+      rwTimeout = 5s
+      namespace = "iothub-react-checkpoints"
+      
+      backendType = "AzureBlob"
+      azureblob {
+        lease = 15s
+        useEmulator = false
+        protocol = "https"
+        account = "..."
+        key = "..."
+      }
+    }
+  }
+}
+```
+
+Similarly, to store checkpoints in Cassandra:
+
+```
+iothub-react{
+  [...]
+  checkpointing {
+    [...]
+    storage {
+      [...]
+      
+      backendType = "cassandra"
+      cassandra {
+        cluster = "localhost:9042"
+        replicationFactor = 3
+      }
     }
   }
 }
@@ -140,13 +167,13 @@ implementing a simple
 [interface](src/main/scala/com/microsoft/azure/iot/iothubreact/checkpointing/Backends/CheckpointBackend.scala)
 to read and write the stream position.
 
-There is also one API parameter to enabled/disable the mechanism, for example:
+There is also one API parameter to enabled/disable the checkpointing feature, for example:
 
 ```scala
 val start = java.time.Instant.now()
 val withCheckpoints = false
 
-IoTHub.source(start, withCheckpoints)
+IoTHub().source(start, withCheckpoints)
     .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
@@ -172,13 +199,13 @@ or this dependency in `pom.xml` file if working with Maven:
 ```xml
 <dependency>
     <groupId>com.microsoft.azure.iot</groupId>
-    <artifactId>iothub-react_2.11</artifactId>
+    <artifactId>iothub-react_2.12</artifactId>
     <version>0.8.0</version>
 </dependency>
 ```
 
 ### IoTHub configuration
-IoTHubReact uses a configuration file to fetch the parameters required to connect to Azure IoTHub.
+IoTHubReact uses a configuration file to fetch the parameters required to connect to Azure IoT Hub.
 The exact values to use can be found in the [Azure Portal](https://portal.azure.com):
 
 * **namespace**: it is the first part of the _Event Hub-compatible endpoint_, which usually has 
@@ -187,41 +214,62 @@ The exact values to use can be found in the [Azure Portal](https://portal.azure.
 * **keyname**: usually the value is `service`
 * **key**: the Primary Key can be found under _shared access policies/service_ policy (it's a 
   base64 encoded string)
+* **partitions**: the number of partitions of the selected hub
 
 The values should be stored in your `application.conf` resource (or equivalent), which can 
 reference environment settings if you prefer.
 
 ```
-iothub {
-  namespace  = "<IoT hub namespace>"
-  name       = "<IoT hub name>"
-  keyName    = "<IoT hub key name>"
-  key        = "<IoT hub key value>"
-  partitions = <IoT hub partitions>
+iothub-react {
+
+  connection {
+    namespace  = "<IoT hub namespace>"
+    name       = "<IoT hub name>"
+    keyName    = "<IoT hub key name>"
+    key        = "<IoT hub key value>"
+    partitions = <IoT hub partitions>
+  }
+  
+  [... other settings...]
 }
 ````
 
 Example using environment settings:
 
 ```
-iothub {
-  namespace  = ${?IOTHUB_NAMESPACE}
-  name       = ${?IOTHUB_NAME}
-  keyName    = ${?IOTHUB_ACCESS_KEY_NAME}
-  key        = ${?IOTHUB_ACCESS_KEY_VALUE}
-  partitions = ${?IOTHUB_PARTITIONS}
+iothub-react {
+
+  connection {
+    namespace  = ${?IOTHUB_NAMESPACE}
+    name       = ${?IOTHUB_NAME}
+    keyName    = ${?IOTHUB_ACCESS_KEY_NAME}
+    key        = ${?IOTHUB_ACCESS_KEY_VALUE}
+    partitions = ${?IOTHUB_PARTITIONS}
+  }
+  
+  [... other settings...]
 }
 ````
 
+The logging level can be managed via akka configuration, for example:
+
+```
+akka {
+  # Options: OFF, ERROR, WARNING, INFO, DEBUG
+  loglevel = "WARNING"
+}
+```
+
 There are other settings, to tune performance and connection details:
 
-* **consumerGroup**: the 
+* **connection.consumerGroup**: the 
   [consumer group](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview)
   used during the connection
-* **receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. The 
+* **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. The 
   default (and maximum) value is 999.
-* **receiverTimeout**: timeout applied to calls while retrieving messages. The default value is 
+* **streaming.receiverTimeout**: timeout applied to calls while retrieving messages. The default value is 
   3 seconds.
+* **checkpointing.enabled**: whether checkpointing is eanbled
 
 The complete configuration reference is available in 
 [reference.conf](src/main/resources/reference.conf).
