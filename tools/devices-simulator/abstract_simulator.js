@@ -87,7 +87,8 @@ AbstractSimulator.prototype.startSending = function () {
 
         var message = new Message(self.generateData());
         if (self.model !== "") {
-            message.properties.add("model", self.model);
+            message.properties.add("$$contentType", "json");
+            message.properties.add("$$contentModel", self.model);
             console.log("[" + self.name + "] Sending " + self.model + ": " + message.getData());
         } else {
             console.log("[" + self.name + "] Sending message: " + message.getData());
