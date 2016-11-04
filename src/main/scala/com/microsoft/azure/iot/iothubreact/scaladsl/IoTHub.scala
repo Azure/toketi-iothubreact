@@ -4,13 +4,15 @@ package com.microsoft.azure.iot.iothubreact.scaladsl
 
 import java.time.Instant
 
-import akka.NotUsed
+import akka.{Done, NotUsed}
 import akka.stream.SourceShape
 import akka.stream.scaladsl._
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.{Configuration ⇒ CPConfiguration}
 
+import scala.concurrent.Future
 import scala.language.postfixOps
+
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   *
@@ -20,6 +22,8 @@ case class IoTHub() extends Logger {
 
   private[this] def fromStart =
     Some(List.fill[Offset](Configuration.iotHubPartitions)(Offset(IoTHubPartition.OffsetStartOfStream)))
+
+  def sink[A]()(implicit typedSink: TypedSink[A]): Sink[A, Future[Done]] = typedSink.definition
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise
