@@ -11,7 +11,8 @@ libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
     val azureEventHubSDKVersion = "0.8.2"
     val azureStorageSDKVersion = "4.4.0"
-    val iothubClientVersion = "1.0.14"
+    val iothubDeviceClientVersion = "1.0.14"
+    val iothubServiceClientVersion = "1.0.10"
     val scalaTestVersion = "3.0.0"
     val jacksonVersion = "2.8.3"
     val datastaxDriverVersion = "3.1.1"
@@ -19,52 +20,54 @@ libraryDependencies <++= (scalaVersion) {
 
     Seq(
       // Library dependencies
-      "com.typesafe.akka" % akkaStreamPackage(scalaVersion) % akkaStreamVersion(scalaVersion),
+      "com.microsoft.azure.iothub-java-client" % "iothub-java-service-client" % iothubServiceClientVersion,
       "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
       "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
       "com.datastax.cassandra" % "cassandra-driver-core" % datastaxDriverVersion,
-      "org.json4s" % json4sNativePackage(scalaVersion) % json4sVersion,
-      "org.json4s" % json4sJacksonPackage(scalaVersion) % json4sVersion,
+      "com.typesafe.akka" % pkg("akka-stream", scalaVersion) % akkaStreamVersion(scalaVersion),
+      "org.json4s" % pkg("json4s-native", scalaVersion) % json4sVersion,
+      "org.json4s" % pkg("json4s-jackson", scalaVersion) % json4sVersion,
 
       // Tests dependencies
-      "org.scalatest" % scalaTestPackage(scalaVersion) % scalaTestVersion % "test",
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubClientVersion % "test",
+      "org.scalatest" % pkg("scalatest", scalaVersion) % scalaTestVersion % "test",
+      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test",
 
       // Remove < % "test" > to run samples-java against the local workspace
       // @todo use json4s
       "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion % "test",
-      "com.fasterxml.jackson.module" % jacksonModuleScalaPackage(scalaVersion) % jacksonVersion % "test"
+      "com.fasterxml.jackson.module" % pkg("jackson-module-scala", scalaVersion) % jacksonVersion % "test"
     )
 }
 
-def akkaStreamPackage(scalaVersion: String): String = scalaVersion match {
-  case v if v startsWith "2.11" => "akka-stream_2.11"
-  case v if v startsWith "2.12" => "akka-stream_2.12.0-RC2"
+def pkg(name: String, scalaVersion: String): String = {
+  val version = CrossVersion.partialVersion(scalaVersion)
+  name match {
+    case "akka-stream"          ⇒ version match {
+      case Some((2, 11)) => name + "_2.11"
+      case Some((2, 12)) => name + "_2.12.0-RC2"
+    }
+    case "json4s-native"        ⇒ version match {
+      case Some((2, 11)) => name + "_2.11"
+      case Some((2, 12)) => name + "_2.12.0-RC2"
+    }
+    case "json4s-jackson"       ⇒ version match {
+      case Some((2, 11)) => name + "_2.11"
+      case Some((2, 12)) => name + "_2.12.0-RC2"
+    }
+    case "jackson-module-scala" ⇒ version match {
+      case Some((2, 11)) => name + "_2.11"
+      case Some((2, 12)) => name + "_2.12.0-RC1"
+    }
+    case "scalatest"            ⇒ version match {
+      case Some((2, 11)) => name + "_2.11"
+      case Some((2, 12)) => name + "_2.12.0-RC2"
+    }
+  }
 }
 
-def akkaStreamVersion(scalaVersion: String): String = scalaVersion match {
-  case v if v startsWith "2.11" => "2.4.12"
-  case v if v startsWith "2.12" => "2.4.11"
-}
-
-def json4sNativePackage(scalaVersion: String): String = scalaVersion match {
-  case v if v startsWith "2.11" => "json4s-native_2.11"
-  case v if v startsWith "2.12" => "json4s-native_2.12.0-RC2"
-}
-
-def json4sJacksonPackage(scalaVersion: String): String = scalaVersion match {
-  case v if v startsWith "2.11" => "json4s-jackson_2.11"
-  case v if v startsWith "2.12" => "json4s-jackson_2.12.0-RC2"
-}
-
-def jacksonModuleScalaPackage(scalaVersion: String): String = scalaVersion match {
-  case v if v startsWith "2.11" => "jackson-module-scala_2.11"
-  case v if v startsWith "2.12" => "jackson-module-scala_2.12.0-RC1"
-}
-
-def scalaTestPackage(scalaVersion: String): String = scalaVersion match {
-  case v if v startsWith "2.11" => "scalatest_2.11"
-  case v if v startsWith "2.12" => "scalatest_2.12.0-RC2"
+def akkaStreamVersion(scalaVersion: String): String = CrossVersion.partialVersion(scalaVersion) match {
+  case Some((2, 11)) => "2.4.12"
+  case Some((2, 12)) => "2.4.11"
 }
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
