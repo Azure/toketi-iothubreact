@@ -3,7 +3,7 @@
 package B_PrintTemperature
 
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters.Model
 import com.microsoft.azure.iot.iothubreact.scaladsl._
@@ -18,7 +18,7 @@ import scala.language.{implicitConversions, postfixOps}
   */
 object Demo extends App {
 
-  def deserialize(m: IoTMessage): Temperature = {
+  def deserialize(m: MessageFromDevice): Temperature = {
 
     // JSON parser setup, brings in default date formats etc.
     implicit val formats = DefaultFormats

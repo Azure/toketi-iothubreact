@@ -4,7 +4,7 @@ package D_Throttling
 
 import akka.stream.ThrottleMode
 import akka.stream.scaladsl.{Flow, Sink}
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.scaladsl._
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 
@@ -26,17 +26,17 @@ object Demo extends App {
   println(s"Streaming messages at ${maxSpeed} msg/sec")
 
   // Sink combining throttling and monitoring
-  lazy val throttleAndMonitor = Flow[IoTMessage]
+  lazy val throttleAndMonitor = Flow[MessageFromDevice]
     .alsoTo(throttler)
     .to(monitor)
 
   // Stream throttling sink
-  val throttler = Flow[IoTMessage]
+  val throttler = Flow[MessageFromDevice]
     .throttle(maxSpeed, 1.second, maxSpeed / 10, ThrottleMode.Shaping)
     .to(Sink.ignore)
 
   // Messages throughput monitoring sink
-  val monitor = Sink.foreach[IoTMessage] {
+  val monitor = Sink.foreach[MessageFromDevice] {
     m ⇒ {
       Monitoring.total += 1
       Monitoring.totals(m.partition.get) += 1

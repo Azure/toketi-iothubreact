@@ -7,7 +7,7 @@ import akka.NotUsed;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.azure.iot.iothubreact.IoTMessage;
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice;
 import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub;
 
 import java.time.Instant;
@@ -30,7 +30,7 @@ public class Demo extends ReactiveStreamingApp {
         //Source<IoTMessage, NotUsed> messages = new IoTHubPartition(2).source();
 
         // Source retrieving from all IoT hub partitions for the past 24 hours
-        Source<IoTMessage, NotUsed> messages = new IoTHub().source(Instant.now().minus(1, ChronoUnit.DAYS));
+        Source<MessageFromDevice, NotUsed> messages = new IoTHub().source(Instant.now().minus(1, ChronoUnit.DAYS));
 
         messages
                 .filter(m -> m.model().equals("temperature"))
@@ -50,7 +50,7 @@ public class Demo extends ReactiveStreamingApp {
         });
     }
 
-    public static Temperature parseTemperature(IoTMessage m) {
+    public static Temperature parseTemperature(MessageFromDevice m) {
         try {
             Map<String, Object> hash = jsonParser.readValue(m.contentAsString(), Map.class);
             Temperature t = new Temperature();

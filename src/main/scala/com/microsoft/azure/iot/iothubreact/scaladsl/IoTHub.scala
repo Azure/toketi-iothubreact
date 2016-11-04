@@ -27,7 +27,7 @@ case class IoTHub() extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(): Source[IoTMessage, NotUsed] = {
+  def source(): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = fromStart,
@@ -41,7 +41,7 @@ case class IoTHub() extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant): Source[IoTMessage, NotUsed] = {
+  def source(startTime: Instant): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = true,
       startTime = startTime,
@@ -56,7 +56,7 @@ case class IoTHub() extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = fromStart,
@@ -70,7 +70,7 @@ case class IoTHub() extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: Seq[Offset]): Source[IoTMessage, NotUsed] = {
+  def source(offsets: Seq[Offset]): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = Some(offsets),
@@ -85,7 +85,7 @@ case class IoTHub() extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant, withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = true,
       startTime = startTime,
@@ -100,7 +100,7 @@ case class IoTHub() extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: Seq[Offset], withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(offsets: Seq[Offset], withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offsets = Some(offsets),
@@ -121,13 +121,13 @@ case class IoTHub() extends Logger {
       offsets: Option[Seq[Offset]] = None,
       startTime: Instant = Instant.MIN,
       withTimeOffset: Boolean = false,
-      withCheckpoints: Boolean = true): Source[IoTMessage, NotUsed] = {
+      withCheckpoints: Boolean = true): Source[MessageFromDevice, NotUsed] = {
 
     val graph = GraphDSL.create() {
       implicit b ⇒
         import GraphDSL.Implicits._
 
-        val merge = b.add(Merge[IoTMessage](Configuration.iotHubPartitions))
+        val merge = b.add(Merge[MessageFromDevice](Configuration.iotHubPartitions))
 
         for (partition ← 0 until Configuration.iotHubPartitions) {
           val graph = if (withTimeOffset)

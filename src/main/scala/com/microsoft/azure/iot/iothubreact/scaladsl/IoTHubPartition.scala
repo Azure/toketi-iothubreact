@@ -43,7 +43,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(): Source[IoTMessage, NotUsed] = {
+  def source(): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offset = Offset(IoTHubPartition.OffsetStartOfStream),
@@ -56,7 +56,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant): Source[IoTMessage, NotUsed] = {
+  def source(startTime: Instant): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = true,
       startTime = startTime,
@@ -70,7 +70,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offset = Offset(IoTHubPartition.OffsetStartOfStream),
@@ -83,7 +83,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offset: Offset): Source[IoTMessage, NotUsed] = {
+  def source(offset: Offset): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offset = offset,
@@ -97,7 +97,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant, withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = true,
       startTime = startTime,
@@ -111,7 +111,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offset: Offset, withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def source(offset: Offset, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offset = offset,
@@ -132,7 +132,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
       withTimeOffset: Boolean,
       offset: Offset = Offset(""),
       startTime: Instant = Instant.MIN,
-      withCheckpoints: Boolean = true): Source[IoTMessage, NotUsed] = {
+      withCheckpoints: Boolean = true): Source[MessageFromDevice, NotUsed] = {
 
     // Load the offset from the storage (if needed)
     var _offset = offset.value
@@ -147,7 +147,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     }
 
     // Build the source starting by time or by offset
-    val source: Source[IoTMessage, NotUsed] = if (_withTimeOffset)
+    val source: Source[MessageFromDevice, NotUsed] = if (_withTimeOffset)
       IoTMessageSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
     else
       IoTMessageSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)

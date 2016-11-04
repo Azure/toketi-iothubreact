@@ -24,7 +24,7 @@ private object IoTMessageSource {
     * @return A source returning the body of the message sent from a device.
     *         Deserialization is left to the consumer.
     */
-  def apply(partition: Int, offset: String, withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def apply(partition: Int, offset: String, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     Source.fromGraph(new IoTMessageSource(partition, offset, withCheckpoints))
   }
 
@@ -36,7 +36,7 @@ private object IoTMessageSource {
     * @return A source returning the body of the message sent from a device.
     *         Deserialization is left to the consumer.
     */
-  def apply(partition: Int, startTime: Instant, withCheckpoints: Boolean): Source[IoTMessage, NotUsed] = {
+  def apply(partition: Int, startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     Source.fromGraph(new IoTMessageSource(partition, startTime, withCheckpoints))
   }
 }
@@ -46,7 +46,7 @@ private object IoTMessageSource {
   * @todo Refactor and use async methods, compare performance
   * @todo Consider option to deserialize on the fly to [T], assuming JSON format
   */
-private class IoTMessageSource() extends GraphStage[SourceShape[IoTMessage]] with Logger {
+private class IoTMessageSource() extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
 
   abstract class OffsetType
 
@@ -102,10 +102,10 @@ private class IoTMessageSource() extends GraphStage[SourceShape[IoTMessage]] wit
   }
 
   // Define the (sole) output port of this stage
-  private[this] val out: Outlet[IoTMessage] = Outlet("IoTMessageSource")
+  private[this] val out: Outlet[MessageFromDevice] = Outlet("IoTMessageSource")
 
   // Define the shape of this stage => SourceShape with the port defined above
-  override val shape: SourceShape[IoTMessage] = SourceShape(out)
+  override val shape: SourceShape[MessageFromDevice] = SourceShape(out)
 
   // All state MUST be inside the GraphStageLogic, never inside the enclosing
   // GraphStage. This state is safe to read/write from all the callbacks
@@ -114,8 +114,8 @@ private class IoTMessageSource() extends GraphStage[SourceShape[IoTMessage]] wit
     log.debug(s"Creating the IoT hub source")
     new GraphStageLogic(shape) {
 
-      val keepAliveSignal = new IoTMessage(None, None)
-      val emptyResult     = List[IoTMessage](keepAliveSignal)
+      val keepAliveSignal = new MessageFromDevice(None, None)
+      val emptyResult     = List[MessageFromDevice](keepAliveSignal)
 
       lazy val receiver = getIoTHubReceiver
 
@@ -132,7 +132,7 @@ private class IoTMessageSource() extends GraphStage[SourceShape[IoTMessage]] wit
               log.debug(s"Partition ${partition} is empty")
               emitMultiple(out, emptyResult)
             } else {
-              val iterator = messages.asScala.map(e ⇒ IoTMessage(e, Some(partition))).toList
+              val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition))).toList
               emitMultiple(out, iterator)
             }
           } catch {

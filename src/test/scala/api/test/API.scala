@@ -15,13 +15,13 @@ class APIIsBackwardCompatible extends FeatureSpec {
   feature("Version 0.x is backward compatible") {
 
     scenario("Using IoTMessage") {
-      import com.microsoft.azure.iot.iothubreact.IoTMessage
+      import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 
       val data: Option[com.microsoft.azure.eventhubs.EventData] = None
       val partition: Option[Int] = Some(1)
 
       // Test properties
-      val message1 = new IoTMessage(data, partition)
+      val message1 = new MessageFromDevice(data, partition)
       lazy val properties: java.util.Map[String, String] = message1.properties
       lazy val isKeepAlive: Boolean = message1.isKeepAlive
       lazy val model: String = message1.model
@@ -34,10 +34,10 @@ class APIIsBackwardCompatible extends FeatureSpec {
       assert(message1.isKeepAlive == false)
 
       // Named parameters
-      val message2: IoTMessage = new IoTMessage(data = data, partition = partition)
+      val message2: MessageFromDevice = new MessageFromDevice(data = data, partition = partition)
 
       // Keepalive
-      val message3: IoTMessage = new IoTMessage(data, None)
+      val message3: MessageFromDevice = new MessageFromDevice(data, None)
       assert(message3.isKeepAlive == true)
     }
 
@@ -94,10 +94,10 @@ class APIIsBackwardCompatible extends FeatureSpec {
     }
 
     scenario("Using Model") {
-      import com.microsoft.azure.iot.iothubreact.IoTMessage
+      import com.microsoft.azure.iot.iothubreact.MessageFromDevice
       import com.microsoft.azure.iot.iothubreact.filters.Model
 
-      val filter1: (IoTMessage) ⇒ Boolean = Model("some")
+      val filter1: (MessageFromDevice) ⇒ Boolean = Model("some")
       val filter2: Model = new Model("some")
     }
 
@@ -107,28 +107,28 @@ class APIIsBackwardCompatible extends FeatureSpec {
       import akka.NotUsed
       import akka.stream.scaladsl.Source
       import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
-      import com.microsoft.azure.iot.iothubreact.{IoTMessage, Offset}
+      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
 
       val hub1: IoTHub = new IoTHub()
       val hub2: IoTHub = IoTHub()
 
-      val source1: Source[IoTMessage, NotUsed] = hub1.source()
+      val source1: Source[MessageFromDevice, NotUsed] = hub1.source()
 
-      val source2: Source[IoTMessage, NotUsed] = hub1.source(Instant.now())
-      val source3: Source[IoTMessage, NotUsed] = hub1.source(startTime = Instant.now())
+      val source2: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now())
+      val source3: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now())
 
-      val source4: Source[IoTMessage, NotUsed] = hub1.source(false)
-      val source5: Source[IoTMessage, NotUsed] = hub1.source(withCheckpoints = false)
+      val source4: Source[MessageFromDevice, NotUsed] = hub1.source(false)
+      val source5: Source[MessageFromDevice, NotUsed] = hub1.source(withCheckpoints = false)
 
       val offsets: Seq[Offset] = Vector(Offset("1"), Offset("0"), Offset("0"), Offset("-1"), Offset("234623"))
-      val source6: Source[IoTMessage, NotUsed] = hub1.source(offsets)
-      val source7: Source[IoTMessage, NotUsed] = hub1.source(offsets = offsets)
+      val source6: Source[MessageFromDevice, NotUsed] = hub1.source(offsets)
+      val source7: Source[MessageFromDevice, NotUsed] = hub1.source(offsets = offsets)
 
-      val source8: Source[IoTMessage, NotUsed] = hub1.source(Instant.now(), false)
-      val source9: Source[IoTMessage, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
+      val source8: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now(), false)
+      val source9: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
 
-      val source10: Source[IoTMessage, NotUsed] = hub1.source(offsets, false)
-      val source11: Source[IoTMessage, NotUsed] = hub1.source(offsets = offsets, withCheckpoints = false)
+      val source10: Source[MessageFromDevice, NotUsed] = hub1.source(offsets, false)
+      val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offsets = offsets, withCheckpoints = false)
     }
 
     scenario("Using JavaDSL IoTHub") {
@@ -137,29 +137,29 @@ class APIIsBackwardCompatible extends FeatureSpec {
       import akka.NotUsed
       import akka.stream.javadsl.Source
       import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub
-      import com.microsoft.azure.iot.iothubreact.{IoTMessage, Offset}
+      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
 
       import scala.collection.JavaConverters._
 
       val hub: IoTHub = new IoTHub()
 
-      val source1: Source[IoTMessage, NotUsed] = hub.source()
+      val source1: Source[MessageFromDevice, NotUsed] = hub.source()
 
-      val source2: Source[IoTMessage, NotUsed] = hub.source(Instant.now())
-      val source3: Source[IoTMessage, NotUsed] = hub.source(startTime = Instant.now())
+      val source2: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now())
+      val source3: Source[MessageFromDevice, NotUsed] = hub.source(startTime = Instant.now())
 
-      val source4: Source[IoTMessage, NotUsed] = hub.source(false)
-      val source5: Source[IoTMessage, NotUsed] = hub.source(withCheckpoints = false)
+      val source4: Source[MessageFromDevice, NotUsed] = hub.source(false)
+      val source5: Source[MessageFromDevice, NotUsed] = hub.source(withCheckpoints = false)
 
       val offsets: java.util.Collection[Offset] = Seq(Offset("1"), Offset("0"), Offset("0"), Offset("-1"), Offset("234623")).asJavaCollection
-      val source6: Source[IoTMessage, NotUsed] = hub.source(offsets)
-      val source7: Source[IoTMessage, NotUsed] = hub.source(offsets = offsets)
+      val source6: Source[MessageFromDevice, NotUsed] = hub.source(offsets)
+      val source7: Source[MessageFromDevice, NotUsed] = hub.source(offsets = offsets)
 
-      val source8: Source[IoTMessage, NotUsed] = hub.source(Instant.now(), false)
-      val source9: Source[IoTMessage, NotUsed] = hub.source(startTime = Instant.now(), withCheckpoints = false)
+      val source8: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now(), false)
+      val source9: Source[MessageFromDevice, NotUsed] = hub.source(startTime = Instant.now(), withCheckpoints = false)
 
-      val source10: Source[IoTMessage, NotUsed] = hub.source(offsets, false)
-      val source11: Source[IoTMessage, NotUsed] = hub.source(offsets = offsets, withCheckpoints = false)
+      val source10: Source[MessageFromDevice, NotUsed] = hub.source(offsets, false)
+      val source11: Source[MessageFromDevice, NotUsed] = hub.source(offsets = offsets, withCheckpoints = false)
     }
 
     scenario("Using ScalaDSL IoTHubPartition") {
@@ -168,7 +168,7 @@ class APIIsBackwardCompatible extends FeatureSpec {
       import akka.NotUsed
       import akka.stream.scaladsl.Source
       import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
-      import com.microsoft.azure.iot.iothubreact.{IoTMessage, Offset}
+      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
 
       val hub1: IoTHubPartition = new IoTHubPartition(1)
       val hub2: IoTHubPartition = new IoTHubPartition(partition = 1)
@@ -178,22 +178,22 @@ class APIIsBackwardCompatible extends FeatureSpec {
       val const1: String = IoTHubPartition.OffsetStartOfStream
       val const2: String = IoTHubPartition.OffsetCheckpointNotFound
 
-      val source1: Source[IoTMessage, NotUsed] = hub1.source()
+      val source1: Source[MessageFromDevice, NotUsed] = hub1.source()
 
-      val source2: Source[IoTMessage, NotUsed] = hub1.source(Instant.now())
-      val source3: Source[IoTMessage, NotUsed] = hub1.source(startTime = Instant.now())
+      val source2: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now())
+      val source3: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now())
 
-      val source4: Source[IoTMessage, NotUsed] = hub1.source(false)
-      val source5: Source[IoTMessage, NotUsed] = hub1.source(withCheckpoints = false)
+      val source4: Source[MessageFromDevice, NotUsed] = hub1.source(false)
+      val source5: Source[MessageFromDevice, NotUsed] = hub1.source(withCheckpoints = false)
 
-      val source6: Source[IoTMessage, NotUsed] = hub1.source(Offset("1"))
-      val source7: Source[IoTMessage, NotUsed] = hub1.source(offset = Offset("1"))
+      val source6: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"))
+      val source7: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"))
 
-      val source8: Source[IoTMessage, NotUsed] = hub1.source(Instant.now(), false)
-      val source9: Source[IoTMessage, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
+      val source8: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now(), false)
+      val source9: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
 
-      val source10: Source[IoTMessage, NotUsed] = hub1.source(Offset("1"), false)
-      val source11: Source[IoTMessage, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
+      val source10: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"), false)
+      val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
     }
 
     scenario("Using JavaDSL IoTHubPartition") {
@@ -202,7 +202,7 @@ class APIIsBackwardCompatible extends FeatureSpec {
       import akka.NotUsed
       import akka.stream.javadsl.Source
       import com.microsoft.azure.iot.iothubreact.javadsl.IoTHubPartition
-      import com.microsoft.azure.iot.iothubreact.{IoTMessage, Offset}
+      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
 
       val hub1: IoTHubPartition = new IoTHubPartition(1)
       val hub2: IoTHubPartition = new IoTHubPartition(partition = 1)
@@ -210,22 +210,22 @@ class APIIsBackwardCompatible extends FeatureSpec {
       val const1: String = hub1.OffsetStartOfStream
       val const2: String = hub1.OffsetCheckpointNotFound
 
-      val source1: Source[IoTMessage, NotUsed] = hub1.source()
+      val source1: Source[MessageFromDevice, NotUsed] = hub1.source()
 
-      val source2: Source[IoTMessage, NotUsed] = hub1.source(Instant.now())
-      val source3: Source[IoTMessage, NotUsed] = hub1.source(startTime = Instant.now())
+      val source2: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now())
+      val source3: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now())
 
-      val source4: Source[IoTMessage, NotUsed] = hub1.source(false)
-      val source5: Source[IoTMessage, NotUsed] = hub1.source(withCheckpoints = false)
+      val source4: Source[MessageFromDevice, NotUsed] = hub1.source(false)
+      val source5: Source[MessageFromDevice, NotUsed] = hub1.source(withCheckpoints = false)
 
-      val source6: Source[IoTMessage, NotUsed] = hub1.source(Offset("1"))
-      val source7: Source[IoTMessage, NotUsed] = hub1.source(offset = Offset("1"))
+      val source6: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"))
+      val source7: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"))
 
-      val source8: Source[IoTMessage, NotUsed] = hub1.source(Instant.now(), false)
-      val source9: Source[IoTMessage, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
+      val source8: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now(), false)
+      val source9: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
 
-      val source10: Source[IoTMessage, NotUsed] = hub1.source(Offset("1"), false)
-      val source11: Source[IoTMessage, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
+      val source10: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"), false)
+      val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
     }
   }
 }

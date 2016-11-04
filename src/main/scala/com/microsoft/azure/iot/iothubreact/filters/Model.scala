@@ -2,10 +2,10 @@
 
 package com.microsoft.azure.iot.iothubreact.filters
 
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 
 object Model {
-  def apply(model: String)(m: IoTMessage) = new Model(model).only(m)
+  def apply(model: String)(m: MessageFromDevice) = new Model(model).only(m)
 }
 
 /** Filter by model name
@@ -13,7 +13,7 @@ object Model {
   * @param model Model name
   */
 class Model(val model: String) {
-  def only(m: IoTMessage): Boolean = m.model == model
+  def only(m: MessageFromDevice): Boolean = m.model == model
 }
 
 

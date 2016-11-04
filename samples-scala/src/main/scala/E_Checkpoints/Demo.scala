@@ -3,7 +3,7 @@
 package E_Checkpoints
 
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
 
@@ -16,7 +16,7 @@ import com.microsoft.azure.iot.iothubreact.scaladsl._
   */
 object Demo extends App {
 
-  val console = Sink.foreach[IoTMessage] {
+  val console = Sink.foreach[MessageFromDevice] {
     t ⇒ println(s"Message from ${t.deviceId} - Time: ${t.created}")
   }
 

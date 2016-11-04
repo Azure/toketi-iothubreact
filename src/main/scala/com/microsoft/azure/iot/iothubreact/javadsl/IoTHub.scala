@@ -6,7 +6,7 @@ import java.time.Instant
 
 import akka.NotUsed
 import akka.stream.javadsl.{Source ⇒ SourceJavaDSL}
-import com.microsoft.azure.iot.iothubreact.{IoTMessage, Offset}
+import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
 
 import scala.collection.JavaConverters._
@@ -24,7 +24,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(): SourceJavaDSL[MessageFromDevice, NotUsed] = {
     new SourceJavaDSL(iotHub.source())
   }
 
@@ -35,7 +35,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(startTime: Instant): SourceJavaDSL[MessageFromDevice, NotUsed] = {
     new SourceJavaDSL(iotHub.source(startTime))
   }
 
@@ -47,7 +47,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(withCheckpoints: Boolean): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(withCheckpoints: Boolean): SourceJavaDSL[MessageFromDevice, NotUsed] = {
     new SourceJavaDSL(iotHub.source(withCheckpoints))
   }
 
@@ -58,7 +58,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: java.util.Collection[Offset]): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(offsets: java.util.Collection[Offset]): SourceJavaDSL[MessageFromDevice, NotUsed] = {
     new SourceJavaDSL(iotHub.source(offsets.asScala.toList))
   }
 
@@ -70,7 +70,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant, withCheckpoints: Boolean): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(startTime: Instant, withCheckpoints: Boolean): SourceJavaDSL[MessageFromDevice, NotUsed] = {
     new SourceJavaDSL(iotHub.source(startTime, withCheckpoints))
   }
 
@@ -82,7 +82,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: java.util.Collection[Offset], withCheckpoints: Boolean): SourceJavaDSL[IoTMessage, NotUsed] = {
+  def source(offsets: java.util.Collection[Offset], withCheckpoints: Boolean): SourceJavaDSL[MessageFromDevice, NotUsed] = {
     new SourceJavaDSL(iotHub.source(offsets.asScala.toList, withCheckpoints))
   }
 }

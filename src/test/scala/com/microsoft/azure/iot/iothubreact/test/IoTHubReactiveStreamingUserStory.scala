@@ -9,7 +9,7 @@ import akka.actor.Props
 import akka.pattern.ask
 import akka.stream.KillSwitches
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
 import com.microsoft.azure.iot.iothubreact.test.helpers._
@@ -47,9 +47,9 @@ class IoTHubReactiveStreamingUserStory extends FeatureSpec with GivenWhenThen {
       val hubPartition = IoTHubPartition(1)
 
       When("A developer wants to fetch messages from Azure IoT hub")
-      val messagesFromOnePartition: Source[IoTMessage, NotUsed] = hubPartition.source(false)
-      val messagesFromAllPartitions: Source[IoTMessage, NotUsed] = hub.source(false)
-      val messagesFromNowOn: Source[IoTMessage, NotUsed] = hub.source(Instant.now(), false)
+      val messagesFromOnePartition: Source[MessageFromDevice, NotUsed] = hubPartition.source(false)
+      val messagesFromAllPartitions: Source[MessageFromDevice, NotUsed] = hub.source(false)
+      val messagesFromNowOn: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now(), false)
 
       Then("The messages are presented as a stream")
       messagesFromOnePartition.to(Sink.ignore)
@@ -85,7 +85,7 @@ class IoTHubReactiveStreamingUserStory extends FeatureSpec with GivenWhenThen {
 
       When("A client application processes messages from the stream")
       counter ! "reset"
-      val count = Sink.foreach[IoTMessage] {
+      val count = Sink.foreach[MessageFromDevice] {
         m ⇒ counter ! "inc"
       }
 
@@ -153,7 +153,7 @@ class IoTHubReactiveStreamingUserStory extends FeatureSpec with GivenWhenThen {
       Then("Then the client receives all the messages ordered within each device")
       counter ! "reset"
       val cursors = new mutable.ParHashMap[String, Long]
-      val verifier = Sink.foreach[IoTMessage] {
+      val verifier = Sink.foreach[MessageFromDevice] {
         m ⇒ {
           counter ! "inc"
           log.debug(s"device: ${m.deviceId}, seq: ${m.sequenceNumber} ")

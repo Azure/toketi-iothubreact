@@ -3,7 +3,7 @@
 package C_Throughput
 
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
 
@@ -17,7 +17,7 @@ object Demo extends App {
   val showStatsEvery = 1 second
 
   // Messages throughput monitoring sink
-  val monitor = Sink.foreach[IoTMessage] {
+  val monitor = Sink.foreach[MessageFromDevice] {
     m ⇒ {
       Monitoring.total += 1
       Monitoring.totals(m.partition.get) += 1

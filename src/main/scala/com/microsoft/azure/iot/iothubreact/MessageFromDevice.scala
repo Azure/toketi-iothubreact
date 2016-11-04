@@ -8,7 +8,7 @@ import java.util
 import com.microsoft.azure.eventhubs.EventData
 
 /* IoTMessage factory */
-private object IoTMessage {
+private object MessageFromDevice {
 
   /** Create a user friendly representation of the IoT message from the raw
     * data coming from the storage
@@ -18,8 +18,8 @@ private object IoTMessage {
     *
     * @return
     */
-  def apply(rawData: EventData, partition: Option[Int]): IoTMessage = {
-    new IoTMessage(Some(rawData), partition)
+  def apply(rawData: EventData, partition: Option[Int]): MessageFromDevice = {
+    new MessageFromDevice(Some(rawData), partition)
   }
 }
 
@@ -27,7 +27,7 @@ private object IoTMessage {
   *
   * @param partition Storage partition where the message was retrieved from
   */
-class IoTMessage(data: Option[EventData], val partition: Option[Int]) {
+class MessageFromDevice(data: Option[EventData], val partition: Option[Int]) {
 
   // Internal properties set by IoT stoage
   private[this] lazy val systemProps = data.get.getSystemProperties()

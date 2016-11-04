@@ -2,7 +2,7 @@
 package A_APIUSage
 
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.IoTMessage
+import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
@@ -15,7 +15,7 @@ object AllMessagesFromBeginning extends App {
 
   val messages = IoTHub().source()
 
-  val console = Sink.foreach[IoTMessage] {
+  val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.model} - ${m.contentAsString}")
   }
 
@@ -34,7 +34,7 @@ object OnlyRecentMessages extends App {
 
   val messages = IoTHub().source(java.time.Instant.now())
 
-  val console = Sink.foreach[IoTMessage] {
+  val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.model} - ${m.contentAsString}")
   }
 
@@ -55,7 +55,7 @@ object OnlyOnePartition extends App {
 
   val messages = IoTHubPartition(Partition).source()
 
-  val console = Sink.foreach[IoTMessage] {
+  val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.model} - ${m.contentAsString}")
   }
 
@@ -74,11 +74,11 @@ object MultipleDestinations extends App {
 
   val messages = IoTHub().source(java.time.Instant.now())
 
-  val console1 = Sink.foreach[IoTMessage] {
+  val console1 = Sink.foreach[MessageFromDevice] {
     m ⇒ if (m.model == "temperature") println(s"Temperature console: ${m.created} - ${m.deviceId} - ${m.contentAsString}")
   }
 
-  val console2 = Sink.foreach[IoTMessage] {
+  val console2 = Sink.foreach[MessageFromDevice] {
     m ⇒ if (m.model == "humidity") println(s"Humidity console: ${m.created} - ${m.deviceId} - ${m.contentAsString}")
   }
 
@@ -99,7 +99,7 @@ object FilterByMessageType extends App {
 
   val messages = IoTHub().source()
 
-  val console = Sink.foreach[IoTMessage] {
+  val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.model} - ${m.contentAsString}")
   }
 
@@ -122,7 +122,7 @@ object FilterByDeviceID extends App {
 
   val messages = IoTHub().source()
 
-  val console = Sink.foreach[IoTMessage] {
+  val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.model} - ${m.contentAsString}")
   }
 
