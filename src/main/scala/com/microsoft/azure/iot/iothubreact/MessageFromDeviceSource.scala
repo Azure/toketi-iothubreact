@@ -14,7 +14,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
-private object IoTMessageSource {
+private object MessageFromDeviceSource {
 
   /** Create an instance of the messages source for the specified partition
     *
@@ -25,7 +25,7 @@ private object IoTMessageSource {
     *         Deserialization is left to the consumer.
     */
   def apply(partition: Int, offset: String, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    Source.fromGraph(new IoTMessageSource(partition, offset, withCheckpoints))
+    Source.fromGraph(new MessageFromDeviceSource(partition, offset, withCheckpoints))
   }
 
   /** Create an instance of the messages source for the specified partition
@@ -37,7 +37,7 @@ private object IoTMessageSource {
     *         Deserialization is left to the consumer.
     */
   def apply(partition: Int, startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    Source.fromGraph(new IoTMessageSource(partition, startTime, withCheckpoints))
+    Source.fromGraph(new MessageFromDeviceSource(partition, startTime, withCheckpoints))
   }
 }
 
@@ -46,7 +46,7 @@ private object IoTMessageSource {
   * @todo Refactor and use async methods, compare performance
   * @todo Consider option to deserialize on the fly to [T], assuming JSON format
   */
-private class IoTMessageSource() extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
+private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
 
   abstract class OffsetType
 
@@ -102,7 +102,7 @@ private class IoTMessageSource() extends GraphStage[SourceShape[MessageFromDevic
   }
 
   // Define the (sole) output port of this stage
-  private[this] val out: Outlet[MessageFromDevice] = Outlet("IoTMessageSource")
+  private[this] val out: Outlet[MessageFromDevice] = Outlet("MessageFromDeviceSource")
 
   // Define the shape of this stage => SourceShape with the port defined above
   override val shape: SourceShape[MessageFromDevice] = SourceShape(out)
