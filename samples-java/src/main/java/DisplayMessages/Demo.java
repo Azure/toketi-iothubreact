@@ -27,7 +27,7 @@ public class Demo extends ReactiveStreamingApp {
     public static void main(String args[]) {
 
         // Source retrieving messages from one IoT hub partition (e.g. partition 2)
-        //Source<IoTMessage, NotUsed> messages = new IoTHubPartition(2).source();
+        //Source<MessageFromDevice, NotUsed> messages = new IoTHubPartition(2).source();
 
         // Source retrieving from all IoT hub partitions for the past 24 hours
         Source<MessageFromDevice, NotUsed> messages = new IoTHub().source(Instant.now().minus(1, ChronoUnit.DAYS));

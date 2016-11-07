@@ -148,9 +148,9 @@ case class IoTHubPartition(val partition: Int) extends Logger {
 
     // Build the source starting by time or by offset
     val source: Source[MessageFromDevice, NotUsed] = if (_withTimeOffset)
-      IoTMessageSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
+      MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
     else
-      IoTMessageSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
+      MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
 
     // Inject a flow to store the stream position after each pull
     if (withCheckpoints) {

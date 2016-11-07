@@ -8,7 +8,7 @@ import java.util
 import com.microsoft.azure.eventhubs.EventData
 import com.microsoft.azure.servicebus.amqp.AmqpConstants.AMQP_PROPERTY_CONTENT_TYPE
 
-/* IoTMessage factory */
+/* MessageFromDevice factory */
 private object MessageFromDevice {
 
   /** Create a user friendly representation of the IoT message from the raw
@@ -24,7 +24,7 @@ private object MessageFromDevice {
   }
 }
 
-/** Expose the IoT message body and timestamp
+/** Expose the IoT device message body and timestamp
   *
   * @param partition Storage partition where the message was retrieved from
   */

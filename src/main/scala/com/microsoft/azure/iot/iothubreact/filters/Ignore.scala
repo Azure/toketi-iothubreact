@@ -9,7 +9,7 @@ import com.microsoft.azure.iot.iothubreact.MessageFromDevice
   */
 private[iothubreact] object Ignore {
 
-  /** Ignore the keep alive signal injected by IoTMessageSource
+  /** Ignore the keep alive signal injected by MessageFromDeviceSource
     *
     * @return True if the message must be processed
     */
