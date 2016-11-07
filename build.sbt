@@ -9,7 +9,7 @@ crossScalaVersions := Seq("2.11.8", "2.12.0")
 
 libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
-    val azureEventHubSDKVersion = "0.8.2"
+    val azureEventHubSDKVersion = "0.9.0"
     val azureStorageSDKVersion = "4.4.0"
     val iothubDeviceClientVersion = "1.0.14"
     val iothubServiceClientVersion = "1.0.10"
