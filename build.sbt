@@ -68,6 +68,12 @@ def pkg(name: String, scalaVersion: String): String = {
 def akkaStreamVersion(scalaVersion: String): String = CrossVersion.partialVersion(scalaVersion) match {
   case Some((2, 11)) => "2.4.12"
   case Some((2, 12)) => "2.4.11"
+      // Temp deps for forked copy of Azure SDK fork
+      "com.microsoft.azure.iothub-java-client" % "websocket-transport-layer" % "0.1.0",
+      //"org.apache.qpid" % "proton-j" % "0.15.0",
+      "commons-codec" % "commons-codec" % "1.6",
+      "com.google.code.gson" % "gson" % "2.5",
+      "org.glassfish" % "javax.json" % "1.0.4"
 }
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
