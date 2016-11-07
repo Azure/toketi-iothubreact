@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 // Namespace chosen to avoid access to internal classes
-package api.test
+package api
 
 // No global imports to make easier detecting breaking changes
 import org.scalatest.FeatureSpec
@@ -14,7 +14,7 @@ class APIIsBackwardCompatible extends FeatureSpec {
 
   feature("Version 0.x is backward compatible") {
 
-    scenario("Using IoTMessage") {
+    scenario("Using MessageFromDevice") {
       import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 
       val data: Option[com.microsoft.azure.eventhubs.EventData] = None

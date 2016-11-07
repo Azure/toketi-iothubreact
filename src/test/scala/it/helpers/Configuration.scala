@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.test.helpers
+package it.helpers
 
 import java.nio.file.{Files, Paths}
 

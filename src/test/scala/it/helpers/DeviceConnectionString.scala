@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.test.helpers
+package it.helpers
 
 /* Format a connection string accordingly to SDK */
 object DeviceConnectionString {

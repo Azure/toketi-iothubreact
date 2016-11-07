@@ -1,18 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.test
+package it
 
 import java.time.Instant
 
-import akka.NotUsed
 import akka.actor.Props
 import akka.pattern.ask
 import akka.stream.KillSwitches
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.scaladsl.{Keep, Sink}
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
-import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
-import com.microsoft.azure.iot.iothubreact.test.helpers._
+import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
+import it.helpers.{Counter, Device}
 import org.scalatest._
 
 import scala.collection.parallel.mutable
@@ -20,16 +19,14 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-/** Tests streaming against Azure IoT hub endpoint
-  *
-  * Note: the tests require an actual hub ready to use
-  */
-
-class IoTHubReactiveStreamingUserStory extends FeatureSpec with GivenWhenThen {
+class MessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThen {
 
   info("As a client of Azure IoT hub")
-  info("I want to be able to receive all the messages as a stream")
-  info("So I can process them asynchronously and at scale")
+  info("I want to receive the messages in order")
+  info("So I can process them in order")
+
+  // A label shared by all the messages, to filter out data sent by other tests
+  val testRunId: String = "[MessagesAreDeliveredInOrder-" + java.util.UUID.randomUUID().toString + "]"
 
   val counter = actorSystem.actorOf(Props[Counter], "Counter")
   counter ! "reset"
@@ -40,79 +37,6 @@ class IoTHubReactiveStreamingUserStory extends FeatureSpec with GivenWhenThen {
 
   feature("All IoT messages are presented as an ordered stream") {
 
-    scenario("Developer wants to retrieve IoT messages") {
-
-      Given("An IoT hub is configured")
-      val hub = IoTHub()
-      val hubPartition = IoTHubPartition(1)
-
-      When("A developer wants to fetch messages from Azure IoT hub")
-      val messagesFromOnePartition: Source[MessageFromDevice, NotUsed] = hubPartition.source(false)
-      val messagesFromAllPartitions: Source[MessageFromDevice, NotUsed] = hub.source(false)
-      val messagesFromNowOn: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now(), false)
-
-      Then("The messages are presented as a stream")
-      messagesFromOnePartition.to(Sink.ignore)
-      messagesFromAllPartitions.to(Sink.ignore)
-      messagesFromNowOn.to(Sink.ignore)
-    }
-
-    scenario("Application wants to retrieve all IoT messages") {
-
-      // How many seconds we allow the test to wait for messages from the stream
-      val TestTimeout = 60 seconds
-      val DevicesCount = 5
-      val MessagesPerDevice = 4
-      val expectedMessageCount = DevicesCount * MessagesPerDevice
-
-      // A label shared by all the messages, to filter out data sent by other tests
-      val testRunId: String = "[RetrieveAll-" + java.util.UUID.randomUUID().toString + "]"
-
-      // We'll use this as the streaming start date
-      val startTime = Instant.now().minusSeconds(30)
-      log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
-
-      Given("An IoT hub is configured")
-      val messages = IoTHub().source(startTime, false)
-
-      And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
-      for (i ← 0 until DevicesCount) {
-        val device = new Device("device" + (10000 + i))
-        for (i ← 1 to MessagesPerDevice) device.sendMessage(testRunId, i)
-        device.disconnect()
-      }
-      log.info(s"Messages sent: $expectedMessageCount")
-
-      When("A client application processes messages from the stream")
-      counter ! "reset"
-      val count = Sink.foreach[MessageFromDevice] {
-        m ⇒ counter ! "inc"
-      }
-
-      val (killSwitch, last) = messages
-        .viaMat(KillSwitches.single)(Keep.right)
-        .filter(m ⇒ m.contentAsString contains testRunId)
-        .toMat(count)(Keep.both)
-        .run()
-
-      Then("Then the client application receives all the messages sent")
-      var time = TestTimeout.toMillis.toInt
-      val pause = time / 10
-      var actualMessageCount = readCounter
-      while (time > 0 && actualMessageCount < expectedMessageCount) {
-        Thread.sleep(pause)
-        time -= pause
-        actualMessageCount = readCounter
-        log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
-      }
-
-      killSwitch.shutdown()
-
-      assert(
-        actualMessageCount == expectedMessageCount,
-        s"Expecting ${expectedMessageCount} messages but received ${actualMessageCount}")
-    }
-
     // Note: messages are sent in parallel to obtain some level of mix in the
     // storage, so do not refactor, i.e. don't do one device at a time.
     scenario("Customer needs to process IoT messages in the right order") {
@@ -122,9 +46,6 @@ class IoTHubReactiveStreamingUserStory extends FeatureSpec with GivenWhenThen {
       val DevicesCount = 10
       val MessagesPerDevice = 200
       val expectedMessageCount = DevicesCount * MessagesPerDevice
-
-      // A label shared by all the messages, to filter out data sent by other tests
-      val testRunId: String = "[VerifyOrder-" + java.util.UUID.randomUUID().toString + "]"
 
       // We'll use this as the streaming start date
       val startTime = Instant.now().minusSeconds(30)

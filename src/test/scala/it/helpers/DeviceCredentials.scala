@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.test.helpers
+package it.helpers
 
 /** Model used to deserialize the device credentials
   *

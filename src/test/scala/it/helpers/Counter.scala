@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.test.helpers
+package it.helpers
 
 import java.util.concurrent.Executors
 
-import akka.actor.Actor
 import akka.actor.{Actor, Stash}
 
 import scala.concurrent.ExecutionContext
