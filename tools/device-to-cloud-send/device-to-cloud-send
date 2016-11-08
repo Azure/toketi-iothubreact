@@ -1,0 +1,2 @@
+java -jar ./target/scala-2.12/device-to-cloud-send-assembly-0.1.0.jar "$@"
+
