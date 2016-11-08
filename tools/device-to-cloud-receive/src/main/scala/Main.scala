@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft. All rights reserved.
+
 import java.time.Instant
 
 import com.microsoft.azure.eventhubs.EventHubClient
