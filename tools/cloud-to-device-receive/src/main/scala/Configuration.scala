@@ -1,8 +1,7 @@
-package messagesFromDevices
+// Copyright (c) Microsoft. All rights reserved.
 
 import java.util.concurrent.TimeUnit
 
-import com.microsoft.azure.eventhubs.EventHubClient
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.duration._
@@ -33,8 +32,8 @@ object Configuration {
   private[this] val tmpCG = conf.getString(confConnPath + "consumerGroup")
   val receiverConsumerGroup: String =
     tmpCG.toUpperCase match {
-      case "$DEFAULT" ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
-      case "DEFAULT"  ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
+      case "$DEFAULT" ⇒ "$Default"
+      case "DEFAULT"  ⇒ "$Default"
       case _          ⇒ tmpCG
     }
 

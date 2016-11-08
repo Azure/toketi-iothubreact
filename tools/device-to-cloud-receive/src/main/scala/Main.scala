@@ -1,15 +1,14 @@
-package messagesFromDevices
-
-import java.lang.Iterable
 import java.time.Instant
 
-import com.microsoft.azure.eventhubs.{EventData, EventHubClient}
+import com.microsoft.azure.eventhubs.EventHubClient
 import com.microsoft.azure.servicebus.ConnectionStringBuilder
+import messagesFromDevices.MessageFromDevice
 
 import scala.collection.JavaConverters._
 import scala.language.{implicitConversions, postfixOps}
 
-/** Simple app reading one partition and printing messages info
+/**
+  * Receive messages sent from IoT devices, from one EventHub partition
   */
 object Main extends App {
 
@@ -37,7 +36,7 @@ object Main extends App {
   var attempts = attemptsOnEmpty
   var continue = true
   while (continue) {
-    val messages: Iterable[EventData] = receiver.receiveSync(Configuration.receiverBatchSize)
+    val messages = receiver.receiveSync(Configuration.receiverBatchSize)
 
     val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition))).toList
 

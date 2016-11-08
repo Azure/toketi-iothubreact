@@ -1,9 +1,18 @@
+// Copyright (c) Microsoft. All rights reserved.
+
 package messagesFromDevices
 
 import java.time.Instant
 import java.util
 
 import com.microsoft.azure.eventhubs.EventData
+
+/* MessageFromDevice factory */
+object MessageFromDevice {
+  def apply(rawData: EventData, partition: Option[Int]): MessageFromDevice = {
+    new MessageFromDevice(Some(rawData), partition)
+  }
+}
 
 class MessageFromDevice(data: Option[EventData], val partition: Option[Int]) {
 
