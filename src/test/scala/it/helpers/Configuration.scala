@@ -4,15 +4,17 @@ package it.helpers
 
 import java.nio.file.{Files, Paths}
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.microsoft.azure.eventhubs.EventHubClient
 import com.typesafe.config.{Config, ConfigFactory}
-
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
 import scala.reflect.io.File
 
 /* Test configuration settings */
 private object Configuration {
+
+  // JSON parser setup, brings in default date formats etc.
+  implicit val formats = DefaultFormats
 
   private[this] val confConnPath      = "iothub-react.connection."
   private[this] val confStreamingPath = "iothub-react.streaming."
@@ -32,11 +34,9 @@ private object Configuration {
   var receiverBatchSize       : Int    = conf.getInt(confStreamingPath + "receiverBatchSize")
 
   // Read devices configuration from JSON file
-  private[this] val jsonParser = new ObjectMapper()
-  jsonParser.registerModule(DefaultScalaModule)
-  private[this] lazy val devicesJsonFile = conf.getString(confConnPath + "devices")
-  private[this] lazy val devicesJson     = File(devicesJsonFile).slurp()
-  private[this] lazy val devices         = jsonParser.readValue(devicesJson, classOf[Array[DeviceCredentials]])
+  private[this] lazy val devicesJsonFile                       = conf.getString(confConnPath + "devices")
+  private[this] lazy val devicesJson: String                   = File(devicesJsonFile).slurp()
+  private[this] lazy val devices    : Array[DeviceCredentials] = parse(devicesJson).extract[Array[DeviceCredentials]]
 
   def deviceCredentials(id: String): DeviceCredentials = devices.find(x ⇒ x.deviceId == id).get
 

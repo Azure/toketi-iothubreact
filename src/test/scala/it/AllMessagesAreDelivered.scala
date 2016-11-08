@@ -25,9 +25,9 @@ class AllMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
   info("So I can process them all")
 
   // A label shared by all the messages, to filter out data sent by other tests
-  val testRunId: String = "[AllMessagesAreDelivered-" + java.util.UUID.randomUUID().toString + "]"
+  val testRunId: String = s"[${this.getClass.getName}-" + java.util.UUID.randomUUID().toString + "]"
 
-  val counter = actorSystem.actorOf(Props[Counter], "Counter")
+  val counter = actorSystem.actorOf(Props[Counter], this.getClass.getName + "Counter")
   counter ! "reset"
 
   def readCounter: Long = {

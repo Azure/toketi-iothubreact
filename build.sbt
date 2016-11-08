@@ -14,7 +14,6 @@ libraryDependencies <++= (scalaVersion) {
     val iothubDeviceClientVersion = "1.0.14"
     val iothubServiceClientVersion = "1.0.10"
     val scalaTestVersion = "3.0.0"
-    val jacksonVersion = "2.8.4"
     val datastaxDriverVersion = "3.1.1"
     val json4sVersion = "3.5.0"
     val akkaStreamVersion = "2.4.12"
@@ -29,20 +28,23 @@ libraryDependencies <++= (scalaVersion) {
       "org.json4s" %% "json4s-native" % json4sVersion,
       "org.json4s" %% "json4s-jackson" % json4sVersion,
 
+      // Temporary dependencies for Service SDK copy
+      "commons-codec" % "commons-codec" % "1.10",
+      "com.google.code.gson" % "gson" % "2.8.0",
+      "org.glassfish" % "javax.json" % "1.0.4",
+      "com.microsoft.azure.iothub-java-client" % "websocket-transport-layer" % "0.1.0",
+
+      // Temp deps for forked copy of Azure SDKs
+      //"com.microsoft.azure.iothub-java-client" % "websocket-transport-layer" % "0.1.0",
+      //"commons-codec" % "commons-codec" % "1.10",
+      //"com.google.code.gson" % "gson" % "2.5",
+      //"org.glassfish" % "javax.json" % "1.0.4",
+      //"org.bouncycastle" % "bcpkix-jdk15on" % "1.47",
+      //"org.eclipse.paho" % "org.eclipse.paho.client.mqttv3" % "1.0.2"
+
       // Tests dependencies
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test",
-
-      // Remove < % "test" > to run samples-java against the local workspace
-      // @todo use json4s
-      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion % "test",
-      "org.skinny-framework.com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion % "test",
-
-      // Temp deps for forked copy of Azure SDK fork
-      "com.microsoft.azure.iothub-java-client" % "websocket-transport-layer" % "0.1.0",
-      "commons-codec" % "commons-codec" % "1.6",
-      "com.google.code.gson" % "gson" % "2.5",
-      "org.glassfish" % "javax.json" % "1.0.4"
+      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test"
     )
 }
 
@@ -50,7 +52,7 @@ lazy val root = project.in(file(".")).configs(IntegrationTest)
 
 /** Miscs
   */
-logLevel := Level.Warn // Debug|Info|Warn|Error
+logLevel := Level.Debug // Debug|Info|Warn|Error
 scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 showTiming := true
 fork := true

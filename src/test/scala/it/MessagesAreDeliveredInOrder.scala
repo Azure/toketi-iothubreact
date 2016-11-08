@@ -26,9 +26,9 @@ class MessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThen {
   info("So I can process them in order")
 
   // A label shared by all the messages, to filter out data sent by other tests
-  val testRunId: String = "[MessagesAreDeliveredInOrder-" + java.util.UUID.randomUUID().toString + "]"
+  val testRunId: String = s"[${this.getClass.getName}-" + java.util.UUID.randomUUID().toString + "]"
 
-  val counter = actorSystem.actorOf(Props[Counter], "Counter")
+  val counter = actorSystem.actorOf(Props[Counter], this.getClass.getName + "Counter")
   counter ! "reset"
 
   def readCounter: Long = {
@@ -108,7 +108,10 @@ class MessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThen {
         log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
       }
 
+      log.info("Stopping stream")
       killSwitch.shutdown()
+
+      log.info(s"actual messages ${actualMessageCount}")
 
       assert(
         actualMessageCount == expectedMessageCount,

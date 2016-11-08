@@ -133,6 +133,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
               emitMultiple(out, emptyResult)
             } else {
               val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition))).toList
+              log.debug(s"Emitting ${iterator.size} messages")
               emitMultiple(out, iterator)
             }
           } catch {
