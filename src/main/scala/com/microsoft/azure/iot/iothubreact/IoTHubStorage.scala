@@ -10,8 +10,8 @@ private object IoTHubStorage extends Logger {
   private[this] val connString = new ConnectionStringBuilder(
     Configuration.iotHubNamespace,
     Configuration.iotHubName,
-    Configuration.iotHubKeyName,
-    Configuration.iotHubKey).toString
+    Configuration.accessPolicy,
+    Configuration.accessKey).toString
 
   // @todo Manage transient errors e.g. timeouts
   // EventHubClient.createFromConnectionString(connString)

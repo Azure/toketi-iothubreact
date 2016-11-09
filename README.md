@@ -211,10 +211,10 @@ The exact values to use can be found in the [Azure Portal](https://portal.azure.
 * **namespace**: it is the first part of the _Event Hub-compatible endpoint_, which usually has 
   this format: `sb://<namespace>.servicebus.windows.net/`
 * **name**: see _Event Hub-compatible name_
-* **keyname**: usually the value is `service`
-* **key**: the Primary Key can be found under _shared access policies/service_ policy (it's a 
-  base64 encoded string)
 * **partitions**: the number of partitions of the selected hub
+* **accessPolicy**: usually the value is `service`
+* **accessKey**: the Primary Key can be found under _shared access policies/service_ policy (it's a 
+  base64 encoded string)
 
 The values should be stored in your `application.conf` resource (or equivalent), which can 
 reference environment settings if you prefer.
@@ -223,11 +223,11 @@ reference environment settings if you prefer.
 iothub-react {
 
   connection {
-    namespace  = "<IoT hub namespace>"
-    name       = "<IoT hub name>"
-    keyName    = "<IoT hub key name>"
-    key        = "<IoT hub key value>"
-    partitions = <IoT hub partitions>
+    namespace    = "<IoT hub namespace>"
+    name         = "<IoT hub name>"
+    partitions   = <IoT hub partitions>
+    accessPolicy = "<IoT hub key name>"
+    accessKey    = "<IoT hub key value>"
   }
   
   [... other settings...]
@@ -240,11 +240,11 @@ Example using environment settings:
 iothub-react {
 
   connection {
-    namespace  = ${?IOTHUB_NAMESPACE}
-    name       = ${?IOTHUB_NAME}
-    keyName    = ${?IOTHUB_ACCESS_KEY_NAME}
-    key        = ${?IOTHUB_ACCESS_KEY_VALUE}
-    partitions = ${?IOTHUB_PARTITIONS}
+    namespace    = ${?IOTHUB_NAMESPACE}
+    name         = ${?IOTHUB_NAME}
+    partitions   = ${?IOTHUB_PARTITIONS}
+    accessPolicy = ${?IOTHUB_ACCESS_POLICY}
+    accessKey    = ${?IOTHUB_ACCESS_KEY}
   }
   
   [... other settings...]
@@ -262,7 +262,7 @@ akka {
 
 There are other settings, to tune performance and connection details:
 
-* **connection.consumerGroup**: the 
+* **streaming.consumerGroup**: the 
   [consumer group](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview)
   used during the connection
 * **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. The 

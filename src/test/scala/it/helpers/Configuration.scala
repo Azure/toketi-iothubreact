@@ -22,16 +22,16 @@ private object Configuration {
   private[this] val conf: Config = ConfigFactory.load()
 
   // Read-only settings
-  val iotHubPartitions: Int    = conf.getInt(confConnPath + "partitions")
   val iotHubNamespace : String = conf.getString(confConnPath + "namespace")
   val iotHubName      : String = conf.getString(confConnPath + "name")
-  val iotHubKeyName   : String = conf.getString(confConnPath + "keyName")
-  val iotHubKey       : String = conf.getString(confConnPath + "key")
+  val iotHubPartitions: Int    = conf.getInt(confConnPath + "partitions")
+  val accessPolicy    : String = conf.getString(confConnPath + "accessPolicy")
+  val accessKey       : String = conf.getString(confConnPath + "accessKey")
 
   // Tests can override these
-  var iotReceiverConsumerGroup: String = EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
-  var receiverTimeout         : Long   = conf.getDuration(confStreamingPath + "receiverTimeout").toMillis
-  var receiverBatchSize       : Int    = conf.getInt(confStreamingPath + "receiverBatchSize")
+  var receiverConsumerGroup: String = EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
+  var receiverTimeout      : Long   = conf.getDuration(confStreamingPath + "receiverTimeout").toMillis
+  var receiverBatchSize    : Int    = conf.getInt(confStreamingPath + "receiverBatchSize")
 
   // Read devices configuration from JSON file
   private[this] lazy val devicesJsonFile                       = conf.getString(confConnPath + "devices")

@@ -30,15 +30,15 @@ private[iothubreact] object Configuration {
   private[this] val conf: Config = ConfigFactory.load()
 
   // IoT hub storage details
-  val iotHubPartitions: Int    = conf.getInt(confConnPath + "partitions")
   val iotHubNamespace : String = conf.getString(confConnPath + "namespace")
   val iotHubName      : String = conf.getString(confConnPath + "name")
-  val iotHubKeyName   : String = conf.getString(confConnPath + "keyName")
-  val iotHubKey       : String = conf.getString(confConnPath + "key")
+  val iotHubPartitions: Int    = conf.getInt(confConnPath + "partitions")
+  val accessPolicy    : String = conf.getString(confConnPath + "accessPolicy")
+  val accessKey       : String = conf.getString(confConnPath + "accessKey")
 
   // Consumer group used to retrieve messages
   // @see https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview
-  private[this] val tmpCG = conf.getString(confConnPath + "consumerGroup")
+  private[this] val tmpCG = conf.getString(confStreamingPath + "consumerGroup")
   val receiverConsumerGroup: String =
     tmpCG.toUpperCase match {
       case "$DEFAULT" ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME

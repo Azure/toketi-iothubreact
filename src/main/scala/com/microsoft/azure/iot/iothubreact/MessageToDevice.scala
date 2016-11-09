@@ -129,6 +129,3 @@ class MessageToDevice(var deviceId: String, val content: Array[Byte]) {
     message
   }
 }
-
-
-
