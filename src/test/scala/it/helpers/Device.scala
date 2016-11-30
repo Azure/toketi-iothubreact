@@ -15,7 +15,10 @@ class Device(deviceId: String) extends Logger {
     override def execute(status: IotHubStatusCode, context: scala.Any): Unit = {
       ready = true
       val i = context.asInstanceOf[Int]
-      log.debug(s"Message ${i} status ${status.name()}")
+      log.debug(s"${deviceId}: Message ${i} status ${status.name()}")
+
+      // Sleep to avoid being throttled
+      Thread.sleep(10)
     }
   }
 
@@ -28,11 +31,6 @@ class Device(deviceId: String) extends Logger {
 
   // Prepare client to send messages
   private[this] lazy val client = new DeviceClient(connString, IotHubClientProtocol.AMQPS)
-
-  def disconnect(): Unit = {
-    client.close()
-    log.debug(s"Device '$deviceId' disconnected")
-  }
 
   def sendMessage(text: String, sequenceNumber: Int): Unit = {
 
@@ -62,5 +60,10 @@ class Device(deviceId: String) extends Logger {
     }
 
     if (!ready) log.debug(s"Device '${deviceId}', confirmation not received")
+  }
+
+  def disconnect(): Unit = {
+    client.close()
+    log.debug(s"Device '$deviceId' disconnected")
   }
 }

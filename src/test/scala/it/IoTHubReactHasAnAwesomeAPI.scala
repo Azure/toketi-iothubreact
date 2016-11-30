@@ -10,7 +10,7 @@ import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
 import org.scalatest._
 
-class DeviceMessagesStreaming extends FeatureSpec with GivenWhenThen {
+class IoTHubReactHasAnAwesomeAPI extends FeatureSpec with GivenWhenThen {
 
   info("As a client of Azure IoT hub")
   info("I want to be able to receive device messages as a stream")

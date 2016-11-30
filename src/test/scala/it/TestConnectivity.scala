@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-/*
 package it
 
 import java.time.Instant
@@ -98,6 +97,4 @@ class TestConnectivity extends FeatureSpec with GivenWhenThen {
       assert(found, s"Expecting to find at least one of the messages sent")
     }
   }
-
 }
-*/
