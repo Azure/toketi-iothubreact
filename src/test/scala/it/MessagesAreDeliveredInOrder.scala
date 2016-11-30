@@ -43,9 +43,13 @@ class MessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThen {
 
       // How many seconds we allow the test to wait for messages from the stream
       val TestTimeout = 120 seconds
-      val DevicesCount = 10
-      val MessagesPerDevice = 200
+      val DevicesCount = 25
+      val MessagesPerDevice = 100
       val expectedMessageCount = DevicesCount * MessagesPerDevice
+
+      // Initialize device objects
+      val devices = new collection.mutable.ListMap[Int, Device]()
+      for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber) = new Device("device" + (10000 + deviceNumber))
 
       // We'll use this as the streaming start date
       val startTime = Instant.now().minusSeconds(30)
@@ -55,18 +59,16 @@ class MessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThen {
       val messages = IoTHub().source(startTime, false)
 
       And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
-      val devices = new collection.mutable.ListMap[Int, Device]()
+      for (msgNumber ← 1 to MessagesPerDevice) {
+        for (deviceNumber ← 0 until DevicesCount) {
+          devices(deviceNumber).sendMessage(testRunId, msgNumber)
+          // temporary workaround for issue 995
+          if (msgNumber == 1) devices(deviceNumber).waitConfirmation()
+        }
 
-      for (i ← 0 until DevicesCount)
-        devices(i) = new Device("device" + (10000 + i))
-
-      for (i ← 1 to MessagesPerDevice)
-        for (i ← 0 until DevicesCount)
-          devices(i).sendMessage(testRunId, i)
-
-      for (i ← 0 until DevicesCount)
-        devices(i).disconnect()
-
+        for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).waitConfirmation()
+      }
+      for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).disconnect()
       log.info(s"Messages sent: $expectedMessageCount")
 
       When("A client application processes messages from the stream")

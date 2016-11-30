@@ -7,8 +7,13 @@ import com.microsoft.azure.iothub._
 /* Test helper to send messages to the hub */
 class Device(deviceId: String) extends Logger {
 
+  private var ready      = true
+  private val waitOnSend = 20000
+  private val waitUnit   = 50
+
   private[this] class EventCallback extends IotHubEventCallback {
     override def execute(status: IotHubStatusCode, context: scala.Any): Unit = {
+      ready = true
       val i = context.asInstanceOf[Int]
       log.debug(s"Message ${i} status ${status.name()}")
     }
@@ -30,11 +35,32 @@ class Device(deviceId: String) extends Logger {
   }
 
   def sendMessage(text: String, sequenceNumber: Int): Unit = {
+
+    if (!ready) {
+      waitConfirmation()
+      if (!ready) throw new RuntimeException(s"Device '${deviceId}', the client is busy")
+    }
+
+    ready = false
+
     // Open internally checks if it is already connected
     client.open()
 
     log.debug(s"Device '$deviceId' sending '$text'")
     val message = new Message(text)
     client.sendEventAsync(message, new EventCallback(), sequenceNumber)
+  }
+
+  def waitConfirmation(): Unit = {
+
+    log.debug(s"Device '${deviceId}' waiting for confirmation...")
+
+    var wait = waitOnSend
+    if (!ready) while (wait > 0 && !ready) {
+      Thread.sleep(waitUnit)
+      wait -= waitUnit
+    }
+
+    if (!ready) log.debug(s"Device '${deviceId}', confirmation not received")
   }
 }

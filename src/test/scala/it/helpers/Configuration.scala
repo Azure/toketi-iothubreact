@@ -11,7 +11,7 @@ import org.json4s.jackson.JsonMethods._
 import scala.reflect.io.File
 
 /* Test configuration settings */
-private object Configuration {
+object Configuration {
 
   // JSON parser setup, brings in default date formats etc.
   implicit val formats = DefaultFormats

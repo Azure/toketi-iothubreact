@@ -34,15 +34,19 @@ class AllMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
     Await.result(counter.ask("get")(5 seconds), 5 seconds).asInstanceOf[Long]
   }
 
-  feature("All IoT messages are presented as an ordered stream") {
+  feature("All IoT device messages are delivered") {
 
     scenario("Application wants to retrieve all IoT messages") {
 
       // How many seconds we allow the test to wait for messages from the stream
       val TestTimeout = 60 seconds
       val DevicesCount = 5
-      val MessagesPerDevice = 4
+      val MessagesPerDevice = 3
       val expectedMessageCount = DevicesCount * MessagesPerDevice
+
+      // Create devices
+      val devices = new collection.mutable.ListMap[Int, Device]()
+      for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber) = new Device("device" + (10000 + deviceNumber))
 
       // We'll use this as the streaming start date
       val startTime = Instant.now().minusSeconds(30)
@@ -52,11 +56,17 @@ class AllMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
       val messages = IoTHub().source(startTime, false)
 
       And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
-      for (i ← 0 until DevicesCount) {
-        val device = new Device("device" + (10000 + i))
-        for (i ← 1 to MessagesPerDevice) device.sendMessage(testRunId, i)
-        device.disconnect()
+      for (msgNumber ← 1 to MessagesPerDevice) {
+        for (deviceNumber ← 0 until DevicesCount) {
+          devices(deviceNumber).sendMessage(testRunId, msgNumber)
+          // Workaround for issue 995
+          if (msgNumber == 1) devices(deviceNumber).waitConfirmation()
+        }
+        for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).waitConfirmation()
       }
+
+      for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).disconnect()
+
       log.info(s"Messages sent: $expectedMessageCount")
 
       When("A client application processes messages from the stream")
@@ -84,8 +94,7 @@ class AllMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
       killSwitch.shutdown()
 
-      assert(
-        actualMessageCount == expectedMessageCount,
+      assert(actualMessageCount == expectedMessageCount,
         s"Expecting ${expectedMessageCount} messages but received ${actualMessageCount}")
     }
   }

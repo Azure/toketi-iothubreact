@@ -16,7 +16,7 @@ class DeviceMessagesStreaming extends FeatureSpec with GivenWhenThen {
   info("I want to be able to receive device messages as a stream")
   info("So I can process them asynchronously and at scale")
 
-  feature("All IoT messages are presented as an ordered stream") {
+  feature("IoT Hub React has an awesome API") {
 
     scenario("Developer wants to retrieve IoT messages") {
 
