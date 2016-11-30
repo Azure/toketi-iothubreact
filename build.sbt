@@ -11,41 +11,27 @@ libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
     val azureEventHubSDKVersion = "0.9.0"
     val azureStorageSDKVersion = "4.4.0"
-    val iothubDeviceClientVersion = "1.0.14"
+    val iothubDeviceClientVersion = "1.0.15"
     val iothubServiceClientVersion = "1.0.10"
-    val scalaTestVersion = "3.0.0"
+    val scalaTestVersion = "3.0.1"
     val datastaxDriverVersion = "3.1.1"
     val json4sVersion = "3.5.0"
     val akkaStreamVersion = "2.4.12"
 
     Seq(
-      // Library dependencies
-      //"com.microsoft.azure.iothub-java-client" % "iothub-java-service-client" % iothubServiceClientVersion,
-      "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
-      "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
-      "com.datastax.cassandra" % "cassandra-driver-core" % datastaxDriverVersion,
-      "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
-      "org.json4s" %% "json4s-native" % json4sVersion,
-      "org.json4s" %% "json4s-jackson" % json4sVersion,
+         // Library dependencies
+         "com.microsoft.azure.iothub-java-client" % "iothub-java-service-client" % iothubServiceClientVersion,
+         "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
+         "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
+         "com.datastax.cassandra" % "cassandra-driver-core" % datastaxDriverVersion,
+         "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
+         "org.json4s" %% "json4s-native" % json4sVersion,
+         "org.json4s" %% "json4s-jackson" % json4sVersion,
 
-      // Temporary dependencies for Service SDK copy
-      "commons-codec" % "commons-codec" % "1.10",
-      "com.google.code.gson" % "gson" % "2.8.0",
-      "org.glassfish" % "javax.json" % "1.0.4",
-      "com.microsoft.azure.iothub-java-client" % "websocket-transport-layer" % "0.1.0",
-
-      // Temp deps for forked copy of Azure SDKs
-      //"com.microsoft.azure.iothub-java-client" % "websocket-transport-layer" % "0.1.0",
-      //"commons-codec" % "commons-codec" % "1.10",
-      //"com.google.code.gson" % "gson" % "2.5",
-      //"org.glassfish" % "javax.json" % "1.0.4",
-      //"org.bouncycastle" % "bcpkix-jdk15on" % "1.47",
-      //"org.eclipse.paho" % "org.eclipse.paho.client.mqttv3" % "1.0.2"
-
-      // Tests dependencies
-      "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test"
-    )
+         // Tests dependencies
+         "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
+         "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test"
+       )
 }
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
