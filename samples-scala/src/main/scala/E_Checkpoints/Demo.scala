@@ -5,6 +5,7 @@ package E_Checkpoints
 import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
+import com.microsoft.azure.iot.iothubreact.filters.Device
 import com.microsoft.azure.iot.iothubreact.scaladsl._
 
 /** Retrieve messages from IoT hub and save the current position
@@ -22,6 +23,7 @@ object Demo extends App {
 
   // Stream using checkpointing
   IoTHub().source(withCheckpoints = true)
+    .filter(Device("device1000"))
     .to(console)
     .run()
 }

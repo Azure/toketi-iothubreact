@@ -11,19 +11,9 @@ import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-/** Retrieve messages from IoT hub managing the stream velocity
-  *
-  * Demo showing:
-  * - Traffic shaping by throttling the stream speed
-  * - How to combine multiple destinations
-  * - Back pressure
-  */
 object Demo extends App {
 
-  val maxSpeed       = 50
-  val showStatsEvery = 1 second
-
-  println(s"Streaming messages at ${maxSpeed} msg/sec")
+  val maxSpeed = 100
 
   // Sink combining throttling and monitoring
   lazy val throttleAndMonitor = Flow[MessageFromDevice]
@@ -43,11 +33,12 @@ object Demo extends App {
     }
   }
 
-  // Start processing the stream
+  println(s"Streaming messages at ${maxSpeed} msg/sec")
+
   IoTHub().source
     .to(throttleAndMonitor)
     .run()
 
   // Print statistics at some interval
-  Monitoring.printStatisticsWithFrequency(showStatsEvery)
+  Monitoring.printStatisticsWithFrequency(1 second)
 }
