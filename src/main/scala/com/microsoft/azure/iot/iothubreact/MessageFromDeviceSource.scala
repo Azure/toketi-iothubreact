@@ -119,30 +119,31 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
 
       lazy val receiver = getIoTHubReceiver
 
-      setHandler(out, new OutHandler {
-        log.debug(s"Defining the output handler")
+      setHandler(
+        out, new OutHandler {
+          log.debug(s"Defining the output handler")
 
-        override def onPull(): Unit = {
-          try {
-            val messages = Retry(2, 1 seconds) {
-              receiver.receiveSync(Configuration.receiverBatchSize)
-            }
+          override def onPull(): Unit = {
+            try {
+              val messages = Retry(2, 1 seconds) {
+                receiver.receiveSync(Configuration.receiverBatchSize)
+              }
 
-            if (messages == null) {
-              log.debug(s"Partition ${partition} is empty")
-              emitMultiple(out, emptyResult)
-            } else {
-              val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition))).toList
-              log.debug(s"Emitting ${iterator.size} messages")
-              emitMultiple(out, iterator)
-            }
-          } catch {
-            case e: Exception ⇒ {
-              log.error(e, "Fatal error: " + e.getMessage)
+              if (messages == null) {
+                log.debug(s"Partition ${partition} is empty")
+                emitMultiple(out, emptyResult)
+              } else {
+                val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition))).toList
+                log.debug(s"Emitting ${iterator.size} messages")
+                emitMultiple(out, iterator)
+              }
+            } catch {
+              case e: Exception ⇒ {
+                log.error(e, "Fatal error: " + e.getMessage)
+              }
             }
           }
-        }
-      })
+        })
 
       /** Connect to the IoT hub storage
         *
@@ -150,6 +151,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
         */
       def getIoTHubReceiver: PartitionReceiver = Retry(3, 2 seconds) {
         offsetType match {
+
           case SequenceOffset ⇒ {
             log.info(s"Connecting to partition ${partition.toString} starting from offset '${offset}'")
             IoTHubStorage
@@ -160,7 +162,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
                 offset,
                 OffsetInclusive)
           }
-          case TimeOffset     ⇒ {
+
+          case TimeOffset ⇒ {
             log.info(s"Connecting to partition ${partition.toString} starting from time '${startTime}'")
             IoTHubStorage
               .createClient()
