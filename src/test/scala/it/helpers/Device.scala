@@ -18,7 +18,7 @@ class Device(deviceId: String) extends Logger {
       log.debug(s"${deviceId}: Message ${i} status ${status.name()}")
 
       // Sleep to avoid being throttled
-      Thread.sleep(10)
+      Thread.sleep(50)
     }
   }
 
