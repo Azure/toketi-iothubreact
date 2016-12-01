@@ -38,7 +38,13 @@ object Configuration {
   private[this] lazy val devicesJson: String                   = File(devicesJsonFile).slurp()
   private[this] lazy val devices    : Array[DeviceCredentials] = parse(devicesJson).extract[Array[DeviceCredentials]]
 
-  def deviceCredentials(id: String): DeviceCredentials = devices.find(x ⇒ x.deviceId == id).get
+  def deviceCredentials(id: String): DeviceCredentials = {
+    val deviceData: Option[DeviceCredentials] = devices.find(x ⇒ x.deviceId == id)
+    if (deviceData == None) {
+      throw new RuntimeException(s"Device '${id}' credentials not found")
+    }
+    deviceData.get
+  }
 
   if (!Files.exists(Paths.get(devicesJsonFile))) {
     throw new RuntimeException("Devices credentials not found")

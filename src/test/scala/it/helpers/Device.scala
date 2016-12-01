@@ -30,7 +30,10 @@ class Device(deviceId: String) extends Logger {
     Configuration.iotHubName, credentials.deviceId, credentials.primaryKey)
 
   // Prepare client to send messages
-  private[this] lazy val client = new DeviceClient(connString, IotHubClientProtocol.AMQPS)
+  private[this] lazy val client = {
+    log.info(s"Opening connection for device '${deviceId}'")
+    new DeviceClient(connString, IotHubClientProtocol.AMQPS)
+  }
 
   def sendMessage(text: String, sequenceNumber: Int): Unit = {
 

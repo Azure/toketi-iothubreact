@@ -11,7 +11,7 @@ selecting the "F1 Free" scale tier.
 Once you have an IoT hub ready, you should take note of:
 
 * the **connection string** from the **Shared access policies** panel, for 
-   the **iothubowner** policy.
+   the **device** policy.
     
 ## Create the devices
 
@@ -31,7 +31,7 @@ Once the IoT hub explorer is installed, proceed to create the devices:
 * **Login, using the connection string obtained earlier:**
 
 ```bash
-CONNSTRING="... iothubowner connection string ..."
+CONNSTRING="... device connection string ..."
 iothub-explorer login '$CONNSTRING'
 ```
 
@@ -49,7 +49,7 @@ The following command creates a `credentials.js` file with the settings required
 From the terminal, 'cd' into the same folder of this README document, and execute:
 
 ```bash
-export CONNSTRING="... iothubowner connection string ..."
+export CONNSTRING="... device connection string ..."
 ./download_credentials.sh
 unset CONNSTRING
 ```
