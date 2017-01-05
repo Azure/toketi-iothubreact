@@ -316,7 +316,8 @@ If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft
 a pull-request.
 
 If you are sending a pull request, we kindly request to check the code style with IntelliJ IDEA, 
-importing the settings from `Codestyle.IntelliJ.xml`.
+importing the settings from 
+[`Codestyle.IntelliJ.xml`](https://github.com/Azure/toketi-iot-tools/blob/dev/Codestyle.IntelliJ.xml).
 
 
 [maven-badge]: https://img.shields.io/maven-central/v/com.microsoft.azure.iot/iothub-react_2.11.svg
