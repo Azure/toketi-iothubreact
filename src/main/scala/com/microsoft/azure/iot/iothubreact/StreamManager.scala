@@ -14,7 +14,6 @@ private[iothubreact] class StreamManager[A]
 
   override val shape = FlowShape.of(in, out)
 
-  // Note: state should be managed inside GraphStageLogic
   def close(): Unit = closeSignal = true
 
   override def createLogic(attr: Attributes): GraphStageLogic = {
