@@ -21,7 +21,7 @@ function AbstractSimulator(hubName, deviceId, accessKey, protocol, frequency) {
     this.frequency = frequency;
     this.connectionStatus = "disconnected";
     this.clock = null;
-    this.model = "";
+    this.messageType = "";
 }
 
 /**
@@ -86,10 +86,10 @@ AbstractSimulator.prototype.startSending = function () {
         }
 
         var message = new Message(self.generateData());
-        if (self.model !== "") {
-            message.properties.add("$$contentType", "json");
-            message.properties.add("$$contentModel", self.model);
-            console.log("[" + self.name + "] Sending " + self.model + ": " + message.getData());
+        message.properties.add("$$contentType", "json");
+        if (self.messageType !== "") {
+            message.properties.add("$$messageType", self.messageType);
+            console.log("[" + self.name + "] Sending " + self.messageType + ": " + message.getData());
         } else {
             console.log("[" + self.name + "] Sending message: " + message.getData());
         }

@@ -12,7 +12,7 @@ object Console {
   def apply() = Sink.foreach[MessageFromDevice] {
 
     m ⇒ println(
-      s"${m.created} - ${m.deviceId} - ${m.model}"
+      s"${m.created} - ${m.deviceId} - ${m.messageType}"
         + s" - ${m.contentAsString}")
 
   }

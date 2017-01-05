@@ -4,7 +4,7 @@ package OSN.Demo.More
 
 import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-import com.microsoft.azure.iot.iothubreact.filters.{Device, Model}
+import com.microsoft.azure.iot.iothubreact.filters.{Device, MessageType}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 
@@ -13,7 +13,7 @@ object Console {
   def apply() = Sink.foreach[MessageFromDevice] {
 
     m ⇒ println(
-      s"${m.created} - ${m.deviceId} - ${m.model}"
+      s"${m.created} - ${m.deviceId} - ${m.messageType}"
         + s" - ${m.contentAsString}")
 
   }
@@ -36,7 +36,7 @@ object Demo extends App {
 
     .source(java.time.Instant.now()) // <===
 
-    .filter(Model("temperature")) // <===
+    .filter(MessageType("temperature")) // <===
 
     .filter(Device("device1000")) // <===
 

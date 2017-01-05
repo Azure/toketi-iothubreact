@@ -5,7 +5,7 @@ package B_PrintTemperature
 import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
-import com.microsoft.azure.iot.iothubreact.filters.Model
+import com.microsoft.azure.iot.iothubreact.filters.MessageType
 import com.microsoft.azure.iot.iothubreact.scaladsl._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
@@ -38,8 +38,8 @@ object Demo extends App {
   // Stream
   messages
 
-    // Equivalent to: m ⇒ m.model == "temperature"
-    .filter(Model("temperature"))
+    // Equivalent to: m ⇒ m.messageType == "temperature"
+    .filter(MessageType("temperature"))
 
     // Deserialize JSON
     .map(m ⇒ deserialize(m))

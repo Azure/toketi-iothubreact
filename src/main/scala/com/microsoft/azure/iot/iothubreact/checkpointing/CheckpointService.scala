@@ -165,7 +165,7 @@ private[iothubreact] class CheckpointService(partition: Int)
     }
   }
 
-  // @todo Support plugins
+  // TODO: Support plugins
   def getCheckpointBackend: CheckpointBackend = {
     val conf = Configuration.checkpointBackendType
     conf.toUpperCase match {

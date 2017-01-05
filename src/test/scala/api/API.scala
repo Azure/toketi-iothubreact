@@ -24,11 +24,13 @@ class APIIsBackwardCompatible extends FeatureSpec {
       val message1 = new MessageFromDevice(data, partition)
       lazy val properties: java.util.Map[String, String] = message1.properties
       lazy val isKeepAlive: Boolean = message1.isKeepAlive
-      lazy val model: String = message1.model
+      lazy val messageType: String = message1.messageType
+      lazy val contentType: String = message1.contentType
       lazy val created: java.time.Instant = message1.created
       lazy val offset: String = message1.offset
       lazy val sequenceNumber: Long = message1.sequenceNumber
       lazy val deviceId: String = message1.deviceId
+      lazy val messageId: String = message1.messageId
       lazy val content: Array[Byte] = message1.content
       lazy val contentAsString: String = message1.contentAsString
       assert(message1.isKeepAlive == false)
@@ -93,12 +95,12 @@ class APIIsBackwardCompatible extends FeatureSpec {
       assert(backend.checkpointNamespace == "iothub-react-checkpoints")
     }
 
-    scenario("Using Model") {
+    scenario("Using Message Type") {
       import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-      import com.microsoft.azure.iot.iothubreact.filters.Model
+      import com.microsoft.azure.iot.iothubreact.filters.MessageType
 
-      val filter1: (MessageFromDevice) ⇒ Boolean = Model("some")
-      val filter2: Model = new Model("some")
+      val filter1: (MessageFromDevice) ⇒ Boolean = MessageType("some")
+      val filter2: MessageType = new MessageType("some")
     }
 
     scenario("Using ScalaDSL IoTHub") {

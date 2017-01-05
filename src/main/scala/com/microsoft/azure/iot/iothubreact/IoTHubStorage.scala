@@ -13,7 +13,7 @@ private object IoTHubStorage extends Logger {
     Configuration.accessPolicy,
     Configuration.accessKey).toString
 
-  // @todo Manage transient errors e.g. timeouts
+  // TODO: Manage transient errors e.g. timeouts
   // EventHubClient.createFromConnectionString(connString)
   //   .get(Configuration.receiverTimeout, TimeUnit.MILLISECONDS)
   def createClient(): EventHubClient = {
