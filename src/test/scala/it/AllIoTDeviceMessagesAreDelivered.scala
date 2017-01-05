@@ -6,8 +6,7 @@ import java.time.Instant
 
 import akka.actor.Props
 import akka.pattern.ask
-import akka.stream.KillSwitches
-import akka.stream.scaladsl.{Keep, Sink}
+import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
@@ -53,7 +52,8 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
       log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
 
       Given("An IoT hub is configured")
-      val messages = IoTHub().source(startTime, false)
+      val hub = IoTHub()
+      val messages = hub.source(startTime, false)
 
       And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
       for (msgNumber ← 1 to MessagesPerDevice) {
@@ -75,11 +75,9 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
         m ⇒ counter ! "inc"
       }
 
-      val (killSwitch, last) = messages
-        .viaMat(KillSwitches.single)(Keep.right)
+      messages
         .filter(m ⇒ m.contentAsString contains testRunId)
-        .toMat(count)(Keep.both)
-        .run()
+        .runWith(count)
 
       Then("Then the client application receives all the messages sent")
       var time = TestTimeout.toMillis.toInt
@@ -92,7 +90,7 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
         log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
       }
 
-      killSwitch.shutdown()
+      hub.close()
 
       assert(actualMessageCount == expectedMessageCount,
         s"Expecting ${expectedMessageCount} messages but received ${actualMessageCount}")

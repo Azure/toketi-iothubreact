@@ -1,11 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
+
 package A_APIUSage
+
+import java.time.Instant
 
 import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.language.{implicitConversions, postfixOps}
 
 /** Stream all messages from beginning
   */
@@ -132,4 +138,26 @@ object FilterByDeviceID extends App {
     .to(console)
 
     .run()
+}
+
+/** Show how to close the stream, terminating the connections to Azure IoT hub
+  */
+object CloseStream extends App {
+
+  println("Streaming all the messages, will stop in 5 seconds")
+
+  implicit val system = akka.actor.ActorSystem("system")
+
+  system.scheduler.scheduleOnce(5 seconds) {
+    hub.close()
+  }
+
+  val hub      = IoTHub()
+  val messages = hub.source()
+
+  var console = Sink.foreach[MessageFromDevice] {
+    m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
+  }
+
+  messages.to(console).run()
 }

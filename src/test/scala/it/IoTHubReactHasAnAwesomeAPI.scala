@@ -33,6 +33,9 @@ class IoTHubReactHasAnAwesomeAPI extends FeatureSpec with GivenWhenThen {
       messagesFromOnePartition.to(Sink.ignore)
       messagesFromAllPartitions.to(Sink.ignore)
       messagesFromNowOn.to(Sink.ignore)
+
+      hub.close()
+      hubPartition.close()
     }
   }
 }

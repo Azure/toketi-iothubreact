@@ -6,8 +6,7 @@ import java.time.Instant
 
 import akka.actor.Props
 import akka.pattern.ask
-import akka.stream.KillSwitches
-import akka.stream.scaladsl.{Keep, Sink}
+import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
@@ -56,7 +55,8 @@ class DeviceIoTMessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThe
       log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
 
       Given("An IoT hub is configured")
-      val messages = IoTHub().source(startTime, false)
+      val hub = IoTHub()
+      val messages = hub.source(startTime, false)
 
       And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
       for (msgNumber ← 1 to MessagesPerDevice) {
@@ -93,11 +93,9 @@ class DeviceIoTMessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThe
         }
       }
 
-      val (killSwitch, last) = messages
-        .viaMat(KillSwitches.single)(Keep.right)
+      messages
         .filter(m ⇒ m.contentAsString contains (testRunId))
-        .toMat(verifier)(Keep.both)
-        .run()
+        .runWith(verifier)
 
       // Wait till all messages have been verified
       var time = TestTimeout.toMillis.toInt
@@ -111,7 +109,7 @@ class DeviceIoTMessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThe
       }
 
       log.info("Stopping stream")
-      killSwitch.shutdown()
+      hub.close()
 
       log.info(s"actual messages ${actualMessageCount}")
 

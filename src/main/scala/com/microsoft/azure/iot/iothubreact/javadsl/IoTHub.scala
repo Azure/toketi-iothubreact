@@ -19,6 +19,12 @@ class IoTHub() {
 
   private lazy val iotHub = new IoTHubScalaDSL()
 
+  /** Stop the stream
+    */
+  def close(): Unit = {
+    iotHub.close()
+  }
+
   /** Stream returning all the messages since the beginning, from all the
     * configured partitions.
     *

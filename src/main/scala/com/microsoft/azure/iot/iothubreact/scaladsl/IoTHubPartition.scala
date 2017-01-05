@@ -38,6 +38,14 @@ object IoTHubPartition extends Logger {
   */
 case class IoTHubPartition(val partition: Int) extends Logger {
 
+  private[this] val streamManager = new StreamManager[MessageFromDevice]
+
+  /** Stop the stream
+    */
+  def close(): Unit = {
+    streamManager.close()
+  }
+
   /** Stream returning all the messages. If checkpointing is enabled in the global configuration
     * then the stream starts from the last position saved, otherwise it starts from the beginning.
     *
@@ -148,9 +156,9 @@ case class IoTHubPartition(val partition: Int) extends Logger {
 
     // Build the source starting by time or by offset
     val source: Source[MessageFromDevice, NotUsed] = if (_withTimeOffset)
-      MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
+      MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive).via(streamManager)
     else
-      MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
+      MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive).via(streamManager)
 
     // Inject a flow to store the stream position after each pull
     if (withCheckpoints) {

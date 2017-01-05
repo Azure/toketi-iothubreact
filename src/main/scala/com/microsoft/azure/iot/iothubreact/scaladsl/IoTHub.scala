@@ -4,9 +4,9 @@ package com.microsoft.azure.iot.iothubreact.scaladsl
 
 import java.time.Instant
 
-import akka.{Done, NotUsed}
-import akka.stream.SourceShape
+import akka.stream._
 import akka.stream.scaladsl._
+import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.{Configuration ⇒ CPConfiguration}
 
@@ -20,8 +20,16 @@ import scala.language.postfixOps
   */
 case class IoTHub() extends Logger {
 
+  private[this] val streamManager = new StreamManager[MessageFromDevice]
+
   private[this] def fromStart =
     Some(List.fill[Offset](Configuration.iotHubPartitions)(Offset(IoTHubPartition.OffsetStartOfStream)))
+
+  /** Stop the stream
+    */
+  def close(): Unit = {
+    streamManager.close()
+  }
 
   def sink[A]()(implicit typedSink: TypedSink[A]): Sink[A, Future[Done]] = typedSink.definition
 
@@ -135,9 +143,9 @@ case class IoTHub() extends Logger {
 
         for (partition ← 0 until Configuration.iotHubPartitions) {
           val graph = if (withTimeOffset)
-            IoTHubPartition(partition).source(startTime, withCheckpoints)
+            IoTHubPartition(partition).source(startTime, withCheckpoints).via(streamManager)
           else
-            IoTHubPartition(partition).source(offsets.get(partition), withCheckpoints)
+            IoTHubPartition(partition).source(offsets.get(partition), withCheckpoints).via(streamManager)
 
           val source = Source.fromGraph(graph).async
           source ~> merge

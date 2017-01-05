@@ -131,6 +131,9 @@ class APIIsBackwardCompatible extends FeatureSpec {
 
       val source10: Source[MessageFromDevice, NotUsed] = hub1.source(offsets, false)
       val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offsets = offsets, withCheckpoints = false)
+
+      hub1.close()
+      hub2.close()
     }
 
     scenario("Using JavaDSL IoTHub") {
@@ -162,6 +165,8 @@ class APIIsBackwardCompatible extends FeatureSpec {
 
       val source10: Source[MessageFromDevice, NotUsed] = hub.source(offsets, false)
       val source11: Source[MessageFromDevice, NotUsed] = hub.source(offsets = offsets, withCheckpoints = false)
+
+      hub.close()
     }
 
     scenario("Using ScalaDSL IoTHubPartition") {
@@ -196,6 +201,11 @@ class APIIsBackwardCompatible extends FeatureSpec {
 
       val source10: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"), false)
       val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
+
+      hub1.close()
+      hub2.close()
+      hub3.close()
+      hub4.close()
     }
 
     scenario("Using JavaDSL IoTHubPartition") {
@@ -228,6 +238,9 @@ class APIIsBackwardCompatible extends FeatureSpec {
 
       val source10: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"), false)
       val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
+
+      hub1.close()
+      hub2.close()
     }
   }
 }

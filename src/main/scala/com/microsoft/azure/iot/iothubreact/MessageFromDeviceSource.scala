@@ -5,6 +5,7 @@ package com.microsoft.azure.iot.iothubreact
 import java.time.Instant
 
 import akka.NotUsed
+import akka.stream.impl.fusing.GraphInterpreter
 import akka.stream.scaladsl.Source
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import akka.stream.{Attributes, Outlet, SourceShape}
@@ -117,7 +118,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
       val keepAliveSignal = new MessageFromDevice(None, None)
       val emptyResult     = List[MessageFromDevice](keepAliveSignal)
 
-      lazy val receiver = getIoTHubReceiver
+      lazy val receiver = getIoTHubReceiver()
 
       setHandler(
         out, new OutHandler {
@@ -143,13 +144,19 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
               }
             }
           }
+
+          override def onDownstreamFinish(): Unit = {
+            super.onDownstreamFinish()
+            log.info(s"Closing partition ${partition} receiver")
+            receiver.closeSync()
+          }
         })
 
       /** Connect to the IoT hub storage
         *
         * @return IoT hub storage receiver
         */
-      def getIoTHubReceiver: PartitionReceiver = Retry(3, 2 seconds) {
+      def getIoTHubReceiver(): PartitionReceiver = Retry(3, 2 seconds) {
         offsetType match {
 
           case SequenceOffset ⇒ {
