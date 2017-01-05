@@ -4,7 +4,7 @@ package com.microsoft.azure.iot.iothubreact
 
 import akka.Done
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.sinks.MessageToDeviceSink
+import com.microsoft.azure.iot.iothubreact.sinks._
 
 import scala.concurrent.Future
 
@@ -17,6 +17,7 @@ trait TypedSink[A] {
 }
 
 /** Type class implementations for MessageToDevice, MethodOnDevice, DeviceProperties
+  * Automatically selects the appropriate sink depending on type of communication.
   */
 object TypedSink {
 
@@ -24,11 +25,12 @@ object TypedSink {
     override def definition: Sink[MessageToDevice, Future[Done]] = MessageToDeviceSink().sink()
   }
 
-  /*implicit object MethodOnDeviceSinkDef extends TypedSink[MethodOnDevice] {
+  implicit object MethodOnDeviceSinkDef extends TypedSink[MethodOnDevice] {
     override def definition: Sink[MethodOnDevice, Future[Done]] = MethodOnDeviceSink().sink()
   }
 
   implicit object DevicePropertiesSinkDef extends TypedSink[DeviceProperties] {
     override def definition: Sink[DeviceProperties, Future[Done]] = DevicePropertiesSink().sink()
-  }*/
+  }
+
 }

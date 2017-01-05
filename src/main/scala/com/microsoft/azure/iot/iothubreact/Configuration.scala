@@ -30,11 +30,12 @@ private[iothubreact] object Configuration {
   private[this] val conf: Config = ConfigFactory.load()
 
   // IoT hub storage details
-  val iotHubNamespace : String = conf.getString(confConnPath + "namespace")
-  val iotHubName      : String = conf.getString(confConnPath + "name")
-  val iotHubPartitions: Int    = conf.getInt(confConnPath + "partitions")
+  val iotHubName      : String = conf.getString(confConnPath + "hubName")
+  val iotHubNamespace : String = getNamespaceFromEndpoint(conf.getString(confConnPath + "hubEndpoint"))
+  val iotHubPartitions: Int    = conf.getInt(confConnPath + "hubPartitions")
   val accessPolicy    : String = conf.getString(confConnPath + "accessPolicy")
   val accessKey       : String = conf.getString(confConnPath + "accessKey")
+  val accessHostname  : String = conf.getString(confConnPath + "accessHostName")
 
   // Consumer group used to retrieve messages
   // @see https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview
@@ -61,4 +62,8 @@ private[iothubreact] object Configuration {
       tmpRBS
     else
       MaxBatchSize
+
+  private[this] def getNamespaceFromEndpoint(endpoint: String): String = {
+    endpoint.replaceFirst(".*://", "").replaceFirst("\\..*", "")
+  }
 }

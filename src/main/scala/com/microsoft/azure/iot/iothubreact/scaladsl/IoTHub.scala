@@ -13,7 +13,6 @@ import com.microsoft.azure.iot.iothubreact.checkpointing.{Configuration ⇒ CPCo
 import scala.concurrent.Future
 import scala.language.postfixOps
 
-
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   *
   * @todo (*) Provide ClearCheckpoints() method to clear the state
@@ -31,6 +30,13 @@ case class IoTHub() extends Logger {
     streamManager.close()
   }
 
+  /** Sink to communicate with IoT devices
+    *
+    * @param typedSink Sink factory
+    * @tparam A Type of communication (message, method, property)
+    *
+    * @return Streaming sink
+    */
   def sink[A]()(implicit typedSink: TypedSink[A]): Sink[A, Future[Done]] = typedSink.definition
 
   /** Stream returning all the messages from all the configured partitions.

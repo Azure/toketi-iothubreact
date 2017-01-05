@@ -17,7 +17,7 @@ private object IoTHubStorage extends Logger {
   // EventHubClient.createFromConnectionString(connString)
   //   .get(Configuration.receiverTimeout, TimeUnit.MILLISECONDS)
   def createClient(): EventHubClient = {
-    log.debug(s"Creating EventHub client to ${Configuration.iotHubName}")
+    log.info(s"Creating EventHub client to ${Configuration.iotHubName}")
     EventHubClient.createFromConnectionStringSync(connString)
   }
 }

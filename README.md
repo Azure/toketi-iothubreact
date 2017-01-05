@@ -4,13 +4,16 @@
 [![Issues][issues-badge]][issues-url]
 [![Gitter][gitter-badge]][gitter-url]
 
-# IoTHubReact 
-IoTHub React is an Akka Stream library that can be used to read data from 
-[Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/), via a reactive stream with 
-asynchronous back pressure. Azure IoT Hub is a service used to connect thousands to millions of 
-devices to the Azure cloud.
+# IoTHubReact
 
-A simple example on how to use the library in Scala is the following:
+IoTHub React is an Akka Stream library that can be used to read data from 
+[Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/), via a **reactive stream** with 
+**asynchronous back pressure**, and to send messages to connected devices. 
+Azure IoT Hub is a service used to connect thousands to millions of devices to the Azure cloud.
+
+The following is a simple example showing how to use the library in Scala. A stream of incoming 
+telemetry data is read, parsed and converted to a `Temperature` object, and then filtered based on 
+the temperature value:
 
 ```scala
 IoTHub().source()
@@ -32,13 +35,10 @@ new IoTHub().source()
     .run(streamMaterializer);
 ```
 
-A stream of incoming telemetry data is read, parsed and converted to a `Temperature` object and 
-filtered based on the temperature value. 
-
 #### Streaming from IoT hub to _any_
 
-A more interesting example is reading telemetry data from Azure IoTHub, and sending it to a Kafka 
-topic, so it can be consumed by other services downstream:
+A more interesting example is reading telemetry data from Azure IoT Hub, and sending it to a Kafka 
+topic, so that it can be consumed by other services downstream:
 
 ```scala
 ... 
@@ -103,7 +103,7 @@ IoTHub().source(start)
     .run()
 ```
 
-### Stream processing restart, saving the current position
+### Stream processing restart - saving the current position
 
 The library provides a mechanism to restart the stream from a recent *checkpoint*, to be resilient
 to restarts and crashes. 
@@ -161,8 +161,8 @@ iothub-react{
 }
 ```
 
-There are some [configuration parameters](src/main/resources/reference.conf) to manage the 
-checkpoint behavior, and soon it will also be possible to plug-in custom storage backends,
+There are some [configuration settings](src/main/resources/reference.conf) to manage the 
+checkpoint behavior, and in future it will also be possible to plug-in custom storage backends,
 implementing a simple 
 [interface](src/main/scala/com/microsoft/azure/iot/iothubreact/checkpointing/Backends/CheckpointBackend.scala)
 to read and write the stream position.
@@ -181,6 +181,7 @@ IoTHub().source(start, withCheckpoints)
 ```
 
 ## Build configuration
+
 IoTHubReact is available on Maven Central, you just need to add the following reference in 
 your `build.sbt` file:
 
@@ -205,29 +206,30 @@ or this dependency in `pom.xml` file if working with Maven:
 ```
 
 ### IoTHub configuration
+
 IoTHubReact uses a configuration file to fetch the parameters required to connect to Azure IoT Hub.
 The exact values to use can be found in the [Azure Portal](https://portal.azure.com):
 
-* **namespace**: it is the first part of the _Event Hub-compatible endpoint_, which usually has 
-  this format: `sb://<namespace>.servicebus.windows.net/`
-* **name**: see _Event Hub-compatible name_
-* **partitions**: the number of partitions of the selected hub
-* **accessPolicy**: usually the value is `service`
-* **accessKey**: the Primary Key can be found under _shared access policies/service_ policy (it's a 
-  base64 encoded string)
+* **hubName**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible name`
+* **hubEndpoint**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible endpoint`
+* **hubPartitions**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Partitions`
+* **accessPolicy**: usually `service`, see `Shared access policies`
+* **accessKey**: see `Shared access policies` ⇒ `key name` ⇒ `Primary key` (it's a base64 encoded string)
+* **accessHostName**: see `Shared access policies` ⇒ `key name` ⇒ `Connection string` ⇒ `HostName`
 
-The values should be stored in your `application.conf` resource (or equivalent), which can 
-reference environment settings if you prefer.
+The values should be stored in your `application.conf` resource (or equivalent). Optionally you can 
+reference environment settings if you prefer, for example to hide sensitive data.
 
 ```
 iothub-react {
 
   connection {
-    namespace    = "<IoT hub namespace>"
-    name         = "<IoT hub name>"
-    partitions   = <IoT hub partitions>
-    accessPolicy = "<IoT hub key name>"
-    accessKey    = "<IoT hub key value>"
+    hubName        = "<Event Hub compatible name>"
+    hubEndpoint    = "<Event Hub compatible endpoint>"
+    hubPartitions  = <the number of partitions in your IoT Hub>
+    accessPolicy   = "<access policy name>"
+    accessKey      = "<access policy key>"
+    accessHostName = "<access host name>"
   }
   
   [... other settings...]
@@ -240,11 +242,12 @@ Example using environment settings:
 iothub-react {
 
   connection {
-    namespace    = ${?IOTHUB_NAMESPACE}
-    name         = ${?IOTHUB_NAME}
-    partitions   = ${?IOTHUB_PARTITIONS}
-    accessPolicy = ${?IOTHUB_ACCESS_POLICY}
-    accessKey    = ${?IOTHUB_ACCESS_KEY}
+    hubName        = ${?IOTHUB_EVENTHUB_NAME}
+    hubEndpoint    = ${?IOTHUB_EVENTHUB_ENDPOINT}
+    hubPartitions  = ${?IOTHUB_EVENTHUB_PARTITIONS}
+    accessPolicy   = ${?IOTHUB_ACCESS_POLICY}
+    accessKey      = ${?IOTHUB_ACCESS_KEY}
+    accessHostName = ${?IOTHUB_ACCESS_HOSTNAME}
   }
   
   [... other settings...]

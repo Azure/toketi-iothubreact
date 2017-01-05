@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-/*
-
-TODO: Develop once SDK is ready
+// TODO: Develop once SDK is ready
 
 package com.microsoft.azure.iot.iothubreact.sinks
 
@@ -13,10 +11,10 @@ import com.microsoft.azure.iot.iothubreact.DeviceProperties
 import scala.concurrent.Future
 
 case class DevicePropertiesSink() {
-  def sink(): Sink[DeviceProperties, Future[Done]] = Sink.foreach[DeviceProperties] {
-    m ⇒ {
 
-    }
+  throw new NotImplementedError("DevicePropertiesSink is not supported yet")
+
+  def sink(): Sink[DeviceProperties, Future[Done]] = Sink.foreach[DeviceProperties] {
+    m ⇒ ???
   }
 }
-*/

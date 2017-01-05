@@ -5,10 +5,12 @@ package A_APIUSage
 import java.time.Instant
 
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
+import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, MessageToDevice}
+import com.microsoft.azure.iot.service.sdk.DeliveryAcknowledgement
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
@@ -160,4 +162,26 @@ object CloseStream extends App {
   }
 
   messages.to(console).run()
+}
+
+/** Send a message to a device
+  */
+object SendMessageToDevice extends App with Deserialize {
+
+  val message = MessageToDevice("Turn fan ON")
+    .addProperty("speed", "high")
+    .addProperty("duration", "60")
+    .expiry(Instant.now().plusSeconds(30))
+    .ack(DeliveryAcknowledgement.Full)
+
+  val hub = IoTHub()
+
+  hub
+    .source(java.time.Instant.now())
+    .filter(MessageType("temperature"))
+    .map(deserialize)
+    .filter(_.value > 15)
+    .map(t ⇒ message.to(t.deviceId))
+    .to(hub.sink())
+    .run()
 }
