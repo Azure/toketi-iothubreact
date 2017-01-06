@@ -35,9 +35,6 @@ object IoTHubPartition extends Logger {
   */
 private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logger {
 
-  // TODO: (*) Provide ClearCheckpoints() method to clear the state
-  // TODO: Support reading the same partition from multiple clients
-
   /** Stream returning all the messages from the given offset
     *
     * @param startTime       Starting position expressed in time

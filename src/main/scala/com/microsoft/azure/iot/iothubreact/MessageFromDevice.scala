@@ -30,10 +30,8 @@ private object MessageFromDevice {
   */
 class MessageFromDevice(data: Option[EventData], val partition: Option[Int]) {
 
-  // TODO: verify and document which properties work over which protocol
-  // TODO: use system property for Content Type once available in Azure SDK
-  // TODO: use system property for Message Type once available in Azure SDK
-  // TODO: Are properties missing when using MQTT ?
+  // TODO: test properties over all protocols
+  // TODO: use system property for Content Type and Message Type once available in Azure SDK
 
   // NOTE: this should become a system property in future versions of Azure SDKs
   // contentTypeProperty = AmqpConstants.AMQP_PROPERTY_CONTENT_TYPE

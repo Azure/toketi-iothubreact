@@ -47,7 +47,7 @@ private object MessageFromDeviceSource {
 private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
 
   // TODO: Refactor and use async methods, compare performance
-  // TODO: Consider option to deserialize on the fly to [T], assuming JSON format
+  // TODO: Consider option to deserialize on the fly to [T], when JSON Content Type
 
   abstract class OffsetType
 

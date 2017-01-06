@@ -17,7 +17,7 @@ import scala.language.postfixOps
   */
 case class IoTHub() extends Logger {
 
-  // TODO: (*) Provide ClearCheckpoints() method to clear the state
+  // TODO: Provide ClearCheckpoints() method to clear the state
 
   private[this] val streamManager = new StreamManager[MessageFromDevice]
 
