@@ -43,11 +43,11 @@ private object MessageFromDeviceSource {
 }
 
 /** Source of messages from one partition of the IoT hub storage
-  *
-  * @todo Refactor and use async methods, compare performance
-  * @todo Consider option to deserialize on the fly to [T], assuming JSON format
   */
 private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
+
+  // TODO: Refactor and use async methods, compare performance
+  // TODO: Consider option to deserialize on the fly to [T], assuming JSON format
 
   abstract class OffsetType
 

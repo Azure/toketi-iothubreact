@@ -4,9 +4,8 @@
 package api
 
 // No global imports to make easier detecting breaking changes
-import org.scalatest.FeatureSpec
 
-class APIIsBackwardCompatible extends FeatureSpec {
+class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
 
   info("As a developer using Azure IoT hub React")
   info("I want to be able to upgrade to new minor versions without changing my code")
@@ -43,23 +42,88 @@ class APIIsBackwardCompatible extends FeatureSpec {
       assert(message3.isKeepAlive == true)
     }
 
-    scenario("Using Offset") {
-      import com.microsoft.azure.iot.iothubreact.Offset
+    scenario("Using Scala DSL OffsetList") {
+      import com.microsoft.azure.iot.iothubreact.scaladsl.OffsetList
 
-      val offset: String = "123"
+      val o1: String = "123"
+      val o2: String = "foo"
 
       // Ctors
-      val offset1: Offset = Offset(offset)
-      val offset2: Offset = new Offset(offset)
+      val offset1: OffsetList = OffsetList(Seq(o1, o2))
+      val offset2: OffsetList = new OffsetList(Seq(o1, o2))
 
       // Named parameters
-      val offset3: Offset = Offset(value = offset)
-      val offset4: Offset = new Offset(value = offset)
+      val offset3: OffsetList = OffsetList(values = Seq(o1, o2))
+      val offset4: OffsetList = new OffsetList(values = Seq(o1, o2))
 
-      assert(offset1.value == offset)
-      assert(offset2.value == offset)
-      assert(offset3.value == offset)
-      assert(offset4.value == offset)
+      assert(offset1.values(0) == o1)
+      assert(offset1.values(1) == o2)
+      assert(offset2.values(0) == o1)
+      assert(offset2.values(1) == o2)
+      assert(offset3.values(0) == o1)
+      assert(offset3.values(1) == o2)
+      assert(offset4.values(0) == o1)
+      assert(offset4.values(1) == o2)
+    }
+
+    scenario("Using Java DSL OffsetList") {
+      import com.microsoft.azure.iot.iothubreact.javadsl.OffsetList
+
+      val o1: String = "123"
+      val o2: String = "foo"
+
+      // Ctors
+      val offset1: OffsetList = new OffsetList(java.util.Arrays.asList(o1, o2))
+
+      // Named parameters
+      val offset2: OffsetList = new OffsetList(values = java.util.Arrays.asList(o1, o2))
+
+      assert(offset1.values.get(0) == o1)
+      assert(offset1.values.get(1) == o2)
+      assert(offset2.values.get(0) == o1)
+      assert(offset2.values.get(1) == o2)
+    }
+
+    scenario("Using Scala DSL PartitionList") {
+      import com.microsoft.azure.iot.iothubreact.scaladsl.PartitionList
+
+      val o1: Int = 1
+      val o2: Int = 5
+
+      // Ctors
+      val offset1: PartitionList = PartitionList(Seq(o1, o2))
+      val offset2: PartitionList = new PartitionList(Seq(o1, o2))
+
+      // Named parameters
+      val offset3: PartitionList = PartitionList(values = Seq(o1, o2))
+      val offset4: PartitionList = new PartitionList(values = Seq(o1, o2))
+
+      assert(offset1.values(0) == o1)
+      assert(offset1.values(1) == o2)
+      assert(offset2.values(0) == o1)
+      assert(offset2.values(1) == o2)
+      assert(offset3.values(0) == o1)
+      assert(offset3.values(1) == o2)
+      assert(offset4.values(0) == o1)
+      assert(offset4.values(1) == o2)
+    }
+
+    scenario("Using Java DSL PartitionList") {
+      import com.microsoft.azure.iot.iothubreact.javadsl.PartitionList
+
+      val o1: Int = 1
+      val o2: Int = 5
+
+      // Ctors
+      val offset1: PartitionList = new PartitionList(java.util.Arrays.asList(o1, o2))
+
+      // Named parameters
+      val offset2: PartitionList = new PartitionList(values = java.util.Arrays.asList(o1, o2))
+
+      assert(offset1.values.get(0) == o1)
+      assert(offset1.values.get(1) == o2)
+      assert(offset2.values.get(0) == o1)
+      assert(offset2.values.get(1) == o2)
     }
 
     scenario("Using ResumeOnError") {
@@ -103,144 +167,108 @@ class APIIsBackwardCompatible extends FeatureSpec {
       val filter2: MessageType = new MessageType("some")
     }
 
-    scenario("Using ScalaDSL IoTHub") {
+    scenario("Using Scala DSL IoTHub") {
       import java.time.Instant
 
       import akka.NotUsed
       import akka.stream.scaladsl.Source
-      import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
-      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
+      import com.microsoft.azure.iot.iothubreact.MessageFromDevice
+      import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, OffsetList, PartitionList}
 
       val hub1: IoTHub = new IoTHub()
       val hub2: IoTHub = IoTHub()
 
-      val source1: Source[MessageFromDevice, NotUsed] = hub1.source()
+      val offsets: OffsetList = OffsetList(Seq("1", "0", "0", "-1", "234623"))
+      val partitions: PartitionList = PartitionList(Seq(0, 1, 3))
 
-      val source2: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now())
-      val source3: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now())
+      var source: Source[MessageFromDevice, NotUsed] = hub1.source()
 
-      val source4: Source[MessageFromDevice, NotUsed] = hub1.source(false)
-      val source5: Source[MessageFromDevice, NotUsed] = hub1.source(withCheckpoints = false)
+      source = hub1.source(partitions)
+      source = hub1.source(partitions = partitions)
 
-      val offsets: Seq[Offset] = Vector(Offset("1"), Offset("0"), Offset("0"), Offset("-1"), Offset("234623"))
-      val source6: Source[MessageFromDevice, NotUsed] = hub1.source(offsets)
-      val source7: Source[MessageFromDevice, NotUsed] = hub1.source(offsets = offsets)
+      source = hub1.source(Instant.now())
+      source = hub1.source(startTime = Instant.now())
 
-      val source8: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now(), false)
-      val source9: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
+      source = hub1.source(Instant.now(), partitions)
+      source = hub1.source(startTime = Instant.now(), partitions = partitions)
 
-      val source10: Source[MessageFromDevice, NotUsed] = hub1.source(offsets, false)
-      val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offsets = offsets, withCheckpoints = false)
+      source = hub1.source(false)
+      source = hub1.source(withCheckpoints = false)
+
+      source = hub1.source(false, partitions)
+      source = hub1.source(withCheckpoints = false, partitions = partitions)
+
+      source = hub1.source(offsets)
+      source = hub1.source(offsets = offsets)
+
+      source = hub1.source(offsets, partitions)
+      source = hub1.source(offsets = offsets, partitions = partitions)
+
+      source = hub1.source(Instant.now(), false)
+      source = hub1.source(startTime = Instant.now(), withCheckpoints = false)
+
+      source = hub1.source(Instant.now(), false, partitions)
+      source = hub1.source(startTime = Instant.now(), withCheckpoints = false, partitions = partitions)
+
+      source = hub1.source(offsets, false)
+      source = hub1.source(offsets = offsets, withCheckpoints = false)
+
+      source = hub1.source(offsets, false, partitions)
+      source = hub1.source(offsets = offsets, withCheckpoints = false, partitions = partitions)
 
       hub1.close()
       hub2.close()
     }
 
-    scenario("Using JavaDSL IoTHub") {
+    scenario("Using Java DSL IoTHub") {
       import java.time.Instant
 
       import akka.NotUsed
       import akka.stream.javadsl.Source
-      import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub
-      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
-
-      import scala.collection.JavaConverters._
+      import com.microsoft.azure.iot.iothubreact.MessageFromDevice
+      import com.microsoft.azure.iot.iothubreact.javadsl.{IoTHub, OffsetList, PartitionList}
 
       val hub: IoTHub = new IoTHub()
 
-      val source1: Source[MessageFromDevice, NotUsed] = hub.source()
+      val offsets: OffsetList = new OffsetList(java.util.Arrays.asList("1", "0", "0", "0", "-1", "234623"))
+      val partitions: PartitionList = new PartitionList(java.util.Arrays.asList(0, 1, 3))
 
-      val source2: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now())
-      val source3: Source[MessageFromDevice, NotUsed] = hub.source(startTime = Instant.now())
+      var source: Source[MessageFromDevice, NotUsed] = hub.source()
 
-      val source4: Source[MessageFromDevice, NotUsed] = hub.source(false)
-      val source5: Source[MessageFromDevice, NotUsed] = hub.source(withCheckpoints = false)
+      source = hub.source(partitions)
+      source = hub.source(partitions = partitions)
 
-      val offsets: java.util.Collection[Offset] = Seq(Offset("1"), Offset("0"), Offset("0"), Offset("-1"), Offset("234623")).asJavaCollection
-      val source6: Source[MessageFromDevice, NotUsed] = hub.source(offsets)
-      val source7: Source[MessageFromDevice, NotUsed] = hub.source(offsets = offsets)
+      source = hub.source(Instant.now())
+      source = hub.source(startTime = Instant.now())
 
-      val source8: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now(), false)
-      val source9: Source[MessageFromDevice, NotUsed] = hub.source(startTime = Instant.now(), withCheckpoints = false)
+      source = hub.source(Instant.now(), partitions)
+      source = hub.source(startTime = Instant.now(), partitions = partitions)
 
-      val source10: Source[MessageFromDevice, NotUsed] = hub.source(offsets, false)
-      val source11: Source[MessageFromDevice, NotUsed] = hub.source(offsets = offsets, withCheckpoints = false)
+      source = hub.source(false)
+      source = hub.source(withCheckpoints = false)
+
+      source = hub.source(false, partitions)
+      source = hub.source(withCheckpoints = false, partitions = partitions)
+
+      source = hub.source(offsets)
+      source = hub.source(offsets = offsets)
+
+      source = hub.source(offsets, partitions)
+      source = hub.source(offsets = offsets, partitions = partitions)
+
+      source = hub.source(Instant.now(), false)
+      source = hub.source(startTime = Instant.now(), withCheckpoints = false)
+
+      source = hub.source(Instant.now(), false, partitions)
+      source = hub.source(startTime = Instant.now(), withCheckpoints = false, partitions = partitions)
+
+      source = hub.source(offsets, false)
+      source = hub.source(offsets = offsets, withCheckpoints = false)
+
+      source = hub.source(offsets, false, partitions)
+      source = hub.source(offsets = offsets, withCheckpoints = false, partitions = partitions)
 
       hub.close()
-    }
-
-    scenario("Using ScalaDSL IoTHubPartition") {
-      import java.time.Instant
-
-      import akka.NotUsed
-      import akka.stream.scaladsl.Source
-      import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
-      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
-
-      val hub1: IoTHubPartition = new IoTHubPartition(1)
-      val hub2: IoTHubPartition = new IoTHubPartition(partition = 1)
-      val hub3: IoTHubPartition = IoTHubPartition(1)
-      val hub4: IoTHubPartition = IoTHubPartition(partition = 1)
-
-      val const1: String = IoTHubPartition.OffsetStartOfStream
-      val const2: String = IoTHubPartition.OffsetCheckpointNotFound
-
-      val source1: Source[MessageFromDevice, NotUsed] = hub1.source()
-
-      val source2: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now())
-      val source3: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now())
-
-      val source4: Source[MessageFromDevice, NotUsed] = hub1.source(false)
-      val source5: Source[MessageFromDevice, NotUsed] = hub1.source(withCheckpoints = false)
-
-      val source6: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"))
-      val source7: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"))
-
-      val source8: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now(), false)
-      val source9: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
-
-      val source10: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"), false)
-      val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
-
-      hub1.close()
-      hub2.close()
-      hub3.close()
-      hub4.close()
-    }
-
-    scenario("Using JavaDSL IoTHubPartition") {
-      import java.time.Instant
-
-      import akka.NotUsed
-      import akka.stream.javadsl.Source
-      import com.microsoft.azure.iot.iothubreact.javadsl.IoTHubPartition
-      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, Offset}
-
-      val hub1: IoTHubPartition = new IoTHubPartition(1)
-      val hub2: IoTHubPartition = new IoTHubPartition(partition = 1)
-
-      val const1: String = hub1.OffsetStartOfStream
-      val const2: String = hub1.OffsetCheckpointNotFound
-
-      val source1: Source[MessageFromDevice, NotUsed] = hub1.source()
-
-      val source2: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now())
-      val source3: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now())
-
-      val source4: Source[MessageFromDevice, NotUsed] = hub1.source(false)
-      val source5: Source[MessageFromDevice, NotUsed] = hub1.source(withCheckpoints = false)
-
-      val source6: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"))
-      val source7: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"))
-
-      val source8: Source[MessageFromDevice, NotUsed] = hub1.source(Instant.now(), false)
-      val source9: Source[MessageFromDevice, NotUsed] = hub1.source(startTime = Instant.now(), withCheckpoints = false)
-
-      val source10: Source[MessageFromDevice, NotUsed] = hub1.source(Offset("1"), false)
-      val source11: Source[MessageFromDevice, NotUsed] = hub1.source(offset = Offset("1"), withCheckpoints = false)
-
-      hub1.close()
-      hub2.close()
     }
   }
 }

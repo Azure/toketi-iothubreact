@@ -12,11 +12,11 @@ import scala.language.postfixOps
 
 /** Hold IoT Hub configuration settings
   *
-  * @see https://github.com/typesafehub/config for information about the
-  *      configuration file formats
-  * @todo dependency injection
+  * @see https://github.com/typesafehub/config for information about the configuration file formats
   */
 private[iothubreact] object Configuration {
+
+  // TODO: dependency injection
 
   private[this] val confConnPath      = "iothub-react.connection."
   private[this] val confStreamingPath = "iothub-react.streaming."

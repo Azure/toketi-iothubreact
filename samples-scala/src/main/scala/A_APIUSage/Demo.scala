@@ -61,7 +61,7 @@ object OnlyOnePartition extends App {
 
   println(s"Streaming messages from partition ${Partition}")
 
-  val messages = IoTHubPartition(Partition).source()
+  val messages = IoTHub().source(PartitionList(Seq(Partition)))
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")

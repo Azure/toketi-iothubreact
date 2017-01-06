@@ -36,13 +36,14 @@ private[iothubreact] case class Table[T <: ToCassandra](session: Session, keyspa
 
   /** Retrieve a record
     *
-    * @todo return a T object
-    *
     * @param condition CQL condition
     *
     * @return a record as string
     */
   def select(condition: String): JObject = {
+
+    // TODO: return a T object
+
     val row = session.execute(s"SELECT * FROM $keyspace.$tableName WHERE ${condition}").one()
 
     var partition = -1

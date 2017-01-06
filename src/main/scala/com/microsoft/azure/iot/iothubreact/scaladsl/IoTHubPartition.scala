@@ -32,71 +32,11 @@ object IoTHubPartition extends Logger {
   *
   * @param partition IoT hub partition number (0-based). The number of
   *                  partitions is set during the deployment.
-  *
-  * @todo (*) Provide ClearCheckpoints() method to clear the state
-  * @todo Support reading the same partition from multiple clients
   */
-case class IoTHubPartition(val partition: Int) extends Logger {
+private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logger {
 
-  private[this] val streamManager = new StreamManager[MessageFromDevice]
-
-  /** Stop the stream
-    */
-  def close(): Unit = {
-    streamManager.close()
-  }
-
-  /** Stream returning all the messages. If checkpointing is enabled in the global configuration
-    * then the stream starts from the last position saved, otherwise it starts from the beginning.
-    *
-    * @return A source of IoT messages
-    */
-  def source(): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      offset = Offset(IoTHubPartition.OffsetStartOfStream),
-      withCheckpoints = false)
-  }
-
-  /** Stream returning all the messages from the given offset
-    *
-    * @param startTime Starting position expressed in time
-    *
-    * @return A source of IoT messages
-    */
-  def source(startTime: Instant): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = true,
-      startTime = startTime,
-      withCheckpoints = false)
-  }
-
-  /** Stream returning all the messages. If checkpointing, the stream starts from the last position
-    * saved, otherwise it starts from the beginning.
-    *
-    * @param withCheckpoints Whether to read/write the stream position (default: true)
-    *
-    * @return A source of IoT messages
-    */
-  def source(withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      offset = Offset(IoTHubPartition.OffsetStartOfStream),
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
-  }
-
-  /** Stream returning all the messages from the given offset
-    *
-    * @param offset Starting position, offset of the first message
-    *
-    * @return A source of IoT messages
-    */
-  def source(offset: Offset): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      offset = offset,
-      withCheckpoints = false)
-  }
+  // TODO: (*) Provide ClearCheckpoints() method to clear the state
+  // TODO: Support reading the same partition from multiple clients
 
   /** Stream returning all the messages from the given offset
     *
@@ -119,7 +59,7 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     *
     * @return A source of IoT messages
     */
-  def source(offset: Offset, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
+  def source(offset: String, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
     getSource(
       withTimeOffset = false,
       offset = offset,
@@ -138,12 +78,12 @@ case class IoTHubPartition(val partition: Int) extends Logger {
     */
   private[this] def getSource(
       withTimeOffset: Boolean,
-      offset: Offset = Offset(""),
+      offset: String = "",
       startTime: Instant = Instant.MIN,
       withCheckpoints: Boolean = true): Source[MessageFromDevice, NotUsed] = {
 
     // Load the offset from the storage (if needed)
-    var _offset = offset.value
+    var _offset = offset
     var _withTimeOffset = withTimeOffset
     if (withCheckpoints) {
       val savedOffset = GetSavedOffset()
@@ -156,9 +96,9 @@ case class IoTHubPartition(val partition: Int) extends Logger {
 
     // Build the source starting by time or by offset
     val source: Source[MessageFromDevice, NotUsed] = if (_withTimeOffset)
-      MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive).via(streamManager)
+      MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
     else
-      MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive).via(streamManager)
+      MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
 
     // Inject a flow to store the stream position after each pull
     if (withCheckpoints) {

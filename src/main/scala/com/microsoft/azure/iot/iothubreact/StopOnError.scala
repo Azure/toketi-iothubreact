@@ -6,11 +6,11 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
 
 /** Akka streaming settings to stop the stream in case of errors
-  *
-  * @todo Review the usage of a supervisor with Akka streams
-  * @todo Try to remove the logger and save threads, or reuse the existing event stream
   */
 case object StopOnError extends Logger {
+
+  // TODO: Review the usage of a supervisor with Akka streams
+  // TODO: Try to remove the logger and save threads, or reuse the existing event stream
 
   private[this] val decider: Supervision.Decider = {
     case e: Exception ⇒ {
