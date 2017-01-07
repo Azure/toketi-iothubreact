@@ -9,6 +9,7 @@ import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.{Configuration ⇒ CPConfiguration}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -39,7 +40,28 @@ case class IoTHub() extends Logger {
     *
     * @return Streaming sink
     */
-  def sink[A]()(implicit typedSink: TypedSink[A]): Sink[A, Future[Done]] = typedSink.definition
+  def sink[A]()(implicit typedSink: TypedSink[A]): Sink[A, Future[Done]] = typedSink.scalaDefinition
+
+  /** Sink to send asynchronous messages to IoT devices
+    *
+    * @return Streaming sink
+    */
+  def messageSink: Sink[MessageToDevice, Future[Done]] =
+    MessageToDeviceSink().scalaSink()
+
+  /** Sink to call synchronous methods on IoT devices
+    *
+    * @return Streaming sink
+    */
+  def methodSink: Sink[MethodOnDevice, Future[Done]] =
+    MethodOnDeviceSink().scalaSink()
+
+  /** Sink to asynchronously set properties on IoT devices
+    *
+    * @return Streaming sink
+    */
+  def propertySink: Sink[DeviceProperties, Future[Done]] =
+    DevicePropertiesSink().scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise

@@ -9,7 +9,7 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
   */
 case object ResumeOnError extends Logger {
 
-  // TODO: Review the usage of a supervisor with Akka streams
+  // TODO: Revisit the usage of a supervisor with Akka streams
   // TODO: Try to remove the logger and save threads, or reuse the existing event stream
 
   private[this] val decider: Supervision.Decider = {

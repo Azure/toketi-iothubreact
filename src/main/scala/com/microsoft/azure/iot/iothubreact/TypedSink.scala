@@ -2,8 +2,11 @@
 
 package com.microsoft.azure.iot.iothubreact
 
+import java.util.concurrent.CompletionStage
+
 import akka.Done
-import akka.stream.scaladsl.Sink
+import akka.stream.javadsl.{Sink ⇒ JavaSink}
+import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
 import com.microsoft.azure.iot.iothubreact.sinks._
 
 import scala.concurrent.Future
@@ -13,7 +16,9 @@ import scala.concurrent.Future
   * @tparam A
   */
 trait TypedSink[A] {
-  def definition: Sink[A, Future[Done]]
+  def scalaDefinition: ScalaSink[A, Future[Done]]
+
+  def javaDefinition: JavaSink[A, CompletionStage[Done]]
 }
 
 /** Type class implementations for MessageToDevice, MethodOnDevice, DeviceProperties
@@ -22,15 +27,21 @@ trait TypedSink[A] {
 object TypedSink {
 
   implicit object MessageToDeviceSinkDef extends TypedSink[MessageToDevice] {
-    override def definition: Sink[MessageToDevice, Future[Done]] = MessageToDeviceSink().sink()
+    override def scalaDefinition: ScalaSink[MessageToDevice, Future[Done]] = MessageToDeviceSink().scalaSink()
+
+    override def javaDefinition: JavaSink[MessageToDevice, CompletionStage[Done]] = MessageToDeviceSink().javaSink()
   }
 
   implicit object MethodOnDeviceSinkDef extends TypedSink[MethodOnDevice] {
-    override def definition: Sink[MethodOnDevice, Future[Done]] = MethodOnDeviceSink().sink()
+    override def scalaDefinition: ScalaSink[MethodOnDevice, Future[Done]] = MethodOnDeviceSink().scalaSink()
+
+    override def javaDefinition: JavaSink[MethodOnDevice, CompletionStage[Done]] = MethodOnDeviceSink().javaSink()
   }
 
   implicit object DevicePropertiesSinkDef extends TypedSink[DeviceProperties] {
-    override def definition: Sink[DeviceProperties, Future[Done]] = DevicePropertiesSink().sink()
+    override def scalaDefinition: ScalaSink[DeviceProperties, Future[Done]] = DevicePropertiesSink().scalaSink()
+
+    override def javaDefinition: JavaSink[DeviceProperties, CompletionStage[Done]] = DevicePropertiesSink().javaSink()
   }
 
 }

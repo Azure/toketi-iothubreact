@@ -4,6 +4,6 @@ package com.microsoft.azure.iot.iothubreact
 
 /** Set of properties to set on the device twin
   */
-class DeviceProperties() {
+class DeviceProperties {
 
 }

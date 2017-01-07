@@ -27,20 +27,20 @@ private[iothubreact] object Configuration {
   // Default IoThub client timeout
   private[this] val DefaultReceiverTimeout = 3 seconds
 
-  private[this] val conf: Config = ConfigFactory.load()
+  private[this] lazy val conf: Config = ConfigFactory.load()
 
   // IoT hub storage details
-  val iotHubName      : String = conf.getString(confConnPath + "hubName")
-  val iotHubNamespace : String = getNamespaceFromEndpoint(conf.getString(confConnPath + "hubEndpoint"))
-  val iotHubPartitions: Int    = conf.getInt(confConnPath + "hubPartitions")
-  val accessPolicy    : String = conf.getString(confConnPath + "accessPolicy")
-  val accessKey       : String = conf.getString(confConnPath + "accessKey")
-  val accessHostname  : String = conf.getString(confConnPath + "accessHostName")
+  lazy val iotHubName      : String = conf.getString(confConnPath + "hubName")
+  lazy val iotHubNamespace : String = getNamespaceFromEndpoint(conf.getString(confConnPath + "hubEndpoint"))
+  lazy val iotHubPartitions: Int    = conf.getInt(confConnPath + "hubPartitions")
+  lazy val accessPolicy    : String = conf.getString(confConnPath + "accessPolicy")
+  lazy val accessKey       : String = conf.getString(confConnPath + "accessKey")
+  lazy val accessHostname  : String = conf.getString(confConnPath + "accessHostName")
 
   // Consumer group used to retrieve messages
   // @see https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview
-  private[this] val tmpCG = conf.getString(confStreamingPath + "consumerGroup")
-  val receiverConsumerGroup: String =
+  lazy private[this] val tmpCG                         = conf.getString(confStreamingPath + "consumerGroup")
+  lazy               val receiverConsumerGroup: String =
     tmpCG.toUpperCase match {
       case "$DEFAULT" ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
       case "DEFAULT"  ⇒ EventHubClient.DEFAULT_CONSUMER_GROUP_NAME
@@ -48,16 +48,16 @@ private[iothubreact] object Configuration {
     }
 
   // Message retrieval timeout in milliseconds
-  private[this] val tmpRTO = conf.getDuration(confStreamingPath + "receiverTimeout").toMillis
-  val receiverTimeout: FiniteDuration =
+  lazy private[this] val tmpRTO                          = conf.getDuration(confStreamingPath + "receiverTimeout").toMillis
+  lazy               val receiverTimeout: FiniteDuration =
     if (tmpRTO > 0)
       FiniteDuration(tmpRTO, TimeUnit.MILLISECONDS)
     else
       DefaultReceiverTimeout
 
   // How many messages to retrieve on each call to the storage
-  private[this] val tmpRBS = conf.getInt(confStreamingPath + "receiverBatchSize")
-  val receiverBatchSize: Int =
+  lazy private[this] val tmpRBS                 = conf.getInt(confStreamingPath + "receiverBatchSize")
+  lazy               val receiverBatchSize: Int =
     if (tmpRBS > 0 && tmpRBS <= MaxBatchSize)
       tmpRBS
     else

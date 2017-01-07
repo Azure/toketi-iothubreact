@@ -13,13 +13,13 @@ import scala.collection.mutable.Map
 
 object MessageToDevice {
 
-  def apply(content: Array[Byte]) = new MessageToDevice("", content)
+  def apply(content: Array[Byte]) = new MessageToDevice(content)
 
-  def apply(content: String) = new MessageToDevice("", content.getBytes(StandardCharsets.UTF_8))
+  def apply(content: String) = new MessageToDevice(content)
 
   def apply(deviceId: String, content: Array[Byte]) = new MessageToDevice(deviceId, content)
 
-  def apply(deviceId: String, content: String) = new MessageToDevice(deviceId, content.getBytes(StandardCharsets.UTF_8))
+  def apply(deviceId: String, content: String) = new MessageToDevice(deviceId, content)
 }
 
 class MessageToDevice(var deviceId: String, val content: Array[Byte]) {
@@ -29,6 +29,18 @@ class MessageToDevice(var deviceId: String, val content: Array[Byte]) {
   private[this] var expiry       : Option[java.util.Date]      = None
   private[this] var userId       : Option[String]              = None
   private[this] var properties   : Option[Map[String, String]] = None
+
+  def this(content: String) = {
+    this("", content.getBytes(StandardCharsets.UTF_8))
+  }
+
+  def this(content: Array[Byte]) = {
+    this("", content)
+  }
+
+  def this(deviceId: String, content: String) = {
+    this(deviceId, content.getBytes(StandardCharsets.UTF_8))
+  }
 
   /** Set the acknowledgement level for message delivery: None, NegativeOnly, PositiveOnly, Full
     *

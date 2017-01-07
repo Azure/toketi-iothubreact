@@ -11,6 +11,9 @@ IoTHub React is an Akka Stream library that can be used to read data from
 **asynchronous back pressure**, and to send messages to connected devices. 
 Azure IoT Hub is a service used to connect thousands to millions of devices to the Azure cloud.
 
+The library can be used both in Java and Scala, providing a fluent DSL for both programming 
+languages, similarly to the approach used by Akka.
+
 The following is a simple example showing how to use the library in Scala. A stream of incoming 
 telemetry data is read, parsed and converted to a `Temperature` object, and then filtered based on 
 the temperature value:
@@ -37,7 +40,7 @@ new IoTHub().source()
 
 #### Streaming from IoT hub to _any_
 
-A more interesting example is reading telemetry data from Azure IoT Hub, and sending it to a Kafka 
+An interesting example is reading telemetry data from Azure IoT Hub, and sending it to a Kafka 
 topic, so that it can be consumed by other services downstream:
 
 ```scala
@@ -74,14 +77,17 @@ IoTHub().source()
 
 ### IoT hub partitions
 
-The library supports also reading from a single 
-[IoTHub partition](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview), 
-so a service that consumes IoTHub events can create multiple streams and process them independently.
+The library supports reading from a subset of 
+[partitions](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview), 
+to enable the development of distributed applications. Consider for instance the scenario of a 
+client application deployed to multiple nodes, where each node process independently a subset of 
+the incoming telemetry.
 
 ```scala
-val partitionNumber = 1
+val p1 = 0
+val p2 = 3
 
-IoTHubPartition(partitionNumber).source()
+IoTHub().source(PartitionList(Seq(p1, p2)))
     .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
@@ -210,11 +216,16 @@ or this dependency in `pom.xml` file if working with Maven:
 IoTHubReact uses a configuration file to fetch the parameters required to connect to Azure IoT Hub.
 The exact values to use can be found in the [Azure Portal](https://portal.azure.com):
 
+Properties required to receive device-to-cloud messages:
+
 * **hubName**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible name`
 * **hubEndpoint**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible endpoint`
 * **hubPartitions**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Partitions`
 * **accessPolicy**: usually `service`, see `Shared access policies`
 * **accessKey**: see `Shared access policies` ⇒ `key name` ⇒ `Primary key` (it's a base64 encoded string)
+
+Properties required to send cloud-to-device messages:
+
 * **accessHostName**: see `Shared access policies` ⇒ `key name` ⇒ `Connection string` ⇒ `HostName`
 
 The values should be stored in your `application.conf` resource (or equivalent). Optionally you can 
@@ -254,7 +265,10 @@ iothub-react {
 }
 ````
 
-The logging level can be managed via akka configuration, for example:
+Note that the library will automatically use these environment variables, unless overridden
+in the configuration file (all the default settings are stored in `reference.conf`).
+
+The logging level can be managed overriding Akka configuration, for example:
 
 ```
 akka {
@@ -274,31 +288,48 @@ There are other settings, to tune performance and connection details:
   3 seconds.
 * **checkpointing.enabled**: whether checkpointing is eanbled
 
-The complete configuration reference is available in 
+The complete configuration reference (and default value) is available in 
 [reference.conf](src/main/resources/reference.conf).
 
 ## Samples
 
-The project includes 4 demos, showing some of the use cases and how IoThub React API works. 
-All the demos require an instance of Azure IoT hub, with some devices, and messages.
+The project includes multiple demos, showing some of the use cases and how IoThub React API works. 
+All the demos require an instance of Azure IoT hub, with some devices and messages.
 
 1. **DisplayMessages** [Java]: how to stream Azure IoT hub withing a Java application, filtering 
    temperature values greater than 60C
-2. **OutputMessagesToConsole** [Scala]: stream all Temeprature events to console
-3. **MessagesThroughput** [Scala]: stream all IoT hub messages, showing the current speed, and
-   optionally throttling the speed to 200 msg/sec
-4. **Checkpoints** [Scala]: demonstrate how the stream can be restarted without losing its position.
-   The current position is stored in a Cassandra table (we suggest to run a docker container for
-   the purpose of the demo, e.g. `docker run -ip 9042:9042 --rm cassandra`)
+2. **SendMessageToDevice** [Java]: how to turn on a fan when a device reports a temperature higher 
+   than 22C
+3. **AllMessagesFromBeginning** [Scala]: simple example streaming all the events in the hub.
+4. **OnlyRecentMessages** [Scala]: stream all the events, starting from the current time.
+5. **OnlyTwoPartitions** [Scala]: shows how to stream events from a subset of partitions.
+6. **MultipleDestinations** [Scala]: shows how to read once and deliver events to multiple destinations.
+7. **FilterByMessageType** [Scala]: how to filter events by message type. The type must be set by 
+   the device.
+8. **FilterByDeviceID** [Scala]: how to filter events by device ID. The device ID is automatically
+   set by Azure IoT SDK.
+9. **CloseStream** [Scala]: show how to close the stream 
+10. **SendMessageToDevice** [Scala]: shows the API to send messages to connected devices.
+11. **PrintTemperature** [Scala]: stream all Temperature events and print data to the console.
+12. **Throughput** [Scala]: stream all events and display statistics about the throughput.
+13. **Throttling** [Scala]: throttle the incoming stream to a defined speed of events/second.
+14. **Checkpoints** [Scala]: demonstrates how the stream can be restarted without losing its position.
+    The current position is stored in a Cassandra table (we suggest to run a docker container for
+    the purpose of the demo, e.g. `docker run -ip 9042:9042 --rm cassandra`).
+15. **SendMessageToDevice** [Scala]: another example showing how to send 2 different messages to 
+    connected devices.
 
 We provide a [device simulator](tools/devices-simulator/README.md) in the tools section, 
-which will help setting up these requirements.
+which will help simulating some devices sending sample telemetry.
 
 When ready, you should either edit the `application.conf` configuration files 
 ([scala](samples-scala/src/main/resources/application.conf) and
 [java](samples-java/src/main/resources/application.conf)) 
-with your credentials, or set the corresponding global variables.
+with your credentials, or set the corresponding environment variables.
 Follow the instructions in the previous section on how to set the correct values.
+
+The sample folders include also some scripts showing how to setup the environment variables in 
+[Linux/MacOS](samples-scala/setup-env-vars.sh) and [Windows](samples-scala/setup-env-vars.bat).
 
 * [`samples-scala`](samples-scala/src/main/scala):
   You can use `sbt run` to run the demos (or the `run_samples.*` scripts)
@@ -308,9 +339,8 @@ Follow the instructions in the previous section on how to set the correct values
 
 ## Future work
 
+* allow to redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
 * improve asynchronicity by using EventHub SDK async APIs
-* add Sink for Cloud2Device scenarios. `IoTHub.Sink` will allow cloud services to send messages 
-  to devices (via Azure IoTHub)
 
 # Contribute Code
 

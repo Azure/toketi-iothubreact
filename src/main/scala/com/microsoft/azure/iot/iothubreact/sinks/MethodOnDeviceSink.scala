@@ -1,20 +1,25 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-// TODO: Develop once SDK is ready
+// TODO: Implement once SDK is ready
 
 package com.microsoft.azure.iot.iothubreact.sinks
 
+import java.util.concurrent.CompletionStage
+
 import akka.Done
-import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.MethodOnDevice
+import akka.stream.javadsl.{Sink ⇒ JavaSink}
+import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
+import com.microsoft.azure.iot.iothubreact.{Logger, MethodOnDevice}
 
-import scala.concurrent.Future
+case class MethodOnDeviceSink() extends ISink[MethodOnDevice] with Logger {
 
-case class MethodOnDeviceSink() {
+  throw new NotImplementedError("MethodOnDeviceSink is not supported yet")
 
-  throw new NotImplementedError("DevicePropertiesSink is not supported yet")
+  def scalaSink(): ScalaSink[MethodOnDevice, scala.concurrent.Future[Done]] = {
+    throw new NotImplementedError()
+  }
 
-  def sink(): Sink[MethodOnDevice, Future[Done]] = Sink.foreach[MethodOnDevice] {
-    m ⇒ ???
+  def javaSink(): JavaSink[MethodOnDevice, CompletionStage[Done]] = {
+    throw new NotImplementedError()
   }
 }

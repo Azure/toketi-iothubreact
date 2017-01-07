@@ -13,8 +13,8 @@ import scala.language.postfixOps
   */
 private[iothubreact] object Configuration {
 
-  // TODO: Allow to use multiple configurations, for instance while processing multiple
-  //       streams a client will need a dedicated checkpoint container for each stream
+  // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
+  //       a client will need a dedicated checkpoint container for each stream
 
   private[this] val confPath = "iothub-react.checkpointing."
 

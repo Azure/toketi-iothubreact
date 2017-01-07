@@ -3,20 +3,19 @@
 package com.microsoft.azure.iot.iothubreact.javadsl
 
 import java.time.Instant
+import java.util.concurrent.CompletionStage
 
-import akka.NotUsed
-import akka.stream.javadsl.{Source ⇒ SourceJavaDSL}
-import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
-import com.microsoft.azure.iot.iothubreact.scaladsl.{PartitionList ⇒ PartitionListScalaDSL}
-import com.microsoft.azure.iot.iothubreact.scaladsl.{OffsetList ⇒ OffsetListScalaDSL}
-import com.microsoft.azure.iot.iothubreact.MessageFromDevice
+import akka.stream.javadsl.{Sink, Source ⇒ JavaSource}
+import akka.{Done, NotUsed}
+import com.microsoft.azure.iot.iothubreact._
+import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL, OffsetList ⇒ OffsetListScalaDSL, PartitionList ⇒ PartitionListScalaDSL}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
 class IoTHub() {
 
   // TODO: Provide ClearCheckpoints() method to clear the state
-  // TODO: Add sink and test from Java
 
   private lazy val iotHub = new IoTHubScalaDSL()
 
@@ -26,21 +25,34 @@ class IoTHub() {
     iotHub.close()
   }
 
-  /** Sink to communicate with IoT devices
+  /** Sink to send asynchronous messages to IoT devices
     *
-    * @ tparam A Type of communication (message, method, property)
-    *
-    * @ return Streaming sink
+    * @return Streaming sink
     */
-  //def sink[A](): Sink[A, Future[Done]] = iotHub.sink[A]
+  def messageSink: Sink[MessageToDevice, CompletionStage[Done]] =
+    MessageToDeviceSink().javaSink()
+
+  /** Sink to call synchronous methods on IoT devices
+    *
+    * @return Streaming sink
+    */
+  def methodSink: Sink[MethodOnDevice, CompletionStage[Done]] =
+    MethodOnDeviceSink().javaSink()
+
+  /** Sink to asynchronously set properties on IoT devices
+    *
+    * @return Streaming sink
+    */
+  def propertySink: Sink[DeviceProperties, CompletionStage[Done]] =
+    DevicePropertiesSink().javaSink()
 
   /** Stream returning all the messages since the beginning, from all the
     * configured partitions.
     *
     * @return A source of IoT messages
     */
-  def source(): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source())
+  def source(): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source())
   }
 
   /** Stream returning all the messages from all the requested partitions.
@@ -51,8 +63,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(partitions: PartitionList): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(PartitionListScalaDSL(partitions)))
+  def source(partitions: PartitionList): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(PartitionListScalaDSL(partitions)))
   }
 
   /** Stream returning all the messages starting from the given time, from all
@@ -62,8 +74,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(startTime))
+  def source(startTime: Instant): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(startTime))
   }
 
   /** Stream returning all the messages starting from the given time, from all
@@ -74,8 +86,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant, partitions: PartitionList): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(startTime, PartitionListScalaDSL(partitions)))
+  def source(startTime: Instant, partitions: PartitionList): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(startTime, PartitionListScalaDSL(partitions)))
   }
 
   /** Stream returning all the messages from all the configured partitions.
@@ -86,8 +98,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(withCheckpoints: java.lang.Boolean): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(withCheckpoints))
+  def source(withCheckpoints: java.lang.Boolean): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(withCheckpoints))
   }
 
   /** Stream returning all the messages from all the configured partitions.
@@ -99,8 +111,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(withCheckpoints: java.lang.Boolean, partitions: PartitionList): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(withCheckpoints, PartitionListScalaDSL(partitions)))
+  def source(withCheckpoints: java.lang.Boolean, partitions: PartitionList): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(withCheckpoints, PartitionListScalaDSL(partitions)))
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -110,8 +122,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: OffsetList): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(OffsetListScalaDSL(offsets)))
+  def source(offsets: OffsetList): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(OffsetListScalaDSL(offsets)))
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -122,8 +134,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: OffsetList, partitions: PartitionList): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(OffsetListScalaDSL(offsets), PartitionListScalaDSL(partitions)))
+  def source(offsets: OffsetList, partitions: PartitionList): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(OffsetListScalaDSL(offsets), PartitionListScalaDSL(partitions)))
   }
 
   /** Stream returning all the messages starting from the given time, from all
@@ -134,8 +146,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant, withCheckpoints: java.lang.Boolean): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(startTime, withCheckpoints))
+  def source(startTime: Instant, withCheckpoints: java.lang.Boolean): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(startTime, withCheckpoints))
   }
 
   /** Stream returning all the messages starting from the given time, from all
@@ -147,8 +159,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant, withCheckpoints: java.lang.Boolean, partitions: PartitionList): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(startTime, withCheckpoints, PartitionListScalaDSL(partitions)))
+  def source(startTime: Instant, withCheckpoints: java.lang.Boolean, partitions: PartitionList): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(startTime, withCheckpoints, PartitionListScalaDSL(partitions)))
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -159,8 +171,8 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: OffsetList, withCheckpoints: java.lang.Boolean): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(OffsetListScalaDSL(offsets), withCheckpoints))
+  def source(offsets: OffsetList, withCheckpoints: java.lang.Boolean): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(OffsetListScalaDSL(offsets), withCheckpoints))
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -172,7 +184,7 @@ class IoTHub() {
     *
     * @return A source of IoT messages
     */
-  def source(offsets: OffsetList, withCheckpoints: java.lang.Boolean, partitions: PartitionList): SourceJavaDSL[MessageFromDevice, NotUsed] = {
-    new SourceJavaDSL(iotHub.source(OffsetListScalaDSL(offsets), withCheckpoints, PartitionListScalaDSL(partitions)))
+  def source(offsets: OffsetList, withCheckpoints: java.lang.Boolean, partitions: PartitionList): JavaSource[MessageFromDevice, NotUsed] = {
+    new JavaSource(iotHub.source(OffsetListScalaDSL(offsets), withCheckpoints, PartitionListScalaDSL(partitions)))
   }
 }

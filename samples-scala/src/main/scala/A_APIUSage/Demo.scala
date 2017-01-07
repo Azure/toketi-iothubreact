@@ -53,15 +53,16 @@ object OnlyRecentMessages extends App {
     .run()
 }
 
-/** Stream only from partition 0
+/** Stream only from partitions 0 and 3
   */
-object OnlyOnePartition extends App {
+object OnlyTwoPartitions extends App {
 
-  val Partition = 0
+  val Partition1 = 0
+  val Partition2 = 3
 
-  println(s"Streaming messages from partition ${Partition}")
+  println(s"Streaming messages from partitions ${Partition1} and ${Partition2}")
 
-  val messages = IoTHub().source(PartitionList(Seq(Partition)))
+  val messages = IoTHub().source(PartitionList(Seq(Partition1, Partition2)))
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
