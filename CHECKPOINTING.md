@@ -11,21 +11,28 @@ For instance, the stream position can be saved every 15 seconds in Azure blobs, 
 To store checkpoints in Azure blobs the configuration looks like this:
 
 ```
-iothub-checkpointing {
-  enabled = true
-  frequency = 15s
-  countThreshold = 1000
-  timeThreshold = 30s
-  storage {
-    rwTimeout = 5s
-    backendType = "AzureBlob"
-    namespace = "iothub-react-checkpoints"
-    azureblob {
-      lease = 15s
-      useEmulator = false
-      protocol = "https"
-      account = "..."
-      key = "..."
+iothub-react{
+
+  [... other settings ...]
+  
+  checkpointing {
+    enabled = true
+    frequency = 15s
+    countThreshold = 1000
+    timeThreshold = 30s
+    
+    storage {
+      rwTimeout = 5s
+      namespace = "iothub-react-checkpoints"
+      
+      backendType = "AzureBlob"
+      azureblob {
+        lease = 15s
+        useEmulator = false
+        protocol = "https"
+        account = "..."
+        key = "..."
+      }
     }
   }
 }
@@ -35,13 +42,13 @@ Soon it will be possible to plug in custom storage backends implementing a simpl
 [interface](src/main/scala/com/microsoft/azure/iot/iothubreact/checkpointing/Backends/CheckpointBackend.scala)
 to read and write the stream position.
 
-There is also one API parameter to enabled/disable the mechanism, for example:
+There is also one API parameter to enable/disable the checkpointing feature, for example:
 
 ```scala
 val start = java.time.Instant.now()
 val withCheckpoints = false
 
-IoTHub.source(start, withCheckpoints)
+IoTHub().source(start, withCheckpoints)
     .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
     .filter(_.value > 100)
     .to(console)
@@ -52,19 +59,19 @@ IoTHub.source(start, withCheckpoints)
 
 ### Configuration
 
-The following table describes the impact of the settings within the `iothub-checkpointing` 
+The following table describes the impact of the settings within the `checkpointing` 
 configuration block. For further information, you can also check the 
 [reference.conf](src/main/resources/reference.conf) file.
 
 | Setting | Type | Example | Description |
 |---------|------|---------|-------------|
-| **enabled**             | bool                 | true        | Global switch to enable/disable the checkpointing feature. This value overrides the API parameter "withCheckpoints".            |
-| **frequency**           | duration             | 15s         | How often to check if the offset in memory should be saved to storage. The check is scheduled for each partition individually.  |
+| **enabled**             | bool                 | true        | Global switch to enable/disable the checkpointing feature. This value overrides the API parameter "withCheckpoints". |
+| **frequency**           | duration             | 15s         | How often to check if the offset in memory should be saved to storage. The check is scheduled after at least one message has been received, for each partition individually. |
 | **countThreshold**      | int                  | 1000        | How many messages to stream before saving the position. The setting is applied to each partition individually. The value should be big enough to take into account buffering and batching. |
-| **timeThreshold**       | duration             | 60s         | In case of low traffic (i.e. when not reaching countThreshold), save the stream position that is older than this value.|
-| storage.**rwTimeout**   | duration             | 5000ms      | How long to wait, when writing to the storage, before triggering a storage timeout exception.                                         |
-| storage.**backendType** | string or class name | "AzureBlob" | Currently only "AzureBlob" is supported. The name of the backend, or the class FQDN, to use to write to the storage. This provides a way to inject custom storage logic. |
-| storage.**namespace**   | string               | "mycptable" | The table/container which will contain the checkpoints data. When streaming data from multiple IoT hubs, you can use this setting, to store each stream position to a common storage, but in separate tables/containers. | 
+| **timeThreshold**       | duration             | 60s         | In case of low traffic (i.e. when not reaching countThreshold), save a stream position older than this value.|
+| storage.**rwTimeout**   | duration             | 5000ms      | How long to wait, when writing to the storage, before triggering a storage timeout exception. |
+| storage.**namespace**   | string               | "mycptable" | The table/container which will contain the checkpoints data. When streaming data from multiple IoT Hubs, you can use this setting to use separate tables/containers. |
+| storage.**backendType** | string or class name | "AzureBlob" | Currently "AzureBlob" and "Cassandra" are supported. The name of the backend, or the class FQDN, to use to write to the storage. This provides a way to inject custom storage logic. |
 
 ### Runtime
 
@@ -86,3 +93,11 @@ Legend:
 * **Start point**: whether the client provides a starting position (date or offset) or ask for all 
 the events from the beginning
 * **Saved position**: whether there is a position saved in the storage 
+
+### Edge cases
+
+* Azure IoT Hub stores messages up to 7 days. It's possible that the position stored doesn't exist
+  anymore. In such case the stream will start from the first message available.
+* If the checkpoint position is ahead of the last available message, the stream will fail with an
+  error. This can happen only with invalid configurations where two streams are sharing the 
+  same checkpoints.

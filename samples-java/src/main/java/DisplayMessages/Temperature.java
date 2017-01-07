@@ -5,4 +5,5 @@ package DisplayMessages;
 public class Temperature {
     String deviceId;
     Double value;
+    String time;
 }

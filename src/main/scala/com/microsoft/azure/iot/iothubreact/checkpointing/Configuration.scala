@@ -10,13 +10,13 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 
 /** Hold IoT Hub stream checkpointing configuration settings
-  *
-  * @todo Allow to use multiple configurations, for instance while processing multiple
-  *       streams a client will need a dedicated checkpoint container for each stream
   */
 private[iothubreact] object Configuration {
 
-  private[this] val confPath = "iothub-checkpointing."
+  // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
+  //       a client will need a dedicated checkpoint container for each stream
+
+  private[this] val confPath = "iothub-react.checkpointing."
 
   private[this] val conf: Config = ConfigFactory.load()
 

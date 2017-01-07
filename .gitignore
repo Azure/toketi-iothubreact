@@ -2,6 +2,7 @@
 .idea
 tools/devices-simulator/credentials.js
 *.crt
+.ensime
 
 ### MacOS ###
 .DS_Store

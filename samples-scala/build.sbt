@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-scalaVersion := "2.11.8"
-crossScalaVersions := Seq("2.11.8", "2.12.0-RC1")
+scalaVersion := "2.12.0"
+crossScalaVersions := Seq("2.11.8", "2.12.0")
 
 scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 
@@ -10,9 +10,9 @@ resolvers += "Dev Snapshots" at "https://dl.bintray.com/microsoftazuretoketi/tok
 
 libraryDependencies ++= {
   val prodVersion = "0.7.0"
-  val devVersion = "0.7.0-DEV.161025c"
+  val devVersion = "0.8.0-DEV.161101a"
 
   Seq(
-    "com.microsoft.azure.iot" %% "iothub-react" % prodVersion
+    "com.microsoft.azure.iot" %% "iothub-react" % devVersion
   )
 }

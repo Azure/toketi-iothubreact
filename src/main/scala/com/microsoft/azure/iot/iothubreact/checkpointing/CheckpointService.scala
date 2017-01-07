@@ -42,18 +42,12 @@ private[iothubreact] class CheckpointService(partition: Int)
     .fromExecutorService(Executors.newFixedThreadPool(sys.runtime.availableProcessors))
 
   // Contains the offsets up to one hour ago, max 1 offset per second (max size = 3600)
-  private[this] val queue                 = new scala.collection.mutable.Queue[OffsetsData]
+  private[this] val queue                     = new scala.collection.mutable.Queue[OffsetsData]
   // Count the offsets tracked in the queue (!= queue.size)
-  private[this] var queuedOffsets: Long   = 0
-  private[this] var currentOffset: String = IoTHubPartition.OffsetStartOfStream
-  private[this] val storage               = getCheckpointBackend
-
-  // Before the actor starts we schedule a recurring storage write
-  override def preStart(): Unit = {
-    val time = Configuration.checkpointFrequency
-    context.system.scheduler.schedule(time, time, self, StoreOffset)
-    log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
-  }
+  private[this] var queuedOffsets   : Long    = 0
+  private[this] var currentOffset   : String  = IoTHubPartition.OffsetStartOfStream
+  private[this] val storage                   = getCheckpointBackend
+  private[this] var schedulerStarted: Boolean = false
 
   override def receive: Receive = notReady
 
@@ -144,6 +138,14 @@ private[iothubreact] class CheckpointService(partition: Int)
   }
 
   def updateOffsetAction(offset: String) = {
+
+    if (!schedulerStarted) {
+      val time = Configuration.checkpointFrequency
+      schedulerStarted = true
+      context.system.scheduler.schedule(time, time, self, StoreOffset)
+      log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
+    }
+
     if (offset.toLong > currentOffset.toLong) {
       val epoch = Instant.now.getEpochSecond
 
@@ -163,7 +165,7 @@ private[iothubreact] class CheckpointService(partition: Int)
     }
   }
 
-  // @todo Support plugins
+  // TODO: Support plugins
   def getCheckpointBackend: CheckpointBackend = {
     val conf = Configuration.checkpointBackendType
     conf.toUpperCase match {

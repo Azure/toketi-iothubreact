@@ -4,7 +4,7 @@ package com.microsoft.azure.iot.iothubreact.checkpointing.backends
 
 import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
 
-private[iothubreact] trait CheckpointBackend {
+trait CheckpointBackend {
 
   def checkpointNamespace: String = Configuration.storageNamespace
 
