@@ -20,7 +20,7 @@ case class IoTHub() extends Logger {
 
   // TODO: Provide ClearCheckpoints() method to clear the state
 
-  private[this] val streamManager = new StreamManager[MessageFromDevice]
+  private[this] val streamManager = new StreamManager
 
   private[this] def allPartitions = Some(PartitionList(0 until Configuration.iotHubPartitions))
 

@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.microsoft.azure.iot</groupId>
             <artifactId>iothub-react_2.12</artifactId>
-            <version>0.8.0-DEV.161101a</version>
+            <version>0.8.0</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -3,40 +3,54 @@
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
 
-version := "0.8.0"
-//version := "0.8.0-DEV.170106a"
+//version := "0.9.0"
+version := "0.9.0-DEV.170307a"
 
 scalaVersion := "2.12.1"
 crossScalaVersions := Seq("2.11.8", "2.12.1")
 
 libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
-    val azureEventHubSDKVersion = "0.9.0"
-    val azureStorageSDKVersion = "4.4.0"
-    val iothubDeviceClientVersion = "1.0.15"
-    val iothubServiceClientVersion = "1.0.10"
-    val scalaTestVersion = "3.0.1"
-    val datastaxDriverVersion = "3.1.1"
+
     val json4sVersion = "3.5.0"
-    val akkaStreamVersion = "2.4.16"
 
     Seq(
-      // Library dependencies
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-service-client" % iothubServiceClientVersion,
-      "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
-      "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
-      "com.datastax.cassandra" % "cassandra-driver-core" % datastaxDriverVersion,
-      "com.typesafe.akka" %% "akka-stream" % akkaStreamVersion,
-      "org.json4s" %% "json4s-native" % json4sVersion,
-      "org.json4s" %% "json4s-jackson" % json4sVersion,
+      // https://github.com/Azure/azure-iot-sdk-java/releases
+      "com.microsoft.azure.sdk.iot" % "iot-service-client" % "1.0.14",
 
-      // Tests dependencies
-      "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test"
+      // https://github.com/Azure/azure-event-hubs-java/releases
+      "com.microsoft.azure" % "azure-eventhubs" % "0.11.0",
+
+      // https://github.com/Azure/azure-storage-java/releases
+      "com.microsoft.azure" % "azure-storage" % "5.0.0",
+
+      // http://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core
+      "com.datastax.cassandra" % "cassandra-driver-core" % "3.1.4",
+
+      // https://github.com/akka/akka/releases
+      "com.typesafe.akka" %% "akka-stream" % "2.4.17",
+
+      // https://github.com/json4s/json4s/releases
+      "org.json4s" %% "json4s-native" % json4sVersion,
+      "org.json4s" %% "json4s-jackson" % json4sVersion
     )
 }
 
-lazy val root = project.in(file(".")).configs(IntegrationTest)
+// Test dependencies
+libraryDependencies <++= (scalaVersion) {
+  scalaVersion ⇒
+    Seq(
+      // https://github.com/scalatest/scalatest/releases
+      "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+
+      // https://github.com/Azure/azure-iot-sdk-java/releases
+      "com.microsoft.azure.sdk.iot" % "iot-device-client" % "1.0.19" % "test"
+    )
+}
+
+lazy val iotHubReact = project.in(file(".")).configs(IntegrationTest)
+lazy val samplesScala = project.in(file("samples-scala")).dependsOn(iotHubReact)
+lazy val samplesJava = project.in(file("samples-java")).dependsOn(iotHubReact)
 
 /* Publishing options
  * see http://www.scala-sbt.org/0.13/docs/Artifacts.html
@@ -70,7 +84,7 @@ pomExtra :=
 
 /** Miscs
   */
-logLevel := Level.Debug // Debug|Info|Warn|Error
+logLevel := Level.Warn // Debug|Info|Warn|Error
 scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 showTiming := true
 fork := true

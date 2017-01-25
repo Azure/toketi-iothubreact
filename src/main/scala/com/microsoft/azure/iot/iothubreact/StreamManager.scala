@@ -5,11 +5,11 @@ package com.microsoft.azure.iot.iothubreact
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 
-private[iothubreact] class StreamManager[A]
-  extends GraphStage[FlowShape[A, A]] {
+private[iothubreact] class StreamManager
+  extends GraphStage[FlowShape[MessageFromDevice, MessageFromDevice]] {
 
-  private[this] val in          = Inlet[A]("StreamCanceller.Flow.in")
-  private[this] val out         = Outlet[A]("StreamCanceller.Flow.out")
+  private[this] val in          = Inlet[MessageFromDevice]("StreamCanceller.Flow.in")
+  private[this] val out         = Outlet[MessageFromDevice]("StreamCanceller.Flow.out")
   private[this] var closeSignal = false
 
   override val shape = FlowShape.of(in, out)
@@ -20,7 +20,10 @@ private[iothubreact] class StreamManager[A]
     new GraphStageLogic(shape) {
 
       setHandler(in, new InHandler {
-        override def onPush(): Unit = push(out, grab(in))
+        override def onPush(): Unit = {
+          val message: MessageFromDevice = grab(in)
+          push(out, message)
+        }
       })
 
       setHandler(out, new OutHandler {
