@@ -80,7 +80,7 @@ IoTHub().source()
 The library supports reading from a subset of 
 [partitions](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview), 
 to enable the development of distributed applications. Consider for instance the scenario of a 
-client application deployed to multiple nodes, where each node process independently a subset of 
+client application deployed to multiple nodes, where each node processes independently a subset of 
 the incoming telemetry.
 
 ```scala
@@ -337,10 +337,15 @@ The sample folders include also some scripts showing how to setup the environmen
   You can use `mvn clean compile exec:java -Dexec.mainClass="DisplayMessages.Demo"` to run the 
   demo app (or the `run_samples.*` scripts)
 
-## Future work
+## Future work (MoSCoW)
 
-* allow to redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
-* improve asynchronicity by using EventHub SDK async APIs
+* M: realtime metrics about the remaining backlog
+* S: device twins and device methods
+* S: redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
+* S: checkpointing sink to acknowledge events after consumption
+* C: clustering awareness
+* W: asynchronicity by using EventHub SDK async APIs
+* W: reopen hub after closing (currently one creates a new instance)
 
 # Contribute Code
 
