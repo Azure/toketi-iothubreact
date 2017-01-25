@@ -11,18 +11,24 @@ crossScalaVersions := Seq("2.11.8", "2.12.1")
 
 libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
-    val azureEventHubSDKVersion = "0.9.0"
-    val azureStorageSDKVersion = "4.4.0"
-    val iothubDeviceClientVersion = "1.0.15"
-    val iothubServiceClientVersion = "1.0.10"
+    // https://github.com/Azure/azure-event-hubs-java/releases
+    val azureEventHubSDKVersion = "0.10.0"
+
+    // https://github.com/Azure/azure-storage-java/releases
+    val azureStorageSDKVersion = "5.0.0"
+
+    // https://github.com/Azure/azure-iot-sdk-java/releases
+    val iothubDeviceClientVersion = "1.0.17"
+    val iothubServiceClientVersion = "1.0.12"
+
     val scalaTestVersion = "3.0.1"
-    val datastaxDriverVersion = "3.1.1"
+    val datastaxDriverVersion = "3.1.3"
     val json4sVersion = "3.5.0"
     val akkaStreamVersion = "2.4.16"
 
     Seq(
       // Library dependencies
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-service-client" % iothubServiceClientVersion,
+      "com.microsoft.azure.sdk.iot" % "iot-service-client" % iothubServiceClientVersion,
       "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
       "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
       "com.datastax.cassandra" % "cassandra-driver-core" % datastaxDriverVersion,
@@ -32,7 +38,7 @@ libraryDependencies <++= (scalaVersion) {
 
       // Tests dependencies
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test"
+      "com.microsoft.azure.sdk.iot" % "iot-device-client" % iothubDeviceClientVersion % "test"
     )
 }
 
