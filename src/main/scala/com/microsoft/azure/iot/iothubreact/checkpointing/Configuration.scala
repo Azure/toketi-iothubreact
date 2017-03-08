@@ -4,6 +4,8 @@ package com.microsoft.azure.iot.iothubreact.checkpointing
 
 import java.util.concurrent.TimeUnit
 
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.AzureBlob
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.lib.Auth
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.duration._
@@ -57,7 +59,11 @@ private[iothubreact] object Configuration {
   private[this] val MaxTimeThreshold = 1 hour
 
   // Default name of the container used to store checkpoint data
-  private[this] val DefaultContainer = "iothub-react-checkpoints"
+  private[this] val DefaultContainer = Configuration.checkpointBackendType.toUpperCase match {
+    case "AZUREBLOB" ⇒ "iothub-react-checkpoints"
+    case "CASSANDRA" ⇒ "iothub_react_checkpoints"
+    case _           ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${conf}")
+  }
 
   // Whether checkpointing is enabled or not
   lazy val isEnabled: Boolean = conf.getBoolean(confPath + "enabled")
@@ -109,6 +115,12 @@ private[iothubreact] object Configuration {
   // Cassandra cluster address
   lazy val cassandraCluster          : String = conf.getString(confPath + "storage.cassandra.cluster")
   lazy val cassandraReplicationFactor: Int    = conf.getInt(confPath + "storage.cassandra.replicationFactor")
+  lazy val cassandraAuth: Option[Auth] = for {
+    u <- Option(conf.getString(confPath + "storage.cassandra.username"))
+    p <- Option(conf.getString(confPath + "storage.cassandra.password"))
+  } yield {
+    Auth(u, p)
+  }
 
   /** Load Azure blob connection string, taking care of the Azure storage emulator case
     *

@@ -14,7 +14,7 @@ import org.json4s.JsonAST
 private[iothubreact] class CassandraTable extends CheckpointBackend with Logger {
 
   val schema     = new CheckpointsTableSchema(checkpointNamespace, "checkpoints")
-  val connection = Connection(Configuration.cassandraCluster, Configuration.cassandraReplicationFactor, schema)
+  val connection = Connection(Configuration.cassandraCluster, Configuration.cassandraReplicationFactor, Configuration.cassandraAuth, schema)
   val table      = connection.getTable[CheckpointRecord]()
 
   connection.createKeyspaceIfNotExists()
