@@ -11,10 +11,10 @@ import org.json4s.JsonAST
 
 /** Storage logic to write checkpoints to a Cassandra table
   */
-private[iothubreact] class CassandraTable extends CheckpointBackend with Logger {
+private[iothubreact] class CassandraTable(implicit val cfg: Configuration) extends CheckpointBackend with Logger {
 
   val schema     = new CheckpointsTableSchema(checkpointNamespace, "checkpoints")
-  val connection = Connection(Configuration.cassandraCluster, Configuration.cassandraReplicationFactor, Configuration.cassandraAuth, schema)
+  val connection = Connection(cfg.cassandraCluster, cfg.cassandraReplicationFactor, cfg.cassandraAuth, schema)
   val table      = connection.getTable[CheckpointRecord]()
 
   connection.createKeyspaceIfNotExists()

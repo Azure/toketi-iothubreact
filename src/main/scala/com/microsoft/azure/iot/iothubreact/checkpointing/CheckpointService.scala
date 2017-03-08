@@ -31,7 +31,7 @@ private[iothubreact] object CheckpointService {
   *
   * @param partition IoT hub partition number [0..N]
   */
-private[iothubreact] class CheckpointService(partition: Int)
+private[iothubreact] class CheckpointService(partition: Int)(implicit val cfg: Configuration)
   extends Actor
     with Stash
     with Logger {
@@ -97,8 +97,9 @@ private[iothubreact] class CheckpointService(partition: Int)
 
           var offsetToStore: String = ""
           val now = Instant.now.getEpochSecond
-          val timeThreshold = Configuration.checkpointTimeThreshold.toSeconds
-          val countThreshold = Configuration.checkpointCountThreshold
+
+          val timeThreshold = cfg.checkpointTimeThreshold.toSeconds
+          val countThreshold = cfg.checkpointCountThreshold
 
           // Check if the queue contains old offsets to flush (time threshold)
           // Check if the queue contains data of too many messages (count threshold)
@@ -111,7 +112,7 @@ private[iothubreact] class CheckpointService(partition: Int)
           }
 
           if (offsetToStore == "") {
-            log.debug(s"Checkpoint skipped: partition=${partition}, count ${queuedOffsets} < threshold ${Configuration.checkpointCountThreshold}")
+            log.debug(s"Checkpoint skipped: partition=${partition}, count ${queuedOffsets} < threshold ${cfg.checkpointCountThreshold}")
           } else {
             log.info(s"Writing checkpoint: partition=${partition}, storing ${offsetToStore} (current offset=${currentOffset})")
             storage.writeOffset(partition, offsetToStore)
@@ -140,7 +141,7 @@ private[iothubreact] class CheckpointService(partition: Int)
   def updateOffsetAction(offset: String) = {
 
     if (!schedulerStarted) {
-      val time = Configuration.checkpointFrequency
+      val time = cfg.checkpointFrequency
       schedulerStarted = true
       context.system.scheduler.schedule(time, time, self, StoreOffset)
       log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
@@ -167,7 +168,7 @@ private[iothubreact] class CheckpointService(partition: Int)
 
   // TODO: Support plugins
   def getCheckpointBackend: CheckpointBackend = {
-    val conf = Configuration.checkpointBackendType
+    val conf = cfg.checkpointBackendType
     conf.toUpperCase match {
       case "AZUREBLOB" ⇒ new AzureBlob
       case "CASSANDRA" ⇒ new CassandraTable

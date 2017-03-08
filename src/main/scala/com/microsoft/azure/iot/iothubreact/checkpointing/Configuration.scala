@@ -13,14 +13,14 @@ import scala.language.postfixOps
 
 /** Hold IoT Hub stream checkpointing configuration settings
   */
-private[iothubreact] object Configuration {
+final class Configuration(loader: Config = ConfigFactory.load) {
 
   // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
   //       a client will need a dedicated checkpoint container for each stream
 
   private[this] val confPath = "iothub-react.checkpointing."
 
-  private[this] val conf: Config = ConfigFactory.load()
+  private[this] val conf: Config = loader
 
   // Default time between checkpoint writes to the storage
   private[this] val DefaultFrequency = 1 second
