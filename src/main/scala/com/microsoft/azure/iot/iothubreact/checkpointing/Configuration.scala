@@ -59,10 +59,9 @@ private[iothubreact] object Configuration {
   private[this] val MaxTimeThreshold = 1 hour
 
   // Default name of the container used to store checkpoint data
-  private[this] val DefaultContainer = Configuration.checkpointBackendType.toUpperCase match {
-    case "AZUREBLOB" ⇒ "iothub-react-checkpoints"
+  private[this] lazy val DefaultContainer = checkpointBackendType.toUpperCase match {
     case "CASSANDRA" ⇒ "iothub_react_checkpoints"
-    case _           ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${conf}")
+    case _           ⇒ "iothub-react-checkpoints"
   }
 
   // Whether checkpointing is enabled or not
