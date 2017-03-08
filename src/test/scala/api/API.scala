@@ -3,6 +3,8 @@
 // Namespace chosen to avoid access to internal classes
 package api
 
+import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
+
 // No global imports to make easier detecting breaking changes
 
 class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
@@ -148,6 +150,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
       import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 
       class CustomBackend extends CheckpointBackend {
+        val cfg = new Configuration()
         override def readOffset(partition: Int): String = {
           return ""
         }
