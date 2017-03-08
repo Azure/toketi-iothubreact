@@ -21,7 +21,7 @@ private[iothubreact] object CheckpointActorSystem {
     *
     * @return Actor reference
     */
-  def getCheckpointService(partition: Int): ActorRef = {
+  def getCheckpointService(partition: Int)(implicit cfg: Configuration): ActorRef = {
     val actorPath = "CheckpointService" + partition
 
     localRegistry get actorPath match {
