@@ -2,7 +2,12 @@
 
 package com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.lib
 
+import java.security.AuthProvider
+import javax.security.auth.Subject
+import javax.security.auth.callback.CallbackHandler
+
 import com.datastax.driver.core.Cluster
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.lib.Auth
 
 /** Cassandra connection
   *
@@ -13,10 +18,15 @@ import com.datastax.driver.core.Cluster
 private[iothubreact] case class Connection(
     contactPoint: String,
     replicationFactor: Int,
+    auth: Option[Auth],
     table: TableSchema) {
 
   private lazy  val hostPort = extractHostPort()
-  private lazy  val cluster  = Cluster.builder().addContactPoint(hostPort._1).withPort(hostPort._2).build()
+  private lazy  val cluster  = {
+    val b = Cluster.builder().addContactPoint(hostPort._1).withPort(hostPort._2)
+    auth map { a => b.withCredentials(a.username, a.password) } getOrElse(b) build
+  }
+
   implicit lazy val session  = cluster.connect()
 
   /** Create the key space if not present
