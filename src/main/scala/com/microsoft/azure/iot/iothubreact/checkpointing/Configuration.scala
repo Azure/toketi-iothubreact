@@ -10,6 +10,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.Try
 
 /** Hold IoT Hub stream checkpointing configuration settings
   */
@@ -114,12 +115,12 @@ final class Configuration(loader: Config = ConfigFactory.load) {
   // Cassandra cluster address
   lazy val cassandraCluster          : String = conf.getString(confPath + "storage.cassandra.cluster")
   lazy val cassandraReplicationFactor: Int    = conf.getInt(confPath + "storage.cassandra.replicationFactor")
-  lazy val cassandraAuth: Option[Auth] = for {
-    u <- Option(conf.getString(confPath + "storage.cassandra.username"))
-    p <- Option(conf.getString(confPath + "storage.cassandra.password"))
+  lazy val cassandraAuth: Option[Auth] = (for {
+    u <- Try(conf.getString(confPath + "storage.cassandra.username"))
+    p <- Try(conf.getString(confPath + "storage.cassandra.password"))
   } yield {
     Auth(u, p)
-  }
+  }).toOption
 
   /** Load Azure blob connection string, taking care of the Azure storage emulator case
     *
