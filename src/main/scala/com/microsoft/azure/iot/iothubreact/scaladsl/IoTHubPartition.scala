@@ -11,7 +11,7 @@ import akka.util.Timeout
 import com.microsoft.azure.eventhubs.PartitionReceiver
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, ICPConfiguration, SavePositionOnPull}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CPConfiguration, CheckpointActorSystem, ICPConfiguration, SavePositionOnPull}
 import com.microsoft.azure.iot.iothubreact.filters.Ignore
 
 import scala.concurrent.Await
@@ -33,7 +33,7 @@ object IoTHubPartition extends Logger {
   * @param partition IoT hub partition number (0-based). The number of
   *                  partitions is set during the deployment.
   */
-private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cfg: ICPConfiguration) extends Logger {
+private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit config: ICPConfiguration = CPConfiguration) extends Logger {
 
   /** Stream returning all the messages from the given offset
     *
@@ -46,7 +46,7 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cfg
     getSource(
       withTimeOffset = true,
       startTime = startTime,
-      withCheckpoints = withCheckpoints && cfg.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Stream returning all the messages from the given offset
@@ -60,7 +60,7 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cfg
     getSource(
       withTimeOffset = false,
       offset = offset,
-      withCheckpoints = withCheckpoints && cfg.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Create a stream returning all the messages for the defined partition, from the given start
