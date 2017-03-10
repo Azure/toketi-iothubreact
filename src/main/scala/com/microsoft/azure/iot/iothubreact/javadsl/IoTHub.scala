@@ -18,7 +18,7 @@ class IoTHub() {
 
   // TODO: Provide ClearCheckpoints() method to clear the state
 
-  private implicit lazy val cpconfig = CPConfiguration
+  private implicit lazy val cpconfig = new CPConfiguration
   private lazy          val iotHub   = new IoTHubScalaDSL()
 
   /** Stop the stream

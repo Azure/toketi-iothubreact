@@ -33,7 +33,7 @@ object IoTHubPartition extends Logger {
   * @param partition IoT hub partition number (0-based). The number of
   *                  partitions is set during the deployment.
   */
-private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit config: ICPConfiguration = CPConfiguration) extends Logger {
+private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit config: ICPConfiguration = new CPConfiguration) extends Logger {
 
   /** Stream returning all the messages from the given offset
     *
@@ -63,6 +63,33 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit con
       withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
+  /** Stream returning all the messages from the given offset. Checkpoints are NOT saved but ARE loaded at startup.
+    *
+    * @param startTime       Starting position expressed in time
+    * @return A source of IoT messages
+    */
+  def sourceWithSavedCheckpoint(startTime: Instant): Source[MessageFromDevice, NotUsed] = {
+    getSource(
+      withTimeOffset = true,
+      startTime = startTime,
+      withCheckpoints = false,
+      startFromSavedCheckpoint = true)
+  }
+
+  /** Stream returning all the messages from the given offset. Checkpoints are NOT saved but ARE loaded at startup.
+    *
+    * @param offset       Starting position, offset of the first message
+    * @return A source of IoT messages
+    */
+  def sourceWithSavedCheckpoint(offset: String): Source[MessageFromDevice, NotUsed] = {
+    getSource(
+      withTimeOffset = true,
+      offset = offset,
+      withCheckpoints = false,
+      startFromSavedCheckpoint = true)
+  }
+
+
   /** Create a stream returning all the messages for the defined partition, from the given start
     * point, optionally with checkpointing
     *
@@ -77,12 +104,13 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit con
       withTimeOffset: Boolean,
       offset: String = "",
       startTime: Instant = Instant.MIN,
-      withCheckpoints: Boolean = true): Source[MessageFromDevice, NotUsed] = {
+      withCheckpoints: Boolean = true,
+      startFromSavedCheckpoint: Boolean = false): Source[MessageFromDevice, NotUsed] = {
 
     // Load the offset from the storage (if needed)
     var _offset = offset
     var _withTimeOffset = withTimeOffset
-    if (withCheckpoints) {
+    if (withCheckpoints || startFromSavedCheckpoint) {
       val savedOffset = GetSavedOffset
       if (savedOffset != IoTHubPartition.OffsetCheckpointNotFound) {
         _offset = savedOffset

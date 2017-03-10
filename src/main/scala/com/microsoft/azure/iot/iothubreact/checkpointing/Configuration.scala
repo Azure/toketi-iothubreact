@@ -29,14 +29,12 @@ trait ICPConfiguration {
 
 /** Hold IoT Hub stream checkpointing configuration settings
   */
-private[iothubreact] object CPConfiguration extends ICPConfiguration {
+private[iothubreact] final class CPConfiguration(implicit val conf: Config = ConfigFactory.load) extends ICPConfiguration {
 
   // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
   //       a client will need a dedicated checkpoint container for each stream
 
   private[this] val confPath = "iothub-react.checkpointing."
-
-  private[this] val conf: Config = ConfigFactory.load
 
   // Default time between checkpoint writes to the storage
   private[this] val DefaultFrequency = 1 second
