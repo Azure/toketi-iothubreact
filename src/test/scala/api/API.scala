@@ -3,11 +3,11 @@
 // Namespace chosen to avoid access to internal classes
 package api
 
-import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
+import org.scalatest.mockito.MockitoSugar
 
 // No global imports to make easier detecting breaking changes
 
-class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
+class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSugar {
 
   info("As a developer using Azure IoT hub React")
   info("I want to be able to upgrade to new minor versions without changing my code")
@@ -150,7 +150,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
       import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 
       class CustomBackend extends CheckpointBackend {
-        val cfg = new Configuration()
+
         override def readOffset(partition: Int): String = {
           return ""
         }
