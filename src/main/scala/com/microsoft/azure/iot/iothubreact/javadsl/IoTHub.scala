@@ -8,6 +8,7 @@ import java.util.concurrent.CompletionStage
 import akka.stream.javadsl.{Sink, Source ⇒ JavaSource}
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
+import com.microsoft.azure.iot.iothubreact.checkpointing.CPConfiguration
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL, OffsetList ⇒ OffsetListScalaDSL, PartitionList ⇒ PartitionListScalaDSL}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
@@ -17,7 +18,8 @@ class IoTHub() {
 
   // TODO: Provide ClearCheckpoints() method to clear the state
 
-  private lazy val iotHub = new IoTHubScalaDSL()
+  private implicit lazy val cpconfig = CPConfiguration
+  private lazy          val iotHub   = new IoTHubScalaDSL()
 
   /** Stop the stream
     */
