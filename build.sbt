@@ -36,7 +36,9 @@ libraryDependencies <++= (scalaVersion) {
     )
 }
 
-lazy val root = project.in(file(".")).configs(IntegrationTest)
+lazy val iotHubReact = project.in(file(".")).configs(IntegrationTest)
+lazy val samplesScala = project.in(file("samples-scala")).dependsOn(iotHubReact)
+lazy val samplesJava = project.in(file("samples-java")).dependsOn(iotHubReact)
 
 /* Publishing options
  * see http://www.scala-sbt.org/0.13/docs/Artifacts.html
@@ -70,7 +72,7 @@ pomExtra :=
 
 /** Miscs
   */
-logLevel := Level.Debug // Debug|Info|Warn|Error
+logLevel := Level.Info // Debug|Info|Warn|Error
 scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 showTiming := true
 fork := true
