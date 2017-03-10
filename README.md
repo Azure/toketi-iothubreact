@@ -293,8 +293,8 @@ The complete configuration reference (and default value) is available in
 
 ## Samples
 
-The project includes multiple demos, showing some of the use cases and how IoThub React API works. 
-All the demos require an instance of Azure IoT hub, with some devices and messages.
+The project includes multiple demos in Java and Scala, showing some of the use cases and how IoThub 
+React API works. All the demos require an instance of Azure IoT hub, with some devices and messages.
 
 1. **DisplayMessages** [Java]: how to stream Azure IoT hub withing a Java application, filtering 
    temperature values greater than 60C
@@ -320,22 +320,22 @@ All the demos require an instance of Azure IoT hub, with some devices and messag
     connected devices.
 
 We provide a [device simulator](tools/devices-simulator/README.md) in the tools section, 
-which will help simulating some devices sending sample telemetry.
+which will help simulating some devices sending sample telemetry events.
 
 When ready, you should either edit the `application.conf` configuration files 
 ([scala](samples-scala/src/main/resources/application.conf) and
 [java](samples-java/src/main/resources/application.conf)) 
 with your credentials, or set the corresponding environment variables.
-Follow the instructions in the previous section on how to set the correct values.
+Follow the instructions described in the previous section on how to set the correct values.
 
-The sample folders include also some scripts showing how to setup the environment variables in 
-[Linux/MacOS](samples-scala/setup-env-vars.sh) and [Windows](samples-scala/setup-env-vars.bat).
+The root folder includes also a script showing how to set the environment variables in 
+[Linux/MacOS](setup-env-vars.sh) and [Windows](setup-env-vars.bat).
 
-* [`samples-scala`](samples-scala/src/main/scala):
-  You can use `sbt run` to run the demos (or the `run_samples.*` scripts)
-* [`samples-java`](samples-java/src/main/java): 
-  You can use `mvn clean compile exec:java -Dexec.mainClass="DisplayMessages.Demo"` to run the 
-  demo app (or the `run_samples.*` scripts)
+The demos can be executed using the scripts included in the root folder (`run_<language>_samples.sh` 
+and `run_<language>_samples.cmd`):
+
+* [`run_scala_samples.sh`](run_scala_samples.sh): execute Scala demos
+* [`run_java_samples.sh`](run_java_samples.sh): execute Java demos
 
 ## Future work
 
