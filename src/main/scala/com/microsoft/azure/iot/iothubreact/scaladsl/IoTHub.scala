@@ -8,7 +8,7 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CPConfiguration, ICPConfiguration}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
 import scala.concurrent.Future
@@ -16,7 +16,7 @@ import scala.language.postfixOps
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
-case class IoTHub(implicit val config: ICPConfiguration) extends Logger {
+case class IoTHub(implicit val config: ICPConfiguration = CPConfiguration) extends Logger {
 
   // TODO: Provide ClearCheckpoints() method to clear the state
 
