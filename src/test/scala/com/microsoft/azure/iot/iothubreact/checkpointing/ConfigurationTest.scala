@@ -2,9 +2,9 @@ package com.microsoft.azure.iot.iothubreact.checkpointing
 
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.lib.Auth
 import com.typesafe.config.{Config, ConfigException}
-import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
-import org.scalatest.{FeatureSpec, FunSuite, GivenWhenThen}
+import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{FeatureSpec, GivenWhenThen}
 
 class ConfigurationTest extends FeatureSpec with GivenWhenThen with MockitoSugar {
 
@@ -30,9 +30,8 @@ class ConfigurationTest extends FeatureSpec with GivenWhenThen with MockitoSugar
       var cfg = mock[Config]
       when(cfg.getString(confPath + "storage.cassandra.username")).thenReturn("username")
       when(cfg.getString(confPath + "storage.cassandra.password")).thenReturn("password")
-      assert(new Configuration(cfg).cassandraAuth == Some(Auth("username","password")))
+      assert(new Configuration(cfg).cassandraAuth == Some(Auth("username", "password")))
     }
-
   }
 
   feature("Storage namespace") {
@@ -49,9 +48,6 @@ class ConfigurationTest extends FeatureSpec with GivenWhenThen with MockitoSugar
 
       when(cfg.getString(confPath + "storage.backendType")).thenReturn("CASSANDRA")
       assert(new Configuration(cfg).storageNamespace == "iothub_react_checkpoints")
-
     }
-
   }
-
 }
