@@ -6,6 +6,7 @@ import java.time.Instant
 import java.util
 
 import com.microsoft.azure.eventhubs.EventData
+import com.microsoft.azure.iot.iothubreact.helpers.ISO8601DateTime
 import com.microsoft.azure.servicebus.amqp.AmqpConstants
 
 import scala.collection.JavaConverters._
@@ -34,18 +35,20 @@ private object MessageFromDevice {
 class MessageFromDevice(data: Option[EventData], val partition: Option[Int]) {
 
   // TODO: test properties over all protocols
-  // TODO: use system property for Content Type and Message Type once available in Azure SDK
+  // TODO: use new system properties when available in Azure IoT SDK (MessageSchema, CreationTimeUtc, ContentType)
 
-  // NOTE: this should become a system property in future versions of Azure SDKs
-  // contentTypeProperty = AmqpConstants.AMQP_PROPERTY_CONTENT_TYPE
-  private[iothubreact] val contentTypeProperty = "$$contentType"
-
-  // NOTE: this should become a system property in future versions of Azure SDKs
-  private[iothubreact] val messageTypeProperty = "$$messageType"
+  private[iothubreact] val deviceIdProperty = "iothub-connection-device-id"
 
   private[iothubreact] val messageIdProperty = AmqpConstants.AMQP_PROPERTY_MESSAGE_ID
 
-  private[iothubreact] val deviceIdProperty = "iothub-connection-device-id"
+  // TODO: use system property (AmqpConstants.AMQP_PROPERTY_CONTENT_TYPE ?)
+  private[iothubreact] val contentTypeProperty = "$$contentType"
+
+  // TODO: use system property
+  private[iothubreact] val messageSchemaProperty = "$$MessageSchema"
+
+  // TODO: use system property
+  private[iothubreact] val creationTimeUtcProperty = "$$CreationTimeUtc"
 
   // Internal properties set by IoT stoage
   private[this] lazy val systemProps = data.get.getSystemProperties()
@@ -57,14 +60,19 @@ class MessageFromDevice(data: Option[EventData], val partition: Option[Int]) {
   val isKeepAlive: Boolean = (partition == None)
 
   // Message type, the class to use to map the payload
-  lazy val messageType: String = properties.getOrDefault(messageTypeProperty, "")
+  lazy val messageSchema: String = properties.getOrDefault(messageSchemaProperty, "")
 
   // Content type, e.g. JSON/Protobuf/Bond etc.
   // contentType = data.get.getSystemProperties.get(contentTypeProperty)
-  lazy val contentType = properties.getOrDefault(contentTypeProperty, "")
+  lazy val contentType: String = properties.getOrDefault(contentTypeProperty, "")
 
   // Time when the message was received by IoT hub service. *NOT* the device time.
-  lazy val created: Instant = systemProps.getEnqueuedTime
+  lazy val received: Instant = systemProps.getEnqueuedTime
+
+  // When the message is created by the device, using the `device clock`, which *might* be out of sync
+  // TODO: Expose property when `CreationTimeUtc` is available through the SDK
+  //lazy val created: Instant = systemProps...
+  lazy val created: Instant = ISO8601DateTime(properties.getOrDefault(creationTimeUtcProperty, "0001-01-01")).instant
 
   // IoT message offset, useful to store the current position in the stream
   lazy val offset: String = systemProps.getOffset

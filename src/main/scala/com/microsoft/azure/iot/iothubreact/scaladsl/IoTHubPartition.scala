@@ -93,9 +93,9 @@ private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logg
 
     // Build the source starting by time or by offset
     val source: Source[MessageFromDevice, NotUsed] = if (_withTimeOffset)
-      MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
-    else
-      MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
+                                                       MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
+                                                     else
+                                                       MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
 
     // Inject a flow to store the stream position after each pull
     if (withCheckpoints) {
@@ -120,15 +120,13 @@ private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logg
         Await.result(future, rwTimeout.duration)
       }
     } catch {
-      case e: java.util.concurrent.TimeoutException => {
+      case e: java.util.concurrent.TimeoutException ⇒
         log.error(e, "Timeout while retrieving the offset from the storage")
         throw e
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
   }
 }

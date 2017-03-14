@@ -17,10 +17,10 @@ private[iothubreact] object ColumnType extends Enumeration {
     * @return Type as string
     */
   def toString(columnType: ColumnType): String = columnType match {
-    case ColumnType.String    => "text"
-    case ColumnType.Timestamp => "timestamp"
-    case ColumnType.Double    => "double"
-    case ColumnType.Int       => "int"
+    case ColumnType.String    ⇒ "text"
+    case ColumnType.Timestamp ⇒ "timestamp"
+    case ColumnType.Double    ⇒ "double"
+    case ColumnType.Int       ⇒ "int"
 
     case _ ⇒ throw new RuntimeException(s"Missing mapping for Cassandra type ${columnType}")
   }
@@ -32,10 +32,10 @@ private[iothubreact] object ColumnType extends Enumeration {
     * @return Column type
     */
   def fromName(typeAsString: String): ColumnType = typeAsString match {
-    case "text"      => ColumnType.String
-    case "timestamp" => ColumnType.Timestamp
-    case "double"    => ColumnType.Double
-    case "int"       => ColumnType.Int
+    case "text"      ⇒ ColumnType.String
+    case "timestamp" ⇒ ColumnType.Timestamp
+    case "double"    ⇒ ColumnType.Double
+    case "int"       ⇒ ColumnType.Int
 
     case _ ⇒ throw new IllegalArgumentException(s"Unknown Cassandra column type '${typeAsString}'")
   }

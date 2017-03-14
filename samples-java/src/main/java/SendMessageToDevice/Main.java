@@ -9,7 +9,7 @@ import akka.stream.javadsl.Source;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice;
 import com.microsoft.azure.iot.iothubreact.MessageToDevice;
-import com.microsoft.azure.iot.iothubreact.filters.MessageType;
+import com.microsoft.azure.iot.iothubreact.filters.MessageSchema;
 import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub;
 
 import java.time.Instant;
@@ -38,7 +38,7 @@ public class Main extends ReactiveStreamingApp
                 .addProperty("speed", "high")
                 .addProperty("duration", "60");
 
-        MessageType msgTypeFilter = new MessageType("temperature");
+        MessageSchema msgTypeFilter = new MessageSchema("temperature");
 
         messages
                 .filter(m -> msgTypeFilter.filter(m))

@@ -24,7 +24,7 @@ object AllMessagesFromBeginning extends App {
   val messages = IoTHub().source()
 
   val console = Sink.foreach[MessageFromDevice] {
-    m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
   }
 
   messages
@@ -43,7 +43,7 @@ object OnlyRecentMessages extends App {
   val messages = IoTHub().source(java.time.Instant.now())
 
   val console = Sink.foreach[MessageFromDevice] {
-    m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
   }
 
   messages
@@ -65,7 +65,7 @@ object OnlyTwoPartitions extends App {
   val messages = IoTHub().source(PartitionList(Seq(Partition1, Partition2)))
 
   val console = Sink.foreach[MessageFromDevice] {
-    m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
   }
 
   messages
@@ -84,11 +84,11 @@ object MultipleDestinations extends App {
   val messages = IoTHub().source(java.time.Instant.now())
 
   val console1 = Sink.foreach[MessageFromDevice] {
-    m ⇒ if (m.messageType == "temperature") println(s"Temperature console: ${m.created} - ${m.deviceId} - ${m.contentAsString}")
+    m ⇒ if (m.messageSchema == "temperature") println(s"Temperature console: ${m.received} - ${m.deviceId} - ${m.contentAsString}")
   }
 
   val console2 = Sink.foreach[MessageFromDevice] {
-    m ⇒ if (m.messageType == "humidity") println(s"Humidity console: ${m.created} - ${m.deviceId} - ${m.contentAsString}")
+    m ⇒ if (m.messageSchema == "humidity") println(s"Humidity console: ${m.received} - ${m.deviceId} - ${m.contentAsString}")
   }
 
   messages
@@ -102,19 +102,19 @@ object MultipleDestinations extends App {
 
 /** Stream only temperature messages
   */
-object FilterByMessageType extends App {
+object FilterByMessageSchema extends App {
 
   println("Streaming only temperature messages")
 
   val messages = IoTHub().source()
 
   val console = Sink.foreach[MessageFromDevice] {
-    m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
   }
 
   messages
 
-    .filter(MessageType("temperature")) // Equivalent to: m ⇒ m.messageType == "temperature"
+    .filter(MessageSchema("temperature")) // Equivalent to: m ⇒ m.messageSchema == "temperature"
 
     .to(console)
 
@@ -132,7 +132,7 @@ object FilterByDeviceID extends App {
   val messages = IoTHub().source()
 
   val console = Sink.foreach[MessageFromDevice] {
-    m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
   }
 
   messages
@@ -159,7 +159,7 @@ object CloseStream extends App {
   val messages = hub.source()
 
   var console = Sink.foreach[MessageFromDevice] {
-    m ⇒ println(s"${m.created} - ${m.deviceId} - ${m.messageType} - ${m.contentAsString}")
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
   }
 
   messages.to(console).run()
@@ -179,7 +179,7 @@ object SendMessageToDevice extends App with Deserialize {
 
   hub
     .source(java.time.Instant.now())
-    .filter(MessageType("temperature"))
+    .filter(MessageSchema("temperature"))
     .map(deserialize)
     .filter(_.value > 15)
     .map(t ⇒ message.to(t.deviceId))

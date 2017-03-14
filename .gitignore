@@ -3,6 +3,7 @@
 tools/devices-simulator/credentials.js
 *.crt
 .ensime
+_dev
 
 ### MacOS ###
 .DS_Store

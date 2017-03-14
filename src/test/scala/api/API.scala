@@ -23,9 +23,9 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
       val message1 = new MessageFromDevice(data, partition)
       lazy val properties: java.util.Map[String, String] = message1.properties
       lazy val isKeepAlive: Boolean = message1.isKeepAlive
-      lazy val messageType: String = message1.messageType
+      lazy val messageSchema: String = message1.messageSchema
       lazy val contentType: String = message1.contentType
-      lazy val created: java.time.Instant = message1.created
+      lazy val created: java.time.Instant = message1.received
       lazy val offset: String = message1.offset
       lazy val sequenceNumber: Long = message1.sequenceNumber
       lazy val deviceId: String = message1.deviceId
@@ -161,10 +161,10 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
 
     scenario("Using Message Type") {
       import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-      import com.microsoft.azure.iot.iothubreact.filters.MessageType
+      import com.microsoft.azure.iot.iothubreact.filters.MessageSchema
 
-      val filter1: (MessageFromDevice) ⇒ Boolean = MessageType("some")
-      val filter2: MessageType = new MessageType("some")
+      val filter1: (MessageFromDevice) ⇒ Boolean = MessageSchema("some")
+      val filter2: MessageSchema = new MessageSchema("some")
     }
 
     scenario("Using Scala DSL IoTHub") {

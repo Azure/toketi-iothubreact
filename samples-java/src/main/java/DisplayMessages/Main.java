@@ -35,7 +35,7 @@ public class Main extends ReactiveStreamingApp
         Source<MessageFromDevice, NotUsed> messages = new IoTHub().source(Instant.now().minus(1, ChronoUnit.DAYS));
 
         messages
-                .filter(m -> m.messageType().equals("temperature"))
+                .filter(m -> m.messageSchema().equals("temperature"))
                 .map(m -> parseTemperature(m))
                 .filter(x -> x != null && (x.value < 18 || x.value > 22))
                 .to(console())

@@ -1,17 +1,19 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package B_PrintTemperature
+package com.microsoft.azure.iot.iothubreact.helpers
 
 import java.time.format.DateTimeFormatter
-import java.time.{ZoneId, ZonedDateTime}
+import java.time.{Instant, ZoneId, ZonedDateTime}
 
 import scala.util.matching.Regex
 
-/** ISO8601 with and without milliseconds decimals
+/** ISO8601 with and without milliseconds decimals.
+  * The format is more flexible than DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSz")
+  * behavior, e.g. the number of decimals can vary.
   *
   * @param text String date
   */
-case class ISO8601DateTime(text: String) {
+private[iothubreact] case class ISO8601DateTime(text: String) {
 
   private lazy val pattern1: Regex             = """(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2}):(\d{1,2}).(\d{1,3})Z""".r
   private lazy val pattern2: Regex             = """(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2}):(\d{1,2})Z""".r
@@ -19,7 +21,7 @@ case class ISO8601DateTime(text: String) {
   private lazy val format  : DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private lazy val zone    : ZoneId            = ZoneId.of("UTC")
 
-  private lazy val zonedDateTime: ZonedDateTime = {
+  lazy val zonedDateTime: ZonedDateTime = {
     text match {
       case pattern1(y, m, d, h, i, s, n) ⇒
         val ni = n.toInt
@@ -36,6 +38,8 @@ case class ISO8601DateTime(text: String) {
       case _    ⇒ throw new Exception(s"wrong date time format: $text")
     }
   }
+
+  lazy val instant: Instant = Instant.from(zonedDateTime)
 
   override def toString: String = if (zonedDateTime == null) "" else zonedDateTime.format(format)
 }

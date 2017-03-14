@@ -5,7 +5,6 @@ package com.microsoft.azure.iot.iothubreact
 import java.time.Instant
 
 import akka.NotUsed
-import akka.stream.impl.fusing.GraphInterpreter
 import akka.stream.scaladsl.Source
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import akka.stream.{Attributes, Outlet, SourceShape}
@@ -105,7 +104,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
   // Define the (sole) output port of this stage
   private[this] val out: Outlet[MessageFromDevice] = Outlet("MessageFromDeviceSource")
 
-  // Define the shape of this stage => SourceShape with the port defined above
+  // Define the shape of this stage ⇒ SourceShape with the port defined above
   override val shape: SourceShape[MessageFromDevice] = SourceShape(out)
 
   // All state MUST be inside the GraphStageLogic, never inside the enclosing
@@ -119,6 +118,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
       val emptyResult     = List[MessageFromDevice](keepAliveSignal)
 
       lazy val receiver = getIoTHubReceiver()
+
 
       setHandler(
         out, new OutHandler {
@@ -139,9 +139,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
                 emitMultiple(out, iterator)
               }
             } catch {
-              case e: Exception ⇒ {
-                log.error(e, "Fatal error: " + e.getMessage)
-              }
+              case e: Exception ⇒ log.error(e, "Fatal error: " + e.getMessage)
             }
           }
 
@@ -159,7 +157,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
       def getIoTHubReceiver(): PartitionReceiver = Retry(3, 2 seconds) {
         offsetType match {
 
-          case SequenceOffset ⇒ {
+          case SequenceOffset ⇒
             log.info(s"Connecting to partition ${partition.toString} starting from offset '${offset}'")
             IoTHubStorage
               .createClient()
@@ -168,9 +166,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
                 partition.toString,
                 offset,
                 OffsetInclusive)
-          }
 
-          case TimeOffset ⇒ {
+          case TimeOffset ⇒
             log.info(s"Connecting to partition ${partition.toString} starting from time '${startTime}'")
             IoTHubStorage
               .createClient()
@@ -178,7 +175,6 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
                 Configuration.receiverConsumerGroup,
                 partition.toString,
                 startTime)
-          }
         }
       }
     }

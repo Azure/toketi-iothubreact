@@ -49,7 +49,7 @@ val start = java.time.Instant.now()
 val withCheckpoints = false
 
 IoTHub().source(start, withCheckpoints)
-    .map(m => jsonParser.readValue(m.contentAsString, classOf[Temperature]))
+    .map(m ⇒ jsonParser.readValue(m.contentAsString, classOf[Temperature]))
     .filter(_.value > 100)
     .to(console)
     .run()

@@ -18,7 +18,7 @@ import com.microsoft.azure.iot.iothubreact.scaladsl._
 object Demo extends App {
 
   val console = Sink.foreach[MessageFromDevice] {
-    t ⇒ println(s"Message from ${t.deviceId} - Time: ${t.created}")
+    t ⇒ println(s"Message from ${t.deviceId} - Time: ${t.received}")
   }
 
   // Stream using checkpointing

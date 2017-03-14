@@ -51,9 +51,9 @@ private[iothubreact] case class Connection(
     val tokens = contactPoint.split(":")
     val addr = tokens(0)
     val port = if (tokens.size == 2)
-      tokens(1).toInt
-    else
-      9042
+                 tokens(1).toInt
+               else
+                 9042
 
     (addr, port)
   }
@@ -64,7 +64,7 @@ private[iothubreact] case class Connection(
     * @param columns   Columns
     */
   private[this] def createT(tableName: String, columns: Seq[Column]): Unit = {
-    val columnsSql = columns.foldLeft("")((b, a) => s"$b\n${a.name} ${ColumnType.toString(a.`type`)},")
+    val columnsSql = columns.foldLeft("")((b, a) ⇒ s"$b\n${a.name} ${ColumnType.toString(a.`type`)},")
     val indexesSql = columns.filter(_.index).map(_.name).mkString("PRIMARY KEY(", ", ", ")")
     val createTable = s"CREATE TABLE IF NOT EXISTS ${table.keyspaceCQL}.$tableName($columnsSql $indexesSql)"
     session.execute(createTable)

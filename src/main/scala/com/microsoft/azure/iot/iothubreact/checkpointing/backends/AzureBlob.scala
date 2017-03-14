@@ -21,9 +21,9 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
 
   // Set the account to point either to Azure or the emulator
   val account: CloudStorageAccount = if (Configuration.azureBlobEmulator)
-    CloudStorageAccount.getDevelopmentStorageAccount()
-  else
-    CloudStorageAccount.parse(Configuration.azureBlobConnectionString)
+                                       CloudStorageAccount.getDevelopmentStorageAccount()
+                                     else
+                                       CloudStorageAccount.parse(Configuration.azureBlobConnectionString)
 
   val client = account.createCloudBlobClient()
 
@@ -34,20 +34,17 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
       container.createIfNotExists()
     }
   } catch {
-    case e: StorageException ⇒ {
+    case e: StorageException ⇒
       log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
       throw e
-    }
 
-    case e: IOException ⇒ {
+    case e: IOException ⇒
       log.error(e, e.getMessage)
       throw e
-    }
 
-    case e: Exception ⇒ {
+    case e: Exception ⇒
       log.error(e, e.getMessage)
       throw e
-    }
   }
 
   /** Read the offset of the last record processed for the given partition
@@ -61,24 +58,21 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
     try {
       file.downloadText()
     } catch {
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         if (e.getErrorCode == "BlobNotFound") {
           IoTHubPartition.OffsetCheckpointNotFound
         } else {
           log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
           throw e
         }
-      }
 
-      case e: IOException ⇒ {
+      case e: IOException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
   }
 
@@ -100,20 +94,17 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
       }
     } catch {
 
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: URISyntaxException ⇒ {
+      case e: URISyntaxException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
   }
 
@@ -124,19 +115,17 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
       file.acquireLease(Configuration.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
     } catch {
 
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         if (e.getErrorCode == "BlobNotFound") {
           leaseId = ""
         } else {
           log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
           throw e
         }
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
 
     leaseId
@@ -146,9 +135,9 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
 
     // The access condition depends on the file existing
     val accessCondition = if (leaseId == "")
-      AccessCondition.generateEmptyCondition()
-    else
-      AccessCondition.generateLeaseCondition(leaseId)
+                            AccessCondition.generateEmptyCondition()
+                          else
+                            AccessCondition.generateLeaseCondition(leaseId)
 
     try {
       file.uploadText(content, "UTF-8", accessCondition, null, new OperationContext)
@@ -157,20 +146,17 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
       if (leaseId != "") file.releaseLease(accessCondition)
     } catch {
 
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: IOException ⇒ {
+      case e: IOException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
   }
 

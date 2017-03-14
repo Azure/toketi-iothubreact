@@ -67,10 +67,9 @@ private[iothubreact] class CheckpointService(partition: Int)
         queuedOffsets = 0
       }
       catch {
-        case e: Exception => {
+        case e: Exception ⇒
           log.error(e, e.getMessage)
           context.become(notReady)
-        }
       }
       finally {
         unstashAll()
@@ -120,7 +119,7 @@ private[iothubreact] class CheckpointService(partition: Int)
           log.debug(s"Partition=${partition}, checkpoint queue is empty [count ${queuedOffsets}, current offset=${currentOffset}]")
         }
       } catch {
-        case e: Exception => log.error(e, e.getMessage)
+        case e: Exception ⇒ log.error(e, e.getMessage)
       } finally {
         context.become(ready)
       }

@@ -7,7 +7,7 @@ var AbstractSimulator = require("./abstract_simulator.js");
 // Inheritance
 var HumiditySimulator = function () {
     AbstractSimulator.apply(this, arguments);
-    this.messageType = "humidity";
+    this.messageSchema = "humidity";
 
     // (70-30) .. (70+30) => 40 .. 100
     this.mid = 70;

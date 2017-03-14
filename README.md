@@ -20,7 +20,7 @@ the temperature value:
 
 ```scala
 IoTHub().source()
-    .map(m => parse(m.contentAsString).extract[Temperature])
+    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -68,7 +68,7 @@ case class KafkaProducer(bootstrapServer: String)(implicit val system: ActorSyst
 val kafkaProducer = KafkaProducer(bootstrapServer)
  
 IoTHub().source()
-    .map(m => parse(m.contentAsString).extract[Temperature])
+    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .runWith(kafkaProducer.getSink())
 ```
@@ -88,7 +88,7 @@ val p1 = 0
 val p2 = 3
 
 IoTHub().source(PartitionList(Seq(p1, p2)))
-    .map(m => parse(m.contentAsString).extract[Temperature])
+    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -103,7 +103,7 @@ It's possible to start the stream from a given date and time too:
 val start = java.time.Instant.now()
 
 IoTHub().source(start)
-    .map(m => parse(m.contentAsString).extract[Temperature])
+    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -180,7 +180,7 @@ val start = java.time.Instant.now()
 val withCheckpoints = false
 
 IoTHub().source(start, withCheckpoints)
-    .map(m => parse(m.contentAsString).extract[Temperature])
+    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -304,8 +304,9 @@ React API works. All the demos require an instance of Azure IoT hub, with some d
 4. **OnlyRecentMessages** [Scala]: stream all the events, starting from the current time.
 5. **OnlyTwoPartitions** [Scala]: shows how to stream events from a subset of partitions.
 6. **MultipleDestinations** [Scala]: shows how to read once and deliver events to multiple destinations.
-7. **FilterByMessageType** [Scala]: how to filter events by message type. The type must be set by 
-   the device.
+7. **FilterByMessageSchema** [Scala]: how to filter events by message schema. Note: the name of the
+   schema must be set by the device using the `$$MessageSchema` message property. In future this 
+   will be a system property, explicitly supported by Azure IoT SDK.
 8. **FilterByDeviceID** [Scala]: how to filter events by device ID. The device ID is automatically
    set by Azure IoT SDK.
 9. **CloseStream** [Scala]: show how to close the stream 
