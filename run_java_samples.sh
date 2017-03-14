@@ -1,5 +1,3 @@
-#sbt samplesJava/run
-
 echo "Select demo to run:"
 echo
 echo " [1] DisplayMessages.Main"
@@ -16,5 +14,3 @@ fi
 if [ "$opt" = "2" ]; then
   mvn clean compile exec:java -Dexec.mainClass="SendMessageToDevice.Main"
 fi
-
-

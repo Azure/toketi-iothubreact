@@ -320,13 +320,13 @@ React API works. All the demos require an instance of Azure IoT hub, with some d
     connected devices.
 
 We provide a [device simulator](tools/devices-simulator/README.md) in the tools section, 
-which will help simulating some devices sending sample telemetry messages.
+which will help simulating some devices sending sample telemetry events.
 
 When ready, you should either edit the `application.conf` configuration files 
 ([scala](samples-scala/src/main/resources/application.conf) and
 [java](samples-java/src/main/resources/application.conf)) 
 with your credentials, or set the corresponding environment variables.
-Follow the instructions in the previous section on how to set the correct values.
+Follow the instructions described in the previous section on how to set the correct values.
 
 The root folder includes also a script showing how to set the environment variables in 
 [Linux/MacOS](setup-env-vars.sh) and [Windows](setup-env-vars.bat).
