@@ -16,7 +16,7 @@ libraryDependencies <++= (scalaVersion) {
 
     Seq(
       // https://github.com/Azure/azure-iot-sdk-java/releases
-      "com.microsoft.azure.sdk.iot" % "iot-service-client" % "1.0.14",
+      "com.microsoft.azure.sdk.iot" % "iot-service-client" % "1.1.15",
 
       // https://github.com/Azure/azure-event-hubs-java/releases
       "com.microsoft.azure" % "azure-eventhubs" % "0.11.0",
@@ -44,7 +44,7 @@ libraryDependencies <++= (scalaVersion) {
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
 
       // https://github.com/Azure/azure-iot-sdk-java/releases
-      "com.microsoft.azure.sdk.iot" % "iot-device-client" % "1.0.19" % "test"
+      "com.microsoft.azure.sdk.iot" % "iot-device-client" % "1.0.21" % "test"
     )
 }
 
@@ -84,7 +84,7 @@ pomExtra :=
 
 /** Miscs
   */
-logLevel := Level.Warn // Debug|Info|Warn|Error
+logLevel := Level.Info // Debug|Info|Warn|Error - `Info` provides a better output with `sbt test`.
 scalacOptions ++= Seq("-deprecation", "-explaintypes", "-unchecked", "-feature")
 showTiming := true
 fork := true

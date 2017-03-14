@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.Date
 
-import com.microsoft.azure.sdk.iot.service.sdk.{DeliveryAcknowledgement, Message}
+import com.microsoft.azure.sdk.iot.service.{DeliveryAcknowledgement, Message}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.Map

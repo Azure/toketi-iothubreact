@@ -9,7 +9,7 @@ import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
 import com.microsoft.azure.iot.iothubreact.{Configuration, Logger, MessageToDevice}
-import com.microsoft.azure.sdk.iot.service.sdk.{IotHubServiceClientProtocol, ServiceClient}
+import com.microsoft.azure.sdk.iot.service.{IotHubServiceClientProtocol, ServiceClient}
 
 /** Send messages from cloud to devices
   */
