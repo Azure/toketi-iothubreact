@@ -22,7 +22,6 @@ class IoTHubReactHasAnAwesomeAPI extends FeatureSpec with GivenWhenThen {
 
       Given("An IoT hub is configured")
       val hub = IoTHub()
-      val hubPartition = IoTHubPartition(1)
 
       When("A developer wants to fetch messages from Azure IoT hub")
       val messagesFromAllPartitions: Source[MessageFromDevice, NotUsed] = hub.source(false)

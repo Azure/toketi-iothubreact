@@ -17,9 +17,11 @@ private[iothubreact] case class Connection(
     table: TableSchema) {
 
   private lazy  val hostPort = extractHostPort()
-  private lazy  val cluster  = {
-    val b = Cluster.builder().addContactPoint(hostPort._1).withPort(hostPort._2)
-    auth map { a => b.withCredentials(a.username, a.password) } getOrElse(b) build()
+  private lazy val cluster  = {
+    val builder = Cluster.builder().addContactPoint(hostPort._1).withPort(hostPort._2)
+    auth map {
+        creds ⇒ builder.withCredentials(creds.username, creds.password)
+      } getOrElse (builder) build()
   }
 
   implicit lazy val session  = cluster.connect()
@@ -56,9 +58,9 @@ private[iothubreact] case class Connection(
     val tokens = contactPoint.split(":")
     val addr = tokens(0)
     val port = if (tokens.size == 2)
-      tokens(1).toInt
-    else
-      9042
+                 tokens(1).toInt
+               else
+                 9042
 
     (addr, port)
   }
