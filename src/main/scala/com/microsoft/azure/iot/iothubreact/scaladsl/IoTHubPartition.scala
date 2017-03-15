@@ -11,7 +11,7 @@ import akka.util.Timeout
 import com.microsoft.azure.eventhubs.PartitionReceiver
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, SavePositionOnPull, Configuration ⇒ CPConfiguration}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, ICPConfiguration, SavePositionOnPull}
 import com.microsoft.azure.iot.iothubreact.filters.Ignore
 
 import scala.concurrent.Await
@@ -33,7 +33,7 @@ object IoTHubPartition extends Logger {
   * @param partition IoT hub partition number (0-based). The number of
   *                  partitions is set during the deployment.
   */
-private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logger {
+private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cpconfig: ICPConfiguration) extends Logger {
 
   /** Stream returning all the messages from the given offset
     *
@@ -46,7 +46,7 @@ private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logg
     getSource(
       withTimeOffset = true,
       startTime = startTime,
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && cpconfig.isEnabled)
   }
 
   /** Stream returning all the messages from the given offset
@@ -60,8 +60,35 @@ private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logg
     getSource(
       withTimeOffset = false,
       offset = offset,
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && cpconfig.isEnabled)
   }
+
+  /** Stream returning all the messages from the given offset. Checkpoints are NOT saved but ARE loaded at startup.
+    *
+    * @param startTime       Starting position expressed in time
+    * @return A source of IoT messages
+    */
+  def sourceWithSavedCheckpoint(startTime: Instant): Source[MessageFromDevice, NotUsed] = {
+    getSource(
+      withTimeOffset = true,
+      startTime = startTime,
+      withCheckpoints = false,
+      startFromSavedCheckpoint = true)
+  }
+
+  /** Stream returning all the messages from the given offset. Checkpoints are NOT saved but ARE loaded at startup.
+    *
+    * @param offset       Starting position, offset of the first message
+    * @return A source of IoT messages
+    */
+  def sourceWithSavedCheckpoint(offset: String): Source[MessageFromDevice, NotUsed] = {
+    getSource(
+      withTimeOffset = true,
+      offset = offset,
+      withCheckpoints = false,
+      startFromSavedCheckpoint = true)
+  }
+
 
   /** Create a stream returning all the messages for the defined partition, from the given start
     * point, optionally with checkpointing
@@ -77,13 +104,14 @@ private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logg
       withTimeOffset: Boolean,
       offset: String = "",
       startTime: Instant = Instant.MIN,
-      withCheckpoints: Boolean = true): Source[MessageFromDevice, NotUsed] = {
+      withCheckpoints: Boolean = true,
+      startFromSavedCheckpoint: Boolean = false): Source[MessageFromDevice, NotUsed] = {
 
     // Load the offset from the storage (if needed)
     var _offset = offset
     var _withTimeOffset = withTimeOffset
-    if (withCheckpoints) {
-      val savedOffset = GetSavedOffset()
+    if (withCheckpoints || startFromSavedCheckpoint) {
+      val savedOffset = GetSavedOffset
       if (savedOffset != IoTHubPartition.OffsetCheckpointNotFound) {
         _offset = savedOffset
         _withTimeOffset = false
@@ -93,9 +121,9 @@ private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logg
 
     // Build the source starting by time or by offset
     val source: Source[MessageFromDevice, NotUsed] = if (_withTimeOffset)
-      MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
-    else
-      MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
+                                                       MessageFromDeviceSource(partition, startTime, withCheckpoints).filter(Ignore.keepAlive)
+                                                     else
+                                                       MessageFromDeviceSource(partition, _offset, withCheckpoints).filter(Ignore.keepAlive)
 
     // Inject a flow to store the stream position after each pull
     if (withCheckpoints) {
@@ -112,7 +140,7 @@ private[iothubreact] case class IoTHubPartition(val partition: Int) extends Logg
     */
   private[this] def GetSavedOffset(): String = {
     val partitionCp = CheckpointActorSystem.getCheckpointService(partition)
-    implicit val rwTimeout = Timeout(CPConfiguration.checkpointRWTimeout)
+    implicit val rwTimeout = Timeout(cpconfig.checkpointRWTimeout)
     try {
       Retry(3, 5 seconds) {
         log.debug(s"Loading the stream position for partition ${partition}")

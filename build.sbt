@@ -3,8 +3,8 @@
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
 
-version := "0.8.0"
-//version := "0.8.0-DEV.170106a"
+version := "0.8.1"
+//version := "0.8.1-DEV.170309a"
 
 scalaVersion := "2.12.1"
 crossScalaVersions := Seq("2.11.8", "2.12.1")
@@ -19,6 +19,7 @@ libraryDependencies <++= (scalaVersion) {
     val datastaxDriverVersion = "3.1.1"
     val json4sVersion = "3.5.0"
     val akkaStreamVersion = "2.4.16"
+    val mockitoVersion = "1.10.19"
 
     Seq(
       // Library dependencies
@@ -32,7 +33,8 @@ libraryDependencies <++= (scalaVersion) {
 
       // Tests dependencies
       "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test"
+      "com.microsoft.azure.iothub-java-client" % "iothub-java-device-client" % iothubDeviceClientVersion % "test",
+      "org.mockito" % "mockito-all" % mockitoVersion % "test"
     )
 }
 

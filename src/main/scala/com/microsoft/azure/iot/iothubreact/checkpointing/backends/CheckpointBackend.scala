@@ -2,11 +2,11 @@
 
 package com.microsoft.azure.iot.iothubreact.checkpointing.backends
 
-import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CPConfiguration, ICPConfiguration}
 
 trait CheckpointBackend {
 
-  def checkpointNamespace: String = Configuration.storageNamespace
+  def checkpointNamespace(implicit config: ICPConfiguration = new CPConfiguration): String = config.storageNamespace
 
   /** Read the offset of the last record processed for the given partition
     *

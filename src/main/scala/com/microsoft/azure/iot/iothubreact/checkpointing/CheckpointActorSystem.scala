@@ -13,6 +13,7 @@ private[iothubreact] object CheckpointActorSystem {
 
   implicit private[this] val actorSystem  = ActorSystem("IoTHubReact")
   implicit private[this] val materializer = ActorMaterializer(ActorMaterializerSettings(actorSystem))
+  implicit private[this] val cpconfig     = new CPConfiguration
   var localRegistry: Map[String, ActorRef] = Map[String, ActorRef]()
 
   /** Create an actor to read/write offset checkpoints from the storage

@@ -4,21 +4,37 @@ package com.microsoft.azure.iot.iothubreact.checkpointing
 
 import java.util.concurrent.TimeUnit
 
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.lib.Auth
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.Try
+
+trait ICPConfiguration {
+  val isEnabled                 : Boolean
+  val storageNamespace          : String
+  val checkpointBackendType     : String
+  val checkpointFrequency       : FiniteDuration
+  val checkpointRWTimeout       : FiniteDuration
+  val checkpointCountThreshold  : Int
+  val checkpointTimeThreshold   : FiniteDuration
+  val azureBlobEmulator         : Boolean
+  val azureBlobConnectionString : String
+  val azureBlobLeaseDuration    : FiniteDuration
+  val cassandraCluster          : String
+  val cassandraReplicationFactor: Int
+  val cassandraAuth             : Option[Auth]
+}
 
 /** Hold IoT Hub stream checkpointing configuration settings
   */
-private[iothubreact] object Configuration {
+private[iothubreact] final class CPConfiguration(implicit val conf: Config = ConfigFactory.load) extends ICPConfiguration {
 
   // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
   //       a client will need a dedicated checkpoint container for each stream
 
   private[this] val confPath = "iothub-react.checkpointing."
-
-  private[this] val conf: Config = ConfigFactory.load()
 
   // Default time between checkpoint writes to the storage
   private[this] val DefaultFrequency = 1 second
@@ -57,7 +73,10 @@ private[iothubreact] object Configuration {
   private[this] val MaxTimeThreshold = 1 hour
 
   // Default name of the container used to store checkpoint data
-  private[this] val DefaultContainer = "iothub-react-checkpoints"
+  private[this] lazy val DefaultContainer = checkpointBackendType.toUpperCase match {
+    case "CASSANDRA" ⇒ "iothub_react_checkpoints"
+    case _           ⇒ "iothub-react-checkpoints"
+  }
 
   // Whether checkpointing is enabled or not
   lazy val isEnabled: Boolean = conf.getBoolean(confPath + "enabled")
@@ -70,11 +89,11 @@ private[iothubreact] object Configuration {
     MaxFrequency)
 
   // How many messages to replay after a restart, for each IoT hub partition
-  lazy val checkpointCountThreshold = Math.max(1, conf.getInt(confPath + "countThreshold"))
+  lazy val checkpointCountThreshold: Int = Math.max(1, conf.getInt(confPath + "countThreshold"))
 
   // Store a position if its value is older than this amount of time, rounded to seconds
   // Min: 1 second, Max: 1 hour
-  lazy val checkpointTimeThreshold = getDuration(
+  lazy val checkpointTimeThreshold: FiniteDuration = getDuration(
     confPath + "timeThreshold",
     DefaultTimeThreshold,
     MinTimeThreshold,
@@ -107,8 +126,14 @@ private[iothubreact] object Configuration {
     60 seconds)
 
   // Cassandra cluster address
-  lazy val cassandraCluster          : String = conf.getString(confPath + "storage.cassandra.cluster")
-  lazy val cassandraReplicationFactor: Int    = conf.getInt(confPath + "storage.cassandra.replicationFactor")
+  lazy val cassandraCluster          : String       = conf.getString(confPath + "storage.cassandra.cluster")
+  lazy val cassandraReplicationFactor: Int          = conf.getInt(confPath + "storage.cassandra.replicationFactor")
+  lazy val cassandraAuth             : Option[Auth] = (for {
+    u <- Try(conf.getString(confPath + "storage.cassandra.username"))
+    p <- Try(conf.getString(confPath + "storage.cassandra.password"))
+  } yield {
+    Auth(u, p)
+  }).toOption
 
   /** Load Azure blob connection string, taking care of the Azure storage emulator case
     *

@@ -6,7 +6,7 @@ import java.io.IOException
 import java.net.URISyntaxException
 import java.util.UUID
 
-import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
+import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 import com.microsoft.azure.iot.iothubreact.{Logger, Retry}
 import com.microsoft.azure.storage.blob.CloudBlockBlob
@@ -17,13 +17,13 @@ import scala.language.{implicitConversions, postfixOps}
 
 /** Storage logic to write checkpoints to Azure blobs
   */
-private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
+private[iothubreact] class AzureBlob(implicit val config: ICPConfiguration) extends CheckpointBackend with Logger {
 
   // Set the account to point either to Azure or the emulator
-  val account: CloudStorageAccount = if (Configuration.azureBlobEmulator)
-    CloudStorageAccount.getDevelopmentStorageAccount()
-  else
-    CloudStorageAccount.parse(Configuration.azureBlobConnectionString)
+  val account: CloudStorageAccount = if (config.azureBlobEmulator)
+                                       CloudStorageAccount.getDevelopmentStorageAccount()
+                                     else
+                                       CloudStorageAccount.parse(config.azureBlobConnectionString)
 
   val client = account.createCloudBlobClient()
 
@@ -121,7 +121,7 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
     // Note: the lease ID must be a Guid otherwise the service returs 400
     var leaseId = UUID.randomUUID().toString
     try {
-      file.acquireLease(Configuration.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
+      file.acquireLease(config.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
     } catch {
 
       case e: StorageException ⇒ {
@@ -146,9 +146,9 @@ private[iothubreact] class AzureBlob extends CheckpointBackend with Logger {
 
     // The access condition depends on the file existing
     val accessCondition = if (leaseId == "")
-      AccessCondition.generateEmptyCondition()
-    else
-      AccessCondition.generateLeaseCondition(leaseId)
+                            AccessCondition.generateEmptyCondition()
+                          else
+                            AccessCondition.generateLeaseCondition(leaseId)
 
     try {
       file.uploadText(content, "UTF-8", accessCondition, null, new OperationContext)
