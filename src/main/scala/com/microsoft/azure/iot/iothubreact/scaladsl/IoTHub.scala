@@ -16,7 +16,7 @@ import scala.language.postfixOps
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
-case class IoTHub(implicit val config: ICPConfiguration = new CPConfiguration) extends Logger {
+case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) extends Logger {
 
   // TODO: Provide ClearCheckpoints() method to clear the state
 

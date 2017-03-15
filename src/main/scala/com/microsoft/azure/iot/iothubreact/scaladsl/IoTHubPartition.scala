@@ -138,9 +138,9 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cpc
     *
     * @return Offset
     */
-  private[this] def GetSavedOffset(implicit config: ICPConfiguration): String = {
+  private[this] def GetSavedOffset(): String = {
     val partitionCp = CheckpointActorSystem.getCheckpointService(partition)
-    implicit val rwTimeout = Timeout(config.checkpointRWTimeout)
+    implicit val rwTimeout = Timeout(cpconfig.checkpointRWTimeout)
     try {
       Retry(3, 5 seconds) {
         log.debug(s"Loading the stream position for partition ${partition}")
