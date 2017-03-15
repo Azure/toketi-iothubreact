@@ -43,7 +43,7 @@ object Demo extends App with Deserialize {
   /*
   // Run the two workflows in parallel
   RunnableGraph.fromGraph(GraphDSL.create() {
-    implicit b =>
+    implicit b ⇒
       import GraphDSL.Implicits._
 
       val shape = b.add(Broadcast[Temperature](2))

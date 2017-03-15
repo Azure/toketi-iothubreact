@@ -3,7 +3,7 @@
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
 
-version := "0.8.1"
+version := "0.8.1" // Latest version released to Maven Central: 0.8.0
 //version := "0.8.1-DEV.170309a"
 
 scalaVersion := "2.12.1"

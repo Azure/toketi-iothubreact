@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft. All rights reserved.
+
 package com.microsoft.azure.iot.iothubreact.checkpointing
 
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.lib.Auth

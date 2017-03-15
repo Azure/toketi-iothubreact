@@ -1,23 +1,17 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-// Namespace chosen to avoid access to internal classes
+// NOTE: Namespace chosen to avoid access to internal classes
 package api
 
-import java.util.UUID
+// NOTE: No global imports to make easier detecting breaking changes
 
-import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
-import org.mockito.Mockito.when
-import org.scalatest.mockito.MockitoSugar
-
-// No global imports to make easier detecting breaking changes
-
-class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSugar {
+class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalatest.mockito.MockitoSugar {
 
   info("As a developer using Azure IoT hub React")
   info("I want to be able to upgrade to new minor versions without changing my code")
   info("So I can benefit from improvements without excessive development costs")
 
-  implicit val cpconfig = mock[ICPConfiguration]
+  implicit val cpconfig = mock[com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration]
 
   feature("Version 0.x is backward compatible") {
 
@@ -166,8 +160,8 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSuga
 
       val backend: CustomBackend = new CustomBackend()
 
-      val anyname = UUID.randomUUID.toString
-      when(cpconfig.storageNamespace).thenReturn(anyname)
+      val anyname = java.util.UUID.randomUUID.toString
+      org.mockito.Mockito.when(cpconfig.storageNamespace).thenReturn(anyname)
       assert(backend.checkpointNamespace == anyname)
     }
 

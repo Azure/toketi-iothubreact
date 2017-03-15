@@ -67,7 +67,7 @@ private[iothubreact] class CheckpointService(partition: Int)(implicit config: IC
         queuedOffsets = 0
       }
       catch {
-        case e: Exception => {
+        case e: Exception ⇒ {
           log.error(e, e.getMessage)
           context.become(notReady)
         }
@@ -121,7 +121,7 @@ private[iothubreact] class CheckpointService(partition: Int)(implicit config: IC
           log.debug(s"Partition=${partition}, checkpoint queue is empty [count ${queuedOffsets}, current offset=${currentOffset}]")
         }
       } catch {
-        case e: Exception => log.error(e, e.getMessage)
+        case e: Exception ⇒ log.error(e, e.getMessage)
       } finally {
         context.become(ready)
       }

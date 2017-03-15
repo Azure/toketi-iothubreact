@@ -26,8 +26,8 @@ private[iothubreact] object CheckpointActorSystem {
     val actorPath = "CheckpointService" + partition
 
     localRegistry get actorPath match {
-      case Some(actorRef) => actorRef
-      case None           => {
+      case Some(actorRef) ⇒ actorRef
+      case None           ⇒ {
         val actorRef = actorSystem.actorOf(Props(new CheckpointService(partition)), actorPath)
         localRegistry += Tuple2(actorPath, actorRef)
         actorRef

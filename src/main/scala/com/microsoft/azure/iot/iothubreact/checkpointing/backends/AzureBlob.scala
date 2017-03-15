@@ -17,7 +17,7 @@ import scala.language.{implicitConversions, postfixOps}
 
 /** Storage logic to write checkpoints to Azure blobs
   */
-private[iothubreact] class AzureBlob(implicit val config: ICPConfiguration) extends CheckpointBackend with Logger {
+private[iothubreact] class AzureBlob(implicit config: ICPConfiguration) extends CheckpointBackend with Logger {
 
   // Set the account to point either to Azure or the emulator
   val account: CloudStorageAccount = if (config.azureBlobEmulator)

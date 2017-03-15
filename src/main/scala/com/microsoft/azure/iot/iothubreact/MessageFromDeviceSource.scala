@@ -105,7 +105,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
   // Define the (sole) output port of this stage
   private[this] val out: Outlet[MessageFromDevice] = Outlet("MessageFromDeviceSource")
 
-  // Define the shape of this stage => SourceShape with the port defined above
+  // Define the shape of this stage ⇒ SourceShape with the port defined above
   override val shape: SourceShape[MessageFromDevice] = SourceShape(out)
 
   // All state MUST be inside the GraphStageLogic, never inside the enclosing

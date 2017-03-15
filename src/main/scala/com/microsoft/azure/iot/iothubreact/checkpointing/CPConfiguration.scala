@@ -11,25 +11,67 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.Try
 
+/** Checkpointing configuration interface
+  */
 trait ICPConfiguration {
-  val isEnabled                 : Boolean
-  val storageNamespace          : String
-  val checkpointBackendType     : String
-  val checkpointFrequency       : FiniteDuration
-  val checkpointRWTimeout       : FiniteDuration
-  val checkpointCountThreshold  : Int
-  val checkpointTimeThreshold   : FiniteDuration
-  val azureBlobEmulator         : Boolean
-  val azureBlobConnectionString : String
-  val azureBlobLeaseDuration    : FiniteDuration
-  val cassandraCluster          : String
+
+  /** Whether checkpointing is enabled
+    */
+  val isEnabled: Boolean
+
+  /** Namespace where the table with checkpoint data is stored (e.g. Cassandra keyspace)
+    */
+  val storageNamespace: String
+
+  /** Type of storage, the value is not case sensitive
+    */
+  val checkpointBackendType: String
+
+  /** How often checkpoint data is written to the storage
+    */
+  val checkpointFrequency: FiniteDuration
+
+  /** Checkpointing operations timeout
+    */
+  val checkpointRWTimeout: FiniteDuration
+
+  /** How many messages to replay after a restart, for each IoT hub partition
+    */
+  val checkpointCountThreshold: Int
+
+  /** Store a position if its value is older than this amount of time, rounded to seconds
+    */
+  val checkpointTimeThreshold: FiniteDuration
+
+  /** Whether to use the Azure Storage Emulator when using Azure blob backend
+    */
+  val azureBlobEmulator: Boolean
+
+  /** Azure blob connection string
+    */
+  val azureBlobConnectionString: String
+
+  /** Azure blob lease duration (between 15s and 60s by Azure docs)
+    */
+  val azureBlobLeaseDuration: FiniteDuration
+
+  /** Cassandra cluster address
+    * TODO: support list
+    */
+  val cassandraCluster: String
+
+  /** Cassandra replication factor, value required to open a connection
+    */
   val cassandraReplicationFactor: Int
-  val cassandraAuth             : Option[Auth]
+
+  /** Cassandra authentication credentials
+    */
+  val cassandraAuth: Option[Auth]
 }
 
 /** Hold IoT Hub stream checkpointing configuration settings
   */
-private[iothubreact] final class CPConfiguration(implicit val conf: Config = ConfigFactory.load) extends ICPConfiguration {
+private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory.load) extends ICPConfiguration {
 
   // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
   //       a client will need a dedicated checkpoint container for each stream
@@ -118,7 +160,7 @@ private[iothubreact] final class CPConfiguration(implicit val conf: Config = Con
   // Azure blob connection string
   lazy val azureBlobConnectionString: String = getAzureBlobConnectionString
 
-  // Azure blob lease duration (15s and 60s by Azure docs)
+  // Azure blob lease duration (between 15s and 60s by Azure docs)
   lazy val azureBlobLeaseDuration: FiniteDuration = getDuration(
     confPath + "storage.azureblob.lease",
     15 seconds,

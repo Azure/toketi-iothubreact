@@ -63,33 +63,6 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cpc
       withCheckpoints = withCheckpoints && cpconfig.isEnabled)
   }
 
-  /** Stream returning all the messages from the given offset. Checkpoints are NOT saved but ARE loaded at startup.
-    *
-    * @param startTime       Starting position expressed in time
-    * @return A source of IoT messages
-    */
-  def sourceWithSavedCheckpoint(startTime: Instant): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = true,
-      startTime = startTime,
-      withCheckpoints = false,
-      startFromSavedCheckpoint = true)
-  }
-
-  /** Stream returning all the messages from the given offset. Checkpoints are NOT saved but ARE loaded at startup.
-    *
-    * @param offset       Starting position, offset of the first message
-    * @return A source of IoT messages
-    */
-  def sourceWithSavedCheckpoint(offset: String): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = true,
-      offset = offset,
-      withCheckpoints = false,
-      startFromSavedCheckpoint = true)
-  }
-
-
   /** Create a stream returning all the messages for the defined partition, from the given start
     * point, optionally with checkpointing
     *
@@ -148,7 +121,7 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cpc
         Await.result(future, rwTimeout.duration)
       }
     } catch {
-      case e: java.util.concurrent.TimeoutException => {
+      case e: java.util.concurrent.TimeoutException ⇒ {
         log.error(e, "Timeout while retrieving the offset from the storage")
         throw e
       }
