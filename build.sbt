@@ -24,7 +24,7 @@ libraryDependencies <++= (scalaVersion) {
       // https://github.com/Azure/azure-storage-java/releases
       "com.microsoft.azure" % "azure-storage" % "5.0.0",
 
-      // http://mvnrepository.com/artifact/com.datastax.cassandra/cassandra-driver-core
+      // https://github.com/datastax/java-driver/releases
       "com.datastax.cassandra" % "cassandra-driver-core" % "3.1.4",
 
       // https://github.com/akka/akka/releases
