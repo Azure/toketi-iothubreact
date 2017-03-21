@@ -4,7 +4,7 @@ name := "iothub-react"
 organization := "com.microsoft.azure.iot"
 
 //version := "0.9.0"
-version := "0.9.0-DEV.170314a"
+version := "0.9.0-DEV.170320a"
 
 scalaVersion := "2.12.1"
 crossScalaVersions := Seq("2.11.8", "2.12.1")
@@ -12,14 +12,14 @@ crossScalaVersions := Seq("2.11.8", "2.12.1")
 libraryDependencies <++= (scalaVersion) {
   scalaVersion ⇒
 
-    val json4sVersion = "3.5.0"
+    val json4sVersion = "3.5.1"
 
     Seq(
       // https://github.com/Azure/azure-iot-sdk-java/releases
       "com.microsoft.azure.sdk.iot" % "iot-service-client" % "1.1.15",
 
       // https://github.com/Azure/azure-event-hubs-java/releases
-      "com.microsoft.azure" % "azure-eventhubs" % "0.11.0",
+      "com.microsoft.azure" % "azure-eventhubs" % "0.13.0",
 
       // https://github.com/Azure/azure-storage-java/releases
       "com.microsoft.azure" % "azure-storage" % "5.0.0",

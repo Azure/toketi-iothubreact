@@ -8,7 +8,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import akka.stream.{Attributes, Outlet, SourceShape}
-import com.microsoft.azure.eventhubs.PartitionReceiver
+import com.microsoft.azure.eventhubs.{PartitionReceiver, ReceiverOptions, ReceiverRuntimeInformation}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -114,11 +114,10 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
     log.debug(s"Creating the IoT hub source")
     new GraphStageLogic(shape) {
 
-      val keepAliveSignal = new MessageFromDevice(None, None)
+      val keepAliveSignal = new MessageFromDevice(None, None, None)
       val emptyResult     = List[MessageFromDevice](keepAliveSignal)
 
       lazy val receiver = getIoTHubReceiver()
-
 
       setHandler(
         out, new OutHandler {
@@ -134,7 +133,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
                 log.debug(s"Partition ${partition} is empty")
                 emitMultiple(out, emptyResult)
               } else {
-                val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition))).toList
+                val partitionInfo: ReceiverRuntimeInformation = receiver.getRuntimeInformation
+                val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition), Some(partitionInfo))).toList
                 log.debug(s"Emitting ${iterator.size} messages")
                 emitMultiple(out, iterator)
               }
@@ -155,6 +155,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
         * @return IoT hub storage receiver
         */
       def getIoTHubReceiver(): PartitionReceiver = Retry(3, 2 seconds) {
+        val receiverOptions = new ReceiverOptions()
+        receiverOptions.setReceiverRuntimeMetricEnabled(true)
         offsetType match {
 
           case SequenceOffset ⇒
@@ -165,7 +167,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
                 Configuration.receiverConsumerGroup,
                 partition.toString,
                 offset,
-                OffsetInclusive)
+                OffsetInclusive,
+                receiverOptions)
 
           case TimeOffset ⇒
             log.info(s"Connecting to partition ${partition.toString} starting from time '${startTime}'")
@@ -174,7 +177,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
               .createReceiverSync(
                 Configuration.receiverConsumerGroup,
                 partition.toString,
-                startTime)
+                startTime,
+                receiverOptions)
         }
       }
     }

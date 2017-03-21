@@ -20,7 +20,8 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
       val partition: Option[Int] = Some(1)
 
       // Test properties
-      val message1 = new MessageFromDevice(data, partition)
+      val partitionInfo = Some(new com.microsoft.azure.eventhubs.ReceiverRuntimeInformation(partition.toString))
+      val message1 = new MessageFromDevice(data, partition, partitionInfo)
       lazy val properties: java.util.Map[String, String] = message1.properties
       lazy val isKeepAlive: Boolean = message1.isKeepAlive
       lazy val messageSchema: String = message1.messageSchema
@@ -35,10 +36,10 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec {
       assert(message1.isKeepAlive == false)
 
       // Named parameters
-      val message2: MessageFromDevice = new MessageFromDevice(data = data, partition = partition)
+      val message2: MessageFromDevice = new MessageFromDevice(data = data, partNumber = partition, partInfo = partitionInfo)
 
       // Keepalive
-      val message3: MessageFromDevice = new MessageFromDevice(data, None)
+      val message3: MessageFromDevice = new MessageFromDevice(data, partNumber = None, partInfo = None)
       assert(message3.isKeepAlive == true)
     }
 

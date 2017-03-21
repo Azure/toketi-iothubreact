@@ -87,7 +87,7 @@ class TestConnectivity extends FeatureSpec with GivenWhenThen {
               val messages = records.asScala
               log.info(s"Messages retrieved ${messages.size}")
 
-              val matching = messages.filter(e ⇒ new String(e.getBody) contains testRunId)
+              val matching = messages.filter(e ⇒ new String(e.getBytes) contains testRunId)
               log.info(s"Matching messages ${matching.size}")
 
               found = (matching.size > 0)

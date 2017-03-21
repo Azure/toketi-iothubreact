@@ -29,7 +29,7 @@ object Demo extends App {
   val monitor = Sink.foreach[MessageFromDevice] {
     m ⇒ {
       Monitoring.total += 1
-      Monitoring.totals(m.partition.get) += 1
+      Monitoring.totals(m.partitionInfo.partitionNumber.get) += 1
     }
   }
 

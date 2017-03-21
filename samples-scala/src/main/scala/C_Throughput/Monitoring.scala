@@ -10,7 +10,9 @@ import scala.concurrent.duration.{FiniteDuration, _}
 import scala.language.postfixOps
 
 /** Monitoring logic, some properties to keep count and a method to print the
-  * statistics.
+  * statistics. This demo uses also the information about the last message in
+  * each partition, to show how many messages are left to process.
+  *
   * Note: for readability the monitoring Sink is in the Demo class
   */
 object Monitoring {
@@ -25,6 +27,9 @@ object Monitoring {
 
   // Total per partition
   var totals = new ParArray[Long](iotHubPartitions)
+
+  // Remaining messages per partition
+  var remain = new ParArray[Long](iotHubPartitions)
 
   /* Schedule the stats to be printed with some frequency */
   def printStatisticsWithFrequency(frequency: FiniteDuration): Unit = {
@@ -41,17 +46,21 @@ object Monitoring {
 
     if (total > 0 && previousTime > 0) {
 
-      print(s"Partitions: ")
-      for (i ← 0 until iotHubPartitions - 1) print(pad5(totals(i)) + ",")
-      print(pad5(totals(iotHubPartitions - 1)))
+      print(s"Partitions count: ")
+      for (i ← 0 until iotHubPartitions - 1) print(pad6(totals(i)) + ",")
+      print(pad6(totals(iotHubPartitions - 1)))
 
       val throughput = ((total - previousTotal) * 1000 / (now - previousTime)).toInt
-      println(s" - Total: ${pad5(total)} - Speed: $throughput/sec")
+      println(s" - Total: ${pad6(total)} - Speed: $throughput/sec")
+
+      print(s"       remaining: ")
+      for (i ← 0 until iotHubPartitions - 1) print(pad6(remain(i)) + ",")
+      println(pad6(remain(iotHubPartitions - 1)))
     }
 
     previousTotal = total
     previousTime = now
   }
 
-  private[this] def pad5(x: Long): String = f"${x}%05d"
+  private[this] def pad6(x: Long): String = f"${x}%06d"
 }

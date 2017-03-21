@@ -62,8 +62,8 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
         for (msgNumber ← 1 to MessagesPerDevice) {
           for (deviceNumber ← 0 until DevicesCount) {
             devices(deviceNumber).sendMessage(testRunId, msgNumber)
-            // Workaround for issue 995
-            if (msgNumber == 1) devices(deviceNumber).waitConfirmation()
+            // Workaround for https://github.com/Azure/azure-iot-sdk-java/issues/19 (DeviceClient creates a "cert.crt" file)
+            //if (msgNumber == 1) devices(deviceNumber).waitConfirmation()
           }
           for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).waitConfirmation()
         }
