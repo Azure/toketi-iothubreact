@@ -16,9 +16,9 @@ import scala.concurrent.Future
   * @tparam A
   */
 trait TypedSink[A] {
-  def scalaDefinition: ScalaSink[A, Future[Done]]
+  def scalaDefinition(config: IConfiguration): ScalaSink[A, Future[Done]]
 
-  def javaDefinition: JavaSink[A, CompletionStage[Done]]
+  def javaDefinition(config: IConfiguration): JavaSink[A, CompletionStage[Done]]
 }
 
 /** Type class implementations for MessageToDevice, MethodOnDevice, DeviceProperties
@@ -27,21 +27,21 @@ trait TypedSink[A] {
 object TypedSink {
 
   implicit object MessageToDeviceSinkDef extends TypedSink[MessageToDevice] {
-    override def scalaDefinition: ScalaSink[MessageToDevice, Future[Done]] = MessageToDeviceSink().scalaSink()
+    override def scalaDefinition(config: IConfiguration): ScalaSink[MessageToDevice, Future[Done]] = MessageToDeviceSink(config).scalaSink()
 
-    override def javaDefinition: JavaSink[MessageToDevice, CompletionStage[Done]] = MessageToDeviceSink().javaSink()
+    override def javaDefinition(config: IConfiguration): JavaSink[MessageToDevice, CompletionStage[Done]] = MessageToDeviceSink(config).javaSink()
   }
 
   implicit object MethodOnDeviceSinkDef extends TypedSink[MethodOnDevice] {
-    override def scalaDefinition: ScalaSink[MethodOnDevice, Future[Done]] = MethodOnDeviceSink().scalaSink()
+    override def scalaDefinition(config: IConfiguration): ScalaSink[MethodOnDevice, Future[Done]] = MethodOnDeviceSink(config).scalaSink()
 
-    override def javaDefinition: JavaSink[MethodOnDevice, CompletionStage[Done]] = MethodOnDeviceSink().javaSink()
+    override def javaDefinition(config: IConfiguration): JavaSink[MethodOnDevice, CompletionStage[Done]] = MethodOnDeviceSink(config).javaSink()
   }
 
   implicit object DevicePropertiesSinkDef extends TypedSink[DeviceProperties] {
-    override def scalaDefinition: ScalaSink[DeviceProperties, Future[Done]] = DevicePropertiesSink().scalaSink()
+    override def scalaDefinition(config: IConfiguration): ScalaSink[DeviceProperties, Future[Done]] = DevicePropertiesSink(config).scalaSink()
 
-    override def javaDefinition: JavaSink[DeviceProperties, CompletionStage[Done]] = DevicePropertiesSink().javaSink()
+    override def javaDefinition(config: IConfiguration): JavaSink[DeviceProperties, CompletionStage[Done]] = DevicePropertiesSink(config).javaSink()
   }
 
 }

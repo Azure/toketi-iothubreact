@@ -11,18 +11,17 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
   info("I want to be able to upgrade to new minor versions without changing my code")
   info("So I can benefit from improvements without excessive development costs")
 
-  implicit val cpconfig = mock[com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration]
+  Feature("Version 0.x is backward compatible") {
 
-  feature("Version 0.x is backward compatible") {
-
-    scenario("Using MessageFromDevice") {
+    Scenario("Using MessageFromDevice") {
+      import com.microsoft.azure.eventhubs.{EventData, ReceiverRuntimeInformation}
       import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 
-      val data: Option[com.microsoft.azure.eventhubs.EventData] = None
+      val data: Option[EventData] = None
       val partition: Option[Int] = Some(1)
 
       // Test properties
-      val partitionInfo = Some(new com.microsoft.azure.eventhubs.ReceiverRuntimeInformation(partition.toString))
+      val partitionInfo = Some(new ReceiverRuntimeInformation(partition.toString))
       val message1 = new MessageFromDevice(data, partition, partitionInfo)
       lazy val properties: java.util.Map[String, String] = message1.properties
       lazy val isKeepAlive: Boolean = message1.isKeepAlive
@@ -45,7 +44,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       assert(message3.isKeepAlive == true)
     }
 
-    scenario("Using Scala DSL OffsetList") {
+    Scenario("Using Scala DSL OffsetList") {
       import com.microsoft.azure.iot.iothubreact.scaladsl.OffsetList
 
       val o1: String = "123"
@@ -69,7 +68,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       assert(offset4.values(1) == o2)
     }
 
-    scenario("Using Java DSL OffsetList") {
+    Scenario("Using Java DSL OffsetList") {
       import com.microsoft.azure.iot.iothubreact.javadsl.OffsetList
 
       val o1: String = "123"
@@ -87,7 +86,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       assert(offset2.values.get(1) == o2)
     }
 
-    scenario("Using Scala DSL PartitionList") {
+    Scenario("Using Scala DSL PartitionList") {
       import com.microsoft.azure.iot.iothubreact.scaladsl.PartitionList
 
       val o1: Int = 1
@@ -111,7 +110,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       assert(offset4.values(1) == o2)
     }
 
-    scenario("Using Java DSL PartitionList") {
+    Scenario("Using Java DSL PartitionList") {
       import com.microsoft.azure.iot.iothubreact.javadsl.PartitionList
 
       val o1: Int = 1
@@ -129,7 +128,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       assert(offset2.values.get(1) == o2)
     }
 
-    scenario("Using ResumeOnError") {
+    Scenario("Using ResumeOnError") {
       import akka.actor.ActorSystem
       import akka.stream.ActorMaterializer
       import com.microsoft.azure.iot.iothubreact.ResumeOnError._
@@ -138,7 +137,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       val mat: ActorMaterializer = materializer
     }
 
-    scenario("Using StopOnError") {
+    Scenario("Using StopOnError") {
       import akka.actor.ActorSystem
       import akka.stream.ActorMaterializer
       import com.microsoft.azure.iot.iothubreact.StopOnError._
@@ -147,8 +146,10 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       val mat: ActorMaterializer = materializer
     }
 
-    scenario("Using CheckpointBackend") {
+    Scenario("Using CheckpointBackend") {
+      import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
       import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
+      import org.mockito.Mockito.when
 
       class CustomBackend extends CheckpointBackend {
 
@@ -162,11 +163,12 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       val backend: CustomBackend = new CustomBackend()
 
       val anyname = java.util.UUID.randomUUID.toString
-      org.mockito.Mockito.when(cpconfig.storageNamespace).thenReturn(anyname)
-      assert(backend.checkpointNamespace == anyname)
+      val cpconfig = mock[ICPConfiguration]
+      when(cpconfig.storageNamespace).thenReturn(anyname)
+      assert(backend.checkpointNamespace(cpconfig) == anyname)
     }
 
-    scenario("Using Message Type") {
+    Scenario("Using Message Type") {
       import com.microsoft.azure.iot.iothubreact.MessageFromDevice
       import com.microsoft.azure.iot.iothubreact.filters.MessageSchema
 
@@ -174,16 +176,16 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       val filter2: MessageSchema = new MessageSchema("some")
     }
 
-    scenario("Using Scala DSL IoTHub") {
+    Scenario("Using Scala DSL IoTHub") {
       import java.time.Instant
 
       import akka.NotUsed
       import akka.stream.scaladsl.Source
-      import com.microsoft.azure.iot.iothubreact.MessageFromDevice
+      import com.microsoft.azure.iot.iothubreact.{IConfiguration, MessageFromDevice}
       import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, OffsetList, PartitionList}
 
-      val hub1: IoTHub = new IoTHub()
-      val hub2: IoTHub = IoTHub()
+      val hub1: IoTHub = IoTHub()
+      val hub2: IoTHub = IoTHub(mock[IConfiguration])
 
       val offsets: OffsetList = OffsetList(Seq("1", "0", "0", "-1", "234623"))
       val partitions: PartitionList = PartitionList(Seq(0, 1, 3))
@@ -227,7 +229,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
       hub2.close()
     }
 
-    scenario("Using Java DSL IoTHub") {
+    Scenario("Using Java DSL IoTHub") {
       import java.time.Instant
 
       import akka.NotUsed

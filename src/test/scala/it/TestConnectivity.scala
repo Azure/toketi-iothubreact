@@ -26,9 +26,9 @@ class TestConnectivity extends FeatureSpec with GivenWhenThen {
     val testRunId = s"[${this.getClass.getName}-" + java.util.UUID.randomUUID().toString + "]"
     val startTime = Instant.now().minusSeconds(60)
 
-    feature("The test suite can connect to IoT Hub") {
+    Feature("The test suite can connect to IoT Hub") {
 
-      scenario("The test uses the configured credentials") {
+      Scenario("The test uses the configured credentials") {
 
         // Enough devices to hit the first partitions, so that the test ends quickly
         val DevicesCount = 10

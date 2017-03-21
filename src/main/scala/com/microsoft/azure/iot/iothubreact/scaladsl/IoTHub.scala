@@ -8,24 +8,33 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CPConfiguration, ICPConfiguration}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
 
+object IoTHub {
+  def apply(): IoTHub = new IoTHub()
+
+  def apply(config: IConfiguration): IoTHub = new IoTHub(config)
+}
+
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
-case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) extends Logger {
+class IoTHub(config: IConfiguration)
+  extends Logger {
+
+  // Parameterless ctor
+  def this() = this(Configuration())
 
   // TODO: Provide ClearCheckpoints() method to clear the state
 
   private[this] val streamManager = new StreamManager
 
-  private[this] def allPartitions = Some(PartitionList(0 until Configuration.iotHubPartitions))
+  private[this] def allPartitions = Some(PartitionList(0 until config.iotHubPartitions))
 
   private[this] def fromStart =
-    Some(OffsetList(List.fill[String](Configuration.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream)))
+    Some(OffsetList(List.fill[String](config.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream)))
 
   /** Stop the stream
     */
@@ -40,14 +49,14 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
     *
     * @return Streaming sink
     */
-  def sink[A]()(implicit typedSink: TypedSink[A]): Sink[A, Future[Done]] = typedSink.scalaDefinition
+  def sink[A]()(implicit typedSink: TypedSink[A]): Sink[A, Future[Done]] = typedSink.scalaDefinition(config)
 
   /** Sink to send asynchronous messages to IoT devices
     *
     * @return Streaming sink
     */
   def messageSink: Sink[MessageToDevice, Future[Done]] =
-    MessageToDeviceSink().scalaSink()
+    MessageToDeviceSink(config).scalaSink()
 
   /** Sink to call synchronous methods on IoT devices
     *
@@ -137,7 +146,7 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
       withTimeOffset = false,
       partitions = allPartitions,
       offsets = fromStart,
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
   }
 
   /** Stream returning all the messages from all the configured partitions.
@@ -154,7 +163,7 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
       withTimeOffset = false,
       partitions = Some(partitions),
       offsets = fromStart,
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -201,7 +210,7 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
       withTimeOffset = true,
       partitions = allPartitions,
       startTime = startTime,
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given time, from all
@@ -218,7 +227,7 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
       withTimeOffset = true,
       partitions = Some(partitions),
       startTime = startTime,
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -234,7 +243,7 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
       withTimeOffset = false,
       partitions = allPartitions,
       offsets = Some(offsets),
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -251,7 +260,7 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
       withTimeOffset = false,
       partitions = Some(partitions),
       offsets = Some(offsets),
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
   }
 
   /** Stream returning all the messages, from the given starting point, optionally with
@@ -280,9 +289,9 @@ case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) exten
 
         for (partition ← partitions.get.values) {
           val graph = if (withTimeOffset)
-                        IoTHubPartition(partition).source(startTime, withCheckpoints).via(streamManager)
+                        IoTHubPartition(config, partition).source(startTime, withCheckpoints).via(streamManager)
                       else
-                        IoTHubPartition(partition).source(offsets.get.values(partition), withCheckpoints).via(streamManager)
+                        IoTHubPartition(config, partition).source(offsets.get.values(partition), withCheckpoints).via(streamManager)
 
           val source = Source.fromGraph(graph).async
           source ~> merge

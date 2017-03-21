@@ -5,19 +5,20 @@ package com.microsoft.azure.iot.iothubreact
 import com.microsoft.azure.eventhubs.EventHubClient
 import com.microsoft.azure.servicebus.ConnectionStringBuilder
 
-private object IoTHubStorage extends Logger {
-
-  private[this] val connString = new ConnectionStringBuilder(
-    Configuration.iotHubNamespace,
-    Configuration.iotHubName,
-    Configuration.accessPolicy,
-    Configuration.accessKey).toString
+private case class IoTHubStorage(config: IConfiguration) extends Logger {
 
   // TODO: Manage transient errors e.g. timeouts
   // EventHubClient.createFromConnectionString(connString)
-  //   .get(Configuration.receiverTimeout, TimeUnit.MILLISECONDS)
+  //   .get(config.receiverTimeout, TimeUnit.MILLISECONDS)
   def createClient(): EventHubClient = {
-    log.info(s"Creating EventHub client to ${Configuration.iotHubName}")
-    EventHubClient.createFromConnectionStringSync(connString)
+    log.info(s"Creating EventHub client to ${config.iotHubName}")
+    EventHubClient.createFromConnectionStringSync(buildConnString())
   }
+
+  private[this] def buildConnString() =
+    new ConnectionStringBuilder(
+      config.iotHubNamespace,
+      config.iotHubName,
+      config.accessPolicy,
+      config.accessKey).toString
 }

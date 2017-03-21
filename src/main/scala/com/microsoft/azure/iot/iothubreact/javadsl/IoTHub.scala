@@ -8,18 +8,19 @@ import java.util.concurrent.CompletionStage
 import akka.stream.javadsl.{Sink, Source ⇒ JavaSource}
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CPConfiguration, ICPConfiguration}
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL, OffsetList ⇒ OffsetListScalaDSL, PartitionList ⇒ PartitionListScalaDSL}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
+  *
+  * TODO: Provide ClearCheckpoints() method to clear the state
   */
-class IoTHub() {
+class IoTHub(config: IConfiguration) {
 
-  // TODO: Provide ClearCheckpoints() method to clear the state
+  // Parameterless ctor
+  def this() = this(Configuration())
 
-  private implicit lazy val cpconfig: ICPConfiguration = new CPConfiguration
-  private lazy          val iotHub   = new IoTHubScalaDSL()
+  private lazy val iotHub = IoTHubScalaDSL(config)
 
   /** Stop the stream
     */

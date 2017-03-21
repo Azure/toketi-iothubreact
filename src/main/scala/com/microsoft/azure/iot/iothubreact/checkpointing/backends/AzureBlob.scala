@@ -17,18 +17,18 @@ import scala.language.{implicitConversions, postfixOps}
 
 /** Storage logic to write checkpoints to Azure blobs
   */
-private[iothubreact] class AzureBlob(implicit config: ICPConfiguration) extends CheckpointBackend with Logger {
+private[iothubreact] class AzureBlob(cpconfig: ICPConfiguration) extends CheckpointBackend with Logger {
 
   // Set the account to point either to Azure or the emulator
-  val account: CloudStorageAccount = if (config.azureBlobEmulator)
+  val account: CloudStorageAccount = if (cpconfig.azureBlobEmulator)
                                        CloudStorageAccount.getDevelopmentStorageAccount()
                                      else
-                                       CloudStorageAccount.parse(config.azureBlobConnectionString)
+                                       CloudStorageAccount.parse(cpconfig.azureBlobConnectionString)
 
   val client = account.createCloudBlobClient()
 
   // Set the container, ensure it's ready
-  val container = client.getContainerReference(checkpointNamespace)
+  val container = client.getContainerReference(checkpointNamespace(cpconfig))
   try {
     Retry(2, 5 seconds) {
       container.createIfNotExists()
@@ -112,7 +112,7 @@ private[iothubreact] class AzureBlob(implicit config: ICPConfiguration) extends 
     // Note: the lease ID must be a Guid otherwise the service returs 400
     var leaseId = UUID.randomUUID().toString
     try {
-      file.acquireLease(config.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
+      file.acquireLease(cpconfig.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
     } catch {
 
       case e: StorageException ⇒

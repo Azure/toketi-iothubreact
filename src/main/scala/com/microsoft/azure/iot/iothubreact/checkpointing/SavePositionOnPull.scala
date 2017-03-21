@@ -11,7 +11,7 @@ import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.Updat
   *
   * @param partition IoT hub partition number
   */
-private[iothubreact] class SavePositionOnPull(partition: Int)
+private[iothubreact] class SavePositionOnPull(cpconfig: ICPConfiguration, partition: Int)
   extends GraphStage[FlowShape[MessageFromDevice, MessageFromDevice]] {
 
   val in   = Inlet[MessageFromDevice]("Checkpoint.Flow.in")
@@ -26,7 +26,7 @@ private[iothubreact] class SavePositionOnPull(partition: Int)
   override def createLogic(attr: Attributes): GraphStageLogic = {
     new GraphStageLogic(shape) {
 
-      val checkpointService = CheckpointActorSystem.getCheckpointService(partition)
+      val checkpointService = CheckpointActorSystem(cpconfig).getCheckpointService(partition)
       var lastOffsetSent    = none
 
       // when a message enters the stage we safe its offset

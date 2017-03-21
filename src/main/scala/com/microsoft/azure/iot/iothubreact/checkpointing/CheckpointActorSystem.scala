@@ -9,11 +9,10 @@ import scala.language.{implicitConversions, postfixOps}
 
 /** The actors infrastructure for storing the stream position
   */
-private[iothubreact] object CheckpointActorSystem {
+private[iothubreact] case class CheckpointActorSystem(cpconfig: ICPConfiguration) {
 
   implicit private[this] val actorSystem  = ActorSystem("IoTHubReact")
   implicit private[this] val materializer = ActorMaterializer(ActorMaterializerSettings(actorSystem))
-  implicit private[this] val cpconfig     = new CPConfiguration
   var localRegistry: Map[String, ActorRef] = Map[String, ActorRef]()
 
   /** Create an actor to read/write offset checkpoints from the storage
@@ -29,7 +28,7 @@ private[iothubreact] object CheckpointActorSystem {
       case Some(actorRef) ⇒ actorRef
 
       case None ⇒
-        val actorRef = actorSystem.actorOf(Props(new CheckpointService(partition)), actorPath)
+        val actorRef = actorSystem.actorOf(Props(new CheckpointService(cpconfig, partition)), actorPath)
         localRegistry += Tuple2(actorPath, actorRef)
         actorRef
     }

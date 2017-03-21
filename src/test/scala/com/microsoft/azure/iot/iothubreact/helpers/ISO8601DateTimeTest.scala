@@ -13,11 +13,11 @@ class ISO8601DateTimeTest extends FeatureSpec {
   info("I use a subset of ISO 8601 datetime UTC format")
   info("And IoTHubReact should understand it")
 
-  feature("It can parse date and time") {
+  Feature("It can parse date and time") {
 
     val utc = ZoneId.of("UTC")
 
-    scenario("YYYY-MM-DD") {
+    Scenario("YYYY-MM-DD") {
       val value = "2018-05-29"
       val p = ISO8601DateTime(value)
       val z = p.zonedDateTime
@@ -37,7 +37,7 @@ class ISO8601DateTimeTest extends FeatureSpec {
       s should equal("2018-05-29T00:00:00.000Z")
     }
 
-    scenario("YYYY-MM-DDThh:mm:ssZ") {
+    Scenario("YYYY-MM-DDThh:mm:ssZ") {
       val value = "2018-05-29T13:05:59Z"
       val p = ISO8601DateTime(value)
       val z = p.zonedDateTime
@@ -57,7 +57,7 @@ class ISO8601DateTimeTest extends FeatureSpec {
       s should equal("2018-05-29T13:05:59.000Z")
     }
 
-    scenario("YYYY-MM-DDThh:mm:ss.SZ") {
+    Scenario("YYYY-MM-DDThh:mm:ss.SZ") {
       val value = "2018-05-29T11:05:59.3Z"
       val p = ISO8601DateTime(value)
       val z = p.zonedDateTime
@@ -77,7 +77,7 @@ class ISO8601DateTimeTest extends FeatureSpec {
       s should equal("2018-05-29T11:05:59.300Z")
     }
 
-    scenario("YYYY-MM-DDThh:mm:ss.SSZ") {
+    Scenario("YYYY-MM-DDThh:mm:ss.SSZ") {
       val value = "2018-05-29T13:05:59.13Z"
       val p = ISO8601DateTime(value)
       val z = p.zonedDateTime
@@ -97,7 +97,7 @@ class ISO8601DateTimeTest extends FeatureSpec {
       s should equal("2018-05-29T13:05:59.130Z")
     }
 
-    scenario("YYYY-MM-DDThh:mm:ss.SSSz") {
+    Scenario("YYYY-MM-DDThh:mm:ss.SSSz") {
       val value = "2018-05-29T13:05:59.135Z"
       val p = ISO8601DateTime(value)
       val z = p.zonedDateTime
@@ -117,7 +117,7 @@ class ISO8601DateTimeTest extends FeatureSpec {
       s should equal("2018-05-29T13:05:59.135Z")
     }
 
-    scenario("YYYY-M-DTh:m:s.Sz") {
+    Scenario("YYYY-M-DTh:m:s.Sz") {
       val value = "2018-5-2T1:5:9.1Z"
       val p = ISO8601DateTime(value)
       val z = p.zonedDateTime
@@ -137,7 +137,7 @@ class ISO8601DateTimeTest extends FeatureSpec {
       s should equal("2018-05-02T01:05:09.100Z")
     }
 
-    scenario("0001-01-01") {
+    Scenario("0001-01-01") {
       val value = "0001-01-01"
       val p = ISO8601DateTime(value)
       val z = p.zonedDateTime

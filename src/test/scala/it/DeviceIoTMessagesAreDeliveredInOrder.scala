@@ -37,11 +37,11 @@ class DeviceIoTMessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThe
       Await.result(counter.ask("get")(5 seconds), 5 seconds).asInstanceOf[Long]
     }
 
-    feature("Device IoT messages are delivered in order") {
+    Feature("Device IoT messages are delivered in order") {
 
       // Note: messages are sent in parallel to obtain some level of mix in the
       // storage, so do not refactor, i.e. don't do one device at a time.
-      scenario("Customer needs to process IoT messages in the right order") {
+      Scenario("Customer needs to process IoT messages in the right order") {
 
         // How many seconds we allow the test to wait for messages from the stream
         val TestTimeout = 120 seconds

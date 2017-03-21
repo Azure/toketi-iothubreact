@@ -9,11 +9,24 @@ import java.util.concurrent.CompletionStage
 import akka.Done
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.{Logger, DeviceProperties}
+import com.microsoft.azure.iot.iothubreact.{Configuration, DeviceProperties, IConfiguration, Logger}
 
-case class DevicePropertiesSink() extends ISink[DeviceProperties] with Logger {
+object DevicePropertiesSink {
+  def apply(): DevicePropertiesSink = new DevicePropertiesSink()
+
+  def apply(config: IConfiguration): DevicePropertiesSink = new DevicePropertiesSink(config)
+}
+
+/** Define desired device state (asynchronously)
+  */
+class DevicePropertiesSink(config: IConfiguration)
+  extends ISink[DeviceProperties]
+    with Logger {
 
   throw new NotImplementedError("DevicePropertiesSink is not supported yet")
+
+  // Parameterless ctor
+  def this() = this(Configuration())
 
   def scalaSink(): ScalaSink[DeviceProperties, scala.concurrent.Future[Done]] = {
     throw new NotImplementedError()

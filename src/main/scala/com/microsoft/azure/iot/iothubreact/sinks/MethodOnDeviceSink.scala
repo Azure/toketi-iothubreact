@@ -9,9 +9,22 @@ import java.util.concurrent.CompletionStage
 import akka.Done
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.{Logger, MethodOnDevice}
+import com.microsoft.azure.iot.iothubreact.{Configuration, IConfiguration, Logger, MethodOnDevice}
 
-case class MethodOnDeviceSink() extends ISink[MethodOnDevice] with Logger {
+object MethodOnDeviceSink {
+  def apply(): MethodOnDeviceSink = new MethodOnDeviceSink()
+
+  def apply(config: IConfiguration): MethodOnDeviceSink = new MethodOnDeviceSink(config)
+}
+
+/** Invoke methods (synchronously) from cloud to connected devices
+  */
+class MethodOnDeviceSink(config: IConfiguration)
+  extends ISink[MethodOnDevice]
+    with Logger {
+
+  // Parameterless ctor
+  def this() = this(Configuration())
 
   throw new NotImplementedError("MethodOnDeviceSink is not supported yet")
 

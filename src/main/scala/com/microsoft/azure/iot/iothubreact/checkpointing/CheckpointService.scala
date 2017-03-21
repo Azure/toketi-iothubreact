@@ -31,7 +31,7 @@ private[iothubreact] object CheckpointService {
   *
   * @param partition IoT hub partition number [0..N]
   */
-private[iothubreact] class CheckpointService(partition: Int)(implicit config: ICPConfiguration)
+private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partition: Int)
   extends Actor
     with Stash
     with Logger {
@@ -97,8 +97,8 @@ private[iothubreact] class CheckpointService(partition: Int)(implicit config: IC
           var offsetToStore: String = ""
           val now = Instant.now.getEpochSecond
 
-          val timeThreshold = config.checkpointTimeThreshold.toSeconds
-          val countThreshold = config.checkpointCountThreshold
+          val timeThreshold = cpconfig.checkpointTimeThreshold.toSeconds
+          val countThreshold = cpconfig.checkpointCountThreshold
 
           // Check if the queue contains old offsets to flush (time threshold)
           // Check if the queue contains data of too many messages (count threshold)
@@ -111,7 +111,7 @@ private[iothubreact] class CheckpointService(partition: Int)(implicit config: IC
           }
 
           if (offsetToStore == "") {
-            log.debug(s"Checkpoint skipped: partition=${partition}, count ${queuedOffsets} < threshold ${config.checkpointCountThreshold}")
+            log.debug(s"Checkpoint skipped: partition=${partition}, count ${queuedOffsets} < threshold ${cpconfig.checkpointCountThreshold}")
           } else {
             log.info(s"Writing checkpoint: partition=${partition}, storing ${offsetToStore} (current offset=${currentOffset})")
             storage.writeOffset(partition, offsetToStore)
@@ -140,7 +140,7 @@ private[iothubreact] class CheckpointService(partition: Int)(implicit config: IC
   def updateOffsetAction(offset: String) = {
 
     if (!schedulerStarted) {
-      val time = config.checkpointFrequency
+      val time = cpconfig.checkpointFrequency
       schedulerStarted = true
       context.system.scheduler.schedule(time, time, self, StoreOffset)
       log.info(s"Scheduled checkpoint for partition ${partition} every ${time.toMillis} ms")
@@ -167,10 +167,10 @@ private[iothubreact] class CheckpointService(partition: Int)(implicit config: IC
 
   // TODO: Support plugins
   def getCheckpointBackend: CheckpointBackend = {
-    val conf = config.checkpointBackendType
+    val conf = cpconfig.checkpointBackendType
     conf.toUpperCase match {
-      case "AZUREBLOB" ⇒ new AzureBlob
-      case "CASSANDRA" ⇒ new CassandraTable
+      case "AZUREBLOB" ⇒ new AzureBlob(cpconfig)
+      case "CASSANDRA" ⇒ new CassandraTable(cpconfig)
       case _           ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${conf}")
     }
   }

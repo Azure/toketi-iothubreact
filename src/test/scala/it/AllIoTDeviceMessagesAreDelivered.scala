@@ -36,9 +36,9 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
       Await.result(counter.ask("get")(5 seconds), 5 seconds).asInstanceOf[Long]
     }
 
-    feature("All IoT device messages are delivered") {
+    Feature("All IoT device messages are delivered") {
 
-      scenario("Application wants to retrieve all IoT messages") {
+      Scenario("Application wants to retrieve all IoT messages") {
 
         // How many seconds we allow the test to wait for messages from the stream
         val TestTimeout = 60 seconds
@@ -100,5 +100,4 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
       }
     }
   }
-
 }

@@ -24,8 +24,8 @@ private object MessageFromDeviceSource {
     * @return A source returning the body of the message sent from a device.
     *         Deserialization is left to the consumer.
     */
-  def apply(partition: Int, offset: String, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    Source.fromGraph(new MessageFromDeviceSource(partition, offset, withCheckpoints))
+  def apply(config: IConfiguration, partition: Int, offset: String, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
+    Source.fromGraph(new MessageFromDeviceSource(config, partition, offset, withCheckpoints))
   }
 
   /** Create an instance of the messages source for the specified partition
@@ -36,14 +36,14 @@ private object MessageFromDeviceSource {
     * @return A source returning the body of the message sent from a device.
     *         Deserialization is left to the consumer.
     */
-  def apply(partition: Int, startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    Source.fromGraph(new MessageFromDeviceSource(partition, startTime, withCheckpoints))
+  def apply(config: IConfiguration, partition: Int, startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
+    Source.fromGraph(new MessageFromDeviceSource(config, partition, startTime, withCheckpoints))
   }
 }
 
 /** Source of messages from one partition of the IoT hub storage
   */
-private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
+private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
 
   // TODO: Refactor and use async methods, compare performance
   // TODO: Consider option to deserialize on the fly to [T], when JSON Content Type
@@ -79,8 +79,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
     * @param offset          Starting position
     * @param withCheckpoints Whether to read/write current position
     */
-  def this(partition: Int, offset: String, withCheckpoints: Boolean) {
-    this()
+  def this(config: IConfiguration, partition: Int, offset: String, withCheckpoints: Boolean) {
+    this(config)
     _partition = Some(partition)
     _offset = Some(offset)
     _withCheckpoints = Some(withCheckpoints)
@@ -93,8 +93,8 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
     * @param startTime       Starting position
     * @param withCheckpoints Whether to read/write current position
     */
-  def this(partition: Int, startTime: Instant, withCheckpoints: Boolean) {
-    this()
+  def this(config: IConfiguration, partition: Int, startTime: Instant, withCheckpoints: Boolean) {
+    this(config)
     _partition = Some(partition)
     _startTime = Some(startTime)
     _withCheckpoints = Some(withCheckpoints)
@@ -126,7 +126,7 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
           override def onPull(): Unit = {
             try {
               val messages = Retry(2, 1 seconds) {
-                receiver.receiveSync(Configuration.receiverBatchSize)
+                receiver.receiveSync(config.receiverBatchSize)
               }
 
               if (messages == null) {
@@ -156,15 +156,15 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
         */
       def getIoTHubReceiver(): PartitionReceiver = Retry(3, 2 seconds) {
         val receiverOptions = new ReceiverOptions()
-        receiverOptions.setReceiverRuntimeMetricEnabled(true)
+        receiverOptions.setReceiverRuntimeMetricEnabled(config.retrieveRuntimeMetric)
         offsetType match {
 
           case SequenceOffset ⇒
             log.info(s"Connecting to partition ${partition.toString} starting from offset '${offset}'")
-            IoTHubStorage
+            IoTHubStorage(config)
               .createClient()
               .createReceiverSync(
-                Configuration.receiverConsumerGroup,
+                config.receiverConsumerGroup,
                 partition.toString,
                 offset,
                 OffsetInclusive,
@@ -172,10 +172,10 @@ private class MessageFromDeviceSource() extends GraphStage[SourceShape[MessageFr
 
           case TimeOffset ⇒
             log.info(s"Connecting to partition ${partition.toString} starting from time '${startTime}'")
-            IoTHubStorage
+            IoTHubStorage(config)
               .createClient()
               .createReceiverSync(
-                Configuration.receiverConsumerGroup,
+                config.receiverConsumerGroup,
                 partition.toString,
                 startTime,
                 receiverOptions)

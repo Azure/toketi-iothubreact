@@ -71,7 +71,7 @@ trait ICPConfiguration {
 
 /** Hold IoT Hub stream checkpointing configuration settings
   */
-private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory.load) extends ICPConfiguration {
+private[iothubreact] class CPConfiguration(configData: Config) extends ICPConfiguration {
 
   // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
   //       a client will need a dedicated checkpoint container for each stream
@@ -121,7 +121,7 @@ private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory
   }
 
   // Whether checkpointing is enabled or not
-  lazy val isEnabled: Boolean = conf.getBoolean(confPath + "enabled")
+  lazy val isEnabled: Boolean = configData.getBoolean(confPath + "enabled")
 
   // How often checkpoint data is written to the storage
   lazy val checkpointFrequency: FiniteDuration = getDuration(
@@ -131,7 +131,7 @@ private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory
     MaxFrequency)
 
   // How many messages to replay after a restart, for each IoT hub partition
-  lazy val checkpointCountThreshold: Int = Math.max(1, conf.getInt(confPath + "countThreshold"))
+  lazy val checkpointCountThreshold: Int = Math.max(1, configData.getInt(confPath + "countThreshold"))
 
   // Store a position if its value is older than this amount of time, rounded to seconds
   // Min: 1 second, Max: 1 hour
@@ -149,13 +149,13 @@ private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory
     MaxStorageRWTimeout)
 
   // The backend logic used to write, a.k.a. the storage type
-  lazy val checkpointBackendType: String = conf.getString(confPath + "storage.backendType")
+  lazy val checkpointBackendType: String = configData.getString(confPath + "storage.backendType")
 
   // Data container
   lazy val storageNamespace: String = getStorageContainer
 
   // Whether to use the Azure Storage Emulator when using Azure blob backend
-  lazy val azureBlobEmulator: Boolean = conf.getBoolean(confPath + "storage.azureblob.useEmulator")
+  lazy val azureBlobEmulator: Boolean = configData.getBoolean(confPath + "storage.azureblob.useEmulator")
 
   // Azure blob connection string
   lazy val azureBlobConnectionString: String = getAzureBlobConnectionString
@@ -168,11 +168,11 @@ private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory
     60 seconds)
 
   // Cassandra cluster address
-  lazy val cassandraCluster          : String       = conf.getString(confPath + "storage.cassandra.cluster")
-  lazy val cassandraReplicationFactor: Int          = conf.getInt(confPath + "storage.cassandra.replicationFactor")
+  lazy val cassandraCluster          : String       = configData.getString(confPath + "storage.cassandra.cluster")
+  lazy val cassandraReplicationFactor: Int          = configData.getInt(confPath + "storage.cassandra.replicationFactor")
   lazy val cassandraAuth             : Option[Auth] = (for {
-    u <- Try(conf.getString(confPath + "storage.cassandra.username"))
-    p <- Try(conf.getString(confPath + "storage.cassandra.password"))
+    u <- Try(configData.getString(confPath + "storage.cassandra.username"))
+    p <- Try(configData.getString(confPath + "storage.cassandra.password"))
   } yield {
     Auth(u, p)
   }).toOption
@@ -182,12 +182,12 @@ private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory
     * @return Connection string
     */
   private[this] def getAzureBlobConnectionString: String = {
-    if (conf.getBoolean(confPath + "storage.azureblob.useEmulator"))
+    if (configData.getBoolean(confPath + "storage.azureblob.useEmulator"))
       ""
     else {
-      val protocol = conf.getString(confPath + "storage.azureblob.protocol")
-      val account = conf.getString(confPath + "storage.azureblob.account")
-      val key = conf.getString(confPath + "storage.azureblob.key")
+      val protocol = configData.getString(confPath + "storage.azureblob.protocol")
+      val account = configData.getString(confPath + "storage.azureblob.account")
+      val key = configData.getString(confPath + "storage.azureblob.key")
       s"DefaultEndpointsProtocol=${protocol};AccountName=${account};AccountKey=${key}";
     }
   }
@@ -197,7 +197,7 @@ private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory
     * @return Table/Container/Path name
     */
   private[this] def getStorageContainer: String = {
-    val container = conf.getString(confPath + "storage.namespace")
+    val container = configData.getString(confPath + "storage.namespace")
     if (container != "")
       container
     else
@@ -214,7 +214,7 @@ private[iothubreact] class CPConfiguration(implicit conf: Config = ConfigFactory
       min: FiniteDuration,
       max: FiniteDuration): FiniteDuration = {
 
-    val value = conf.getDuration(path, TimeUnit.MILLISECONDS)
+    val value = configData.getDuration(path, TimeUnit.MILLISECONDS)
     if (value >= min.toMillis && value <= max.toMillis)
       FiniteDuration(value, TimeUnit.MILLISECONDS)
     else

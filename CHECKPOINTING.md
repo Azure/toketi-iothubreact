@@ -5,10 +5,10 @@ to restarts and crashes.
 
 *Checkpoints* are saved automatically, with a configured frequency, on a storage provided.
 
-For instance, the stream position can be saved every 15 seconds in Azure blobs, or 
+For instance, the stream position can be saved every 15 seconds in Azure blobs, in Cassandra, or 
 (soon) a custom backend.
 
-To store checkpoints in Azure blobs the configuration looks like this:
+To store checkpoints in Azure blobs the configuration looks like the following:
 
 ```
 iothub-react{
@@ -38,9 +38,38 @@ iothub-react{
 }
 ```
 
-Soon it will be possible to plug in custom storage backends implementing a simple 
+To store checkpoints in Cassandra, the configuration looks like the following:
+
+```
+iothub-react{
+
+  [... other settings ...]
+  
+  checkpointing {
+    enabled = true
+    frequency = 15s
+    countThreshold = 1000
+    timeThreshold = 30s
+    
+    storage {
+      rwTimeout = 5s
+      namespace = "iothub_react_checkpoints"
+      
+      backendType = "Cassandra"
+      cassandra {
+        cluster = "localhost:9042"
+        replicationFactor = 1
+        username = "..."
+        password = "..."
+      }
+    }
+  }
+}
+```
+
+We plan to allow plugging in custom storage backends, by implementing a simple 
 [interface](src/main/scala/com/microsoft/azure/iot/iothubreact/checkpointing/Backends/CheckpointBackend.scala)
-to read and write the stream position.
+to read and write the stream position. Let us know if you are interested!
 
 There is also one API parameter to enable/disable the checkpointing feature, for example:
 
