@@ -44,7 +44,9 @@ libraryDependencies <++= (scalaVersion) {
       "org.scalatest" %% "scalatest" % "3.0.1" % "test",
 
       // https://github.com/Azure/azure-iot-sdk-java/releases
-      "com.microsoft.azure.sdk.iot" % "iot-device-client" % "1.0.21" % "test"
+      "com.microsoft.azure.sdk.iot" % "iot-device-client" % "1.0.21" % "test",
+
+      "org.mockito" % "mockito-all" % "1.10.19" % "test"
     )
 }
 

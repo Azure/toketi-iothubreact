@@ -8,7 +8,7 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.{Configuration ⇒ CPConfiguration}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CPConfiguration, ICPConfiguration}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
 import scala.concurrent.Future
@@ -16,7 +16,7 @@ import scala.language.postfixOps
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
-case class IoTHub() extends Logger {
+case class IoTHub(implicit config: ICPConfiguration = new CPConfiguration) extends Logger {
 
   // TODO: Provide ClearCheckpoints() method to clear the state
 
@@ -137,7 +137,7 @@ case class IoTHub() extends Logger {
       withTimeOffset = false,
       partitions = allPartitions,
       offsets = fromStart,
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Stream returning all the messages from all the configured partitions.
@@ -154,7 +154,7 @@ case class IoTHub() extends Logger {
       withTimeOffset = false,
       partitions = Some(partitions),
       offsets = fromStart,
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -201,7 +201,7 @@ case class IoTHub() extends Logger {
       withTimeOffset = true,
       partitions = allPartitions,
       startTime = startTime,
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given time, from all
@@ -218,7 +218,7 @@ case class IoTHub() extends Logger {
       withTimeOffset = true,
       partitions = Some(partitions),
       startTime = startTime,
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -234,7 +234,7 @@ case class IoTHub() extends Logger {
       withTimeOffset = false,
       partitions = allPartitions,
       offsets = Some(offsets),
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Stream returning all the messages starting from the given offset, from all
@@ -251,7 +251,7 @@ case class IoTHub() extends Logger {
       withTimeOffset = false,
       partitions = Some(partitions),
       offsets = Some(offsets),
-      withCheckpoints = withCheckpoints && CPConfiguration.isEnabled)
+      withCheckpoints = withCheckpoints && config.isEnabled)
   }
 
   /** Stream returning all the messages, from the given starting point, optionally with
@@ -280,9 +280,9 @@ case class IoTHub() extends Logger {
 
         for (partition ← partitions.get.values) {
           val graph = if (withTimeOffset)
-            IoTHubPartition(partition).source(startTime, withCheckpoints).via(streamManager)
-          else
-            IoTHubPartition(partition).source(offsets.get.values(partition), withCheckpoints).via(streamManager)
+                        IoTHubPartition(partition).source(startTime, withCheckpoints).via(streamManager)
+                      else
+                        IoTHubPartition(partition).source(offsets.get.values(partition), withCheckpoints).via(streamManager)
 
           val source = Source.fromGraph(graph).async
           source ~> merge

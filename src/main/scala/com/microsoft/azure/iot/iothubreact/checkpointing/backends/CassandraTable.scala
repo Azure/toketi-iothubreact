@@ -3,7 +3,7 @@
 package com.microsoft.azure.iot.iothubreact.checkpointing.backends
 
 import com.microsoft.azure.iot.iothubreact.Logger
-import com.microsoft.azure.iot.iothubreact.checkpointing.Configuration
+import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.lib.Connection
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.cassandra.{CheckpointRecord, CheckpointsTableSchema}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
@@ -11,10 +11,10 @@ import org.json4s.JsonAST
 
 /** Storage logic to write checkpoints to a Cassandra table
   */
-private[iothubreact] class CassandraTable extends CheckpointBackend with Logger {
+private[iothubreact] class CassandraTable(implicit config: ICPConfiguration) extends CheckpointBackend with Logger {
 
   val schema     = new CheckpointsTableSchema(checkpointNamespace, "checkpoints")
-  val connection = Connection(Configuration.cassandraCluster, Configuration.cassandraReplicationFactor, schema)
+  val connection = Connection(config.cassandraCluster, config.cassandraReplicationFactor, config.cassandraAuth, schema)
   val table      = connection.getTable[CheckpointRecord]()
 
   connection.createKeyspaceIfNotExists()

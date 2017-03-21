@@ -13,11 +13,18 @@ import com.datastax.driver.core.Cluster
 private[iothubreact] case class Connection(
     contactPoint: String,
     replicationFactor: Int,
+    auth: Option[Auth],
     table: TableSchema) {
 
-  private lazy  val hostPort = extractHostPort()
-  private lazy  val cluster  = Cluster.builder().addContactPoint(hostPort._1).withPort(hostPort._2).build()
-  implicit lazy val session  = cluster.connect()
+  private lazy val hostPort = extractHostPort()
+  private lazy val cluster  = {
+    val builder = Cluster.builder().addContactPoint(hostPort._1).withPort(hostPort._2)
+    auth map {
+      creds ⇒ builder.withCredentials(creds.username, creds.password)
+    } getOrElse (builder) build()
+  }
+
+  implicit lazy val session = cluster.connect()
 
   /** Create the key space if not present
     */
