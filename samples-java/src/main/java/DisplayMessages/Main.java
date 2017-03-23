@@ -8,8 +8,8 @@ import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice;
+import com.microsoft.azure.iot.iothubreact.SourceOptions;
 import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub;
-import com.microsoft.azure.iot.iothubreact.javadsl.PartitionList;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -29,7 +29,12 @@ public class Main extends ReactiveStreamingApp
     public static void main(String args[])
     {
         // Source retrieving messages from two IoT hub partitions (e.g. partition 0 and 3)
-        Source<MessageFromDevice, NotUsed> messagesFromTwoPartitions = new IoTHub().source(new PartitionList(Arrays.asList(0, 3)));
+        int[] partitions = {0, 2};
+        SourceOptions options = new SourceOptions().partitions(partitions);
+        Source<MessageFromDevice, NotUsed> messagesFromTwoPartitions1 = new IoTHub().source(options);
+
+        // Same, but different syntax using one of the shortcuts
+        Source<MessageFromDevice, NotUsed> messagesFromTwoPartitions2 = new IoTHub().source(Arrays.asList(0, 3));
 
         // Source retrieving from all IoT hub partitions for the past 24 hours
         Source<MessageFromDevice, NotUsed> messages = new IoTHub().source(Instant.now().minus(1, ChronoUnit.DAYS));

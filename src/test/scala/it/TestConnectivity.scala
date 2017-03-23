@@ -56,7 +56,7 @@ class TestConnectivity extends FeatureSpec with GivenWhenThen {
           Configuration.accessPolicy,
           Configuration.accessKey).toString
 
-        log.info(s"Connecting to IoT Hub")
+        log.info("Connecting to IoT Hub")
         val client = EventHubClient.createFromConnectionStringSync(connString)
 
         var found = false
@@ -66,7 +66,7 @@ class TestConnectivity extends FeatureSpec with GivenWhenThen {
         // Check that at least one message arrived to IoT Hub
         while (!found && p < Configuration.iotHubPartitions) {
 
-          log.info(s"Checking partition ${p}")
+          log.info("Checking partition {}", p)
           val receiver: PartitionReceiver = client.createReceiverSync(Configuration.receiverConsumerGroup, p.toString, startTime)
 
           log.info("Receiver getEpoch(): " + receiver.getEpoch)
@@ -78,17 +78,17 @@ class TestConnectivity extends FeatureSpec with GivenWhenThen {
           while (!found && attempts < 100) {
             attempts += 1
 
-            log.info(s"Receiving batch ${attempts}")
+            log.info("Receiving batch {}", attempts)
             val records = receiver.receiveSync(999)
             if (records == null) {
               attempts = Int.MaxValue
               log.info("This partition is empty")
             } else {
               val messages = records.asScala
-              log.info(s"Messages retrieved ${messages.size}")
+              log.info("Messages retrieved {}", messages.size)
 
               val matching = messages.filter(e ⇒ new String(e.getBytes) contains testRunId)
-              log.info(s"Matching messages ${matching.size}")
+              log.info("Matching messages {}", matching.size)
 
               found = (matching.size > 0)
             }
@@ -97,7 +97,7 @@ class TestConnectivity extends FeatureSpec with GivenWhenThen {
           p += 1
         }
 
-        assert(found, s"Expecting to find at least one of the messages sent")
+        assert(found, "Expecting to find at least one of the messages sent")
       }
     }
   }

@@ -8,7 +8,7 @@ import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
-import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, MessageToDevice}
+import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, MessageToDevice, SourceOptions}
 import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -62,7 +62,104 @@ object OnlyTwoPartitions extends App {
 
   println(s"Streaming messages from partitions ${Partition1} and ${Partition2}")
 
-  val messages = IoTHub().source(PartitionList(Seq(Partition1, Partition2)))
+  val messages = IoTHub().source(Seq(Partition1, Partition2))
+
+  val console = Sink.foreach[MessageFromDevice] {
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
+  }
+
+  messages
+
+    .to(console)
+
+    .run()
+}
+
+/** Stream and save the position while streaming
+  */
+object StorePositionWhileStreaming extends App {
+
+  println(s"Streaming messages and save position while streaming")
+
+  val messages = IoTHub().source(SourceOptions().savePosition())
+
+  val console = Sink.foreach[MessageFromDevice] {
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
+  }
+
+  messages
+
+    .to(console)
+
+    .run()
+}
+
+/** Streaming messages from a saved position, without updating the position stored
+  */
+object StartFromStoredPositionButDontWriteNewPosition extends App {
+
+  println(s"Streaming messages from a saved position, without updating the position stored")
+
+  val messages = IoTHub().source(SourceOptions().fromSavedPosition())
+
+  val console = Sink.foreach[MessageFromDevice] {
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
+  }
+
+  messages
+
+    .to(console)
+
+    .run()
+}
+
+/** Streaming messages from a saved position, without updating the position stored.
+  * If there is no position saved, start from one hour in the past.
+  */
+object StartFromStoredPositionIfAvailableOrByStartTimeOtherwise extends App {
+
+  println(s"Streaming messages from a saved position, without updating the position stored. If there is no position saved, start from one hour in the past.")
+
+  val messages = IoTHub().source(SourceOptions().fromSavedPosition(Instant.now().minusSeconds(3600)))
+
+  val console = Sink.foreach[MessageFromDevice] {
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
+  }
+
+  messages
+
+    .to(console)
+
+    .run()
+}
+
+object StreamIncludingRuntimeMetrics extends App {
+
+  println(s"Stream messages and print how many messages are left in each partition.")
+
+  val messages = IoTHub().source(SourceOptions().fromStart().withMetrics())
+
+  val console = Sink.foreach[MessageFromDevice] {
+    m ⇒ println(s"Partition ${m.partitionInfo.partitionNumber.get}: ${m.partitionInfo.lastSequenceNumber.get - m.sequenceNumber} messages left to stream")
+  }
+
+  messages
+
+    .to(console)
+
+    .run()
+}
+
+object MultipleStreamingOptionsAndSyntaxSugar extends App {
+
+  println(s"Streaming messages and save position")
+
+  val options = SourceOptions()
+    .partitions(0, 2, 3)
+    .fromOffsets("614", "64365", "123512")
+    .savePosition()
+
+  val messages = IoTHub().source(options)
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")

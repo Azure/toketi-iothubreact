@@ -8,6 +8,7 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
+import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
 
 import scala.concurrent.Future
@@ -20,6 +21,8 @@ object IoTHub {
 }
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
+  *
+  * TODO: Provide ClearCheckpoints() method to clear the state
   */
 class IoTHub(config: IConfiguration)
   extends Logger {
@@ -27,20 +30,15 @@ class IoTHub(config: IConfiguration)
   // Parameterless ctor
   def this() = this(Configuration())
 
-  // TODO: Provide ClearCheckpoints() method to clear the state
-
   private[this] val streamManager = new StreamManager
 
-  private[this] def allPartitions = Some(PartitionList(0 until config.iotHubPartitions))
+  private[this] def allPartitions = Some(0 until config.connect.iotHubPartitions)
 
-  private[this] def fromStart =
-    Some(OffsetList(List.fill[String](config.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream)))
+  private[this] def fromStart = Some(List.fill[String](config.connect.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream))
 
   /** Stop the stream
     */
-  def close(): Unit = {
-    streamManager.close()
-  }
+  def close(): Unit = streamManager.close()
 
   /** Sink to communicate with IoT devices
     *
@@ -56,21 +54,21 @@ class IoTHub(config: IConfiguration)
     * @return Streaming sink
     */
   def messageSink: Sink[MessageToDevice, Future[Done]] =
-    MessageToDeviceSink(config).scalaSink()
+    MessageToDeviceSink(config.connect).scalaSink()
 
   /** Sink to call synchronous methods on IoT devices
     *
     * @return Streaming sink
     */
   def methodSink: Sink[MethodOnDevice, Future[Done]] =
-    MethodOnDeviceSink().scalaSink()
+    MethodOnDeviceSink(config).scalaSink()
 
   /** Sink to asynchronously set properties on IoT devices
     *
     * @return Streaming sink
     */
   def propertySink: Sink[DeviceProperties, Future[Done]] =
-    DevicePropertiesSink().scalaSink()
+    DevicePropertiesSink(config).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise
@@ -78,13 +76,7 @@ class IoTHub(config: IConfiguration)
     *
     * @return A source of IoT messages
     */
-  def source(): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = allPartitions,
-      offsets = fromStart,
-      withCheckpoints = false)
-  }
+  def source(): Source[MessageFromDevice, NotUsed] = source(SourceOptions().allPartitions.fromStart)
 
   /** Stream returning all the messages from all the requested partitions.
     * If checkpointing the stream starts from the last position saved, otherwise
@@ -94,13 +86,7 @@ class IoTHub(config: IConfiguration)
     *
     * @return A source of IoT messages
     */
-  def source(partitions: PartitionList): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = Some(partitions),
-      offsets = fromStart,
-      withCheckpoints = false)
-  }
+  def source(partitions: Seq[Int]): Source[MessageFromDevice, NotUsed] = source(SourceOptions().partitions(partitions))
 
   /** Stream returning all the messages starting from the given time, from all
     * the configured partitions.
@@ -109,190 +95,25 @@ class IoTHub(config: IConfiguration)
     *
     * @return A source of IoT messages
     */
-  def source(startTime: Instant): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = true,
-      partitions = allPartitions,
-      startTime = startTime,
-      withCheckpoints = false)
-  }
-
-  /** Stream returning all the messages starting from the given time, from all
-    * the requested partitions.
-    *
-    * @param startTime  Starting position expressed in time
-    * @param partitions Partitions to process
-    *
-    * @return A source of IoT messages
-    */
-  def source(startTime: Instant, partitions: PartitionList): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = true,
-      partitions = Some(partitions),
-      startTime = startTime,
-      withCheckpoints = false)
-  }
-
-  /** Stream returning all the messages from all the configured partitions.
-    * If checkpointing the stream starts from the last position saved, otherwise
-    * it starts from the beginning.
-    *
-    * @param withCheckpoints Whether to read/write the stream position (default: true)
-    *
-    * @return A source of IoT messages
-    */
-  def source(withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = allPartitions,
-      offsets = fromStart,
-      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
-  }
-
-  /** Stream returning all the messages from all the configured partitions.
-    * If checkpointing the stream starts from the last position saved, otherwise
-    * it starts from the beginning.
-    *
-    * @param withCheckpoints Whether to read/write the stream position (default: true)
-    * @param partitions      Partitions to process
-    *
-    * @return A source of IoT messages
-    */
-  def source(withCheckpoints: Boolean, partitions: PartitionList): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = Some(partitions),
-      offsets = fromStart,
-      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
-  }
-
-  /** Stream returning all the messages starting from the given offset, from all
-    * the configured partitions.
-    *
-    * @param offsets Starting position for all the partitions
-    *
-    * @return A source of IoT messages
-    */
-  def source(offsets: OffsetList): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = allPartitions,
-      offsets = Some(offsets),
-      withCheckpoints = false)
-  }
-
-  /** Stream returning all the messages starting from the given offset, from all
-    * the configured partitions.
-    *
-    * @param offsets    Starting position for all the partitions
-    * @param partitions Partitions to process
-    *
-    * @return A source of IoT messages
-    */
-  def source(offsets: OffsetList, partitions: PartitionList): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = Some(partitions),
-      offsets = Some(offsets),
-      withCheckpoints = false)
-  }
-
-  /** Stream returning all the messages starting from the given time, from all
-    * the configured partitions.
-    *
-    * @param startTime       Starting position expressed in time
-    * @param withCheckpoints Whether to read/write the stream position (default: true)
-    *
-    * @return A source of IoT messages
-    */
-  def source(startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = true,
-      partitions = allPartitions,
-      startTime = startTime,
-      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
-  }
-
-  /** Stream returning all the messages starting from the given time, from all
-    * the configured partitions.
-    *
-    * @param startTime       Starting position expressed in time
-    * @param withCheckpoints Whether to read/write the stream position (default: true)
-    * @param partitions      Partitions to process
-    *
-    * @return A source of IoT messages
-    */
-  def source(startTime: Instant, withCheckpoints: Boolean, partitions: PartitionList): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = true,
-      partitions = Some(partitions),
-      startTime = startTime,
-      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
-  }
-
-  /** Stream returning all the messages starting from the given offset, from all
-    * the configured partitions.
-    *
-    * @param offsets         Starting position for all the partitions
-    * @param withCheckpoints Whether to read/write the stream position (default: true)
-    *
-    * @return A source of IoT messages
-    */
-  def source(offsets: OffsetList, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = allPartitions,
-      offsets = Some(offsets),
-      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
-  }
-
-  /** Stream returning all the messages starting from the given offset, from all
-    * the configured partitions.
-    *
-    * @param offsets         Starting position for all the partitions
-    * @param withCheckpoints Whether to read/write the stream position (default: true)
-    * @param partitions      Partitions to process
-    *
-    * @return A source of IoT messages
-    */
-  def source(offsets: OffsetList, withCheckpoints: Boolean, partitions: PartitionList): Source[MessageFromDevice, NotUsed] = {
-    getSource(
-      withTimeOffset = false,
-      partitions = Some(partitions),
-      offsets = Some(offsets),
-      withCheckpoints = withCheckpoints && config.cpConfig.isEnabled)
-  }
+  def source(startTime: Instant): Source[MessageFromDevice, NotUsed] = source(SourceOptions().fromTime(startTime))
 
   /** Stream returning all the messages, from the given starting point, optionally with
     * checkpointing
     *
-    * @param partitions      Partitions to process
-    * @param offsets         Starting positions using the offset property in the messages
-    * @param startTime       Starting position expressed in time
-    * @param withTimeOffset  Whether the start point is a timestamp
-    * @param withCheckpoints Whether to read/write the stream position
-    *
     * @return A source of IoT messages
     */
-  private[this] def getSource(
-      partitions: Option[PartitionList] = None,
-      offsets: Option[OffsetList] = None,
-      startTime: Instant = Instant.MIN,
-      withTimeOffset: Boolean = false,
-      withCheckpoints: Boolean = true): Source[MessageFromDevice, NotUsed] = {
+  def source(options: SourceOptions): Source[MessageFromDevice, NotUsed] = {
+
+    val partitions: Seq[Int] = options.getPartitions(config.connect)
 
     val graph = GraphDSL.create() {
       implicit b ⇒
         import GraphDSL.Implicits._
 
-        val merge = b.add(Merge[MessageFromDevice](partitions.get.values.size))
+        val merge = b.add(Merge[MessageFromDevice](partitions.size))
 
-        for (partition ← partitions.get.values) {
-          val graph = if (withTimeOffset)
-                        IoTHubPartition(config, partition).source(startTime, withCheckpoints).via(streamManager)
-                      else
-                        IoTHubPartition(config, partition).source(offsets.get.values(partition), withCheckpoints).via(streamManager)
-
+        for (partition ← partitions) {
+          val graph = IoTHubPartition(config, partition).source(options).via(streamManager)
           val source = Source.fromGraph(graph).async
           source ~> merge
         }

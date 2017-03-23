@@ -4,6 +4,7 @@ tools/devices-simulator/credentials.js
 *.crt
 .ensime
 _dev
+TODO.txt
 
 ### MacOS ###
 .DS_Store

@@ -9,6 +9,7 @@ import akka.stream.scaladsl.Source
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import akka.stream.{Attributes, Outlet, SourceShape}
 import com.microsoft.azure.eventhubs.{PartitionReceiver, ReceiverOptions, ReceiverRuntimeInformation}
+import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -24,8 +25,8 @@ private object MessageFromDeviceSource {
     * @return A source returning the body of the message sent from a device.
     *         Deserialization is left to the consumer.
     */
-  def apply(config: IConfiguration, partition: Int, offset: String, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    Source.fromGraph(new MessageFromDeviceSource(config, partition, offset, withCheckpoints))
+  def apply(config: IConfiguration, partition: Int, offset: String): Source[MessageFromDevice, NotUsed] = {
+    Source.fromGraph(new MessageFromDeviceSource(config, partition, offset))
   }
 
   /** Create an instance of the messages source for the specified partition
@@ -36,14 +37,38 @@ private object MessageFromDeviceSource {
     * @return A source returning the body of the message sent from a device.
     *         Deserialization is left to the consumer.
     */
-  def apply(config: IConfiguration, partition: Int, startTime: Instant, withCheckpoints: Boolean): Source[MessageFromDevice, NotUsed] = {
-    Source.fromGraph(new MessageFromDeviceSource(config, partition, startTime, withCheckpoints))
+  def apply(config: IConfiguration, partition: Int, startTime: Instant): Source[MessageFromDevice, NotUsed] = {
+    Source.fromGraph(new MessageFromDeviceSource(config, partition, startTime))
   }
 }
 
 /** Source of messages from one partition of the IoT hub storage
   */
 private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage[SourceShape[MessageFromDevice]] with Logger {
+
+  /** Source of messages from one partition of the IoT hub storage
+    *
+    * @param partition Partition number (0 to N-1) to read from
+    * @param offset    Starting position
+    */
+  def this(config: IConfiguration, partition: Int, offset: String) {
+    this(config)
+    _partition = Some(partition)
+    _offset = Some(offset)
+    offsetType = SequenceOffset
+  }
+
+  /** Source of messages from one partition of the IoT hub storage
+    *
+    * @param partition Partition number (0 to N-1) to read from
+    * @param startTime Starting position
+    */
+  def this(config: IConfiguration, partition: Int, startTime: Instant) {
+    this(config)
+    _partition = Some(partition)
+    _startTime = Some(startTime)
+    offsetType = TimeOffset
+  }
 
   // TODO: Refactor and use async methods, compare performance
   // TODO: Consider option to deserialize on the fly to [T], when JSON Content Type
@@ -59,47 +84,16 @@ private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage
   // When retrieving messages, include the message with the initial offset
   private[this] val OffsetInclusive = true
 
-  private[this] var _partition      : Option[Int]     = None
-  private[this] var _offset         : Option[String]  = None
-  private[this] var _withCheckpoints: Option[Boolean] = None
-  private[this] var _startTime      : Option[Instant] = None
-  private[this] var offsetType      : OffsetType      = UnspecifiedOffset
+  private[this] var _partition: Option[Int]     = None
+  private[this] var _offset   : Option[String]  = None
+  private[this] var _startTime: Option[Instant] = None
+  private[this] var offsetType: OffsetType      = UnspecifiedOffset
 
   private[this] def partition: Int = _partition.get
 
   private[this] def offset: String = _offset.get
 
-  private[this] def withCheckpoints: Boolean = _withCheckpoints.get
-
   private[this] def startTime: Instant = _startTime.get
-
-  /** Source of messages from one partition of the IoT hub storage
-    *
-    * @param partition       Partition number (0 to N-1) to read from
-    * @param offset          Starting position
-    * @param withCheckpoints Whether to read/write current position
-    */
-  def this(config: IConfiguration, partition: Int, offset: String, withCheckpoints: Boolean) {
-    this(config)
-    _partition = Some(partition)
-    _offset = Some(offset)
-    _withCheckpoints = Some(withCheckpoints)
-    offsetType = SequenceOffset
-  }
-
-  /** Source of messages from one partition of the IoT hub storage
-    *
-    * @param partition       Partition number (0 to N-1) to read from
-    * @param startTime       Starting position
-    * @param withCheckpoints Whether to read/write current position
-    */
-  def this(config: IConfiguration, partition: Int, startTime: Instant, withCheckpoints: Boolean) {
-    this(config)
-    _partition = Some(partition)
-    _startTime = Some(startTime)
-    _withCheckpoints = Some(withCheckpoints)
-    offsetType = TimeOffset
-  }
 
   // Define the (sole) output port of this stage
   private[this] val out: Outlet[MessageFromDevice] = Outlet("MessageFromDeviceSource")
@@ -111,7 +105,7 @@ private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage
   // GraphStage. This state is safe to read/write from all the callbacks
   // provided by GraphStageLogic and the registered handlers.
   override def createLogic(attr: Attributes): GraphStageLogic = {
-    log.debug(s"Creating the IoT hub source")
+    log.debug("Creating the IoT hub source")
     new GraphStageLogic(shape) {
 
       val keepAliveSignal = new MessageFromDevice(None, None, None)
@@ -121,21 +115,21 @@ private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage
 
       setHandler(
         out, new OutHandler {
-          log.debug(s"Defining the output handler")
+          log.debug("Defining the output handler")
 
           override def onPull(): Unit = {
             try {
               val messages = Retry(2, 1 seconds) {
-                receiver.receiveSync(config.receiverBatchSize)
+                receiver.receiveSync(config.streaming.receiverBatchSize)
               }
 
               if (messages == null) {
-                log.debug(s"Partition ${partition} is empty")
+                log.debug("Partition {} is empty", partition)
                 emitMultiple(out, emptyResult)
               } else {
                 val partitionInfo: ReceiverRuntimeInformation = receiver.getRuntimeInformation
                 val iterator = messages.asScala.map(e ⇒ MessageFromDevice(e, Some(partition), Some(partitionInfo))).toList
-                log.debug(s"Emitting ${iterator.size} messages")
+                log.debug("Emitting {} messages", iterator.size)
                 emitMultiple(out, iterator)
               }
             } catch {
@@ -145,7 +139,7 @@ private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage
 
           override def onDownstreamFinish(): Unit = {
             super.onDownstreamFinish()
-            log.info(s"Closing partition ${partition} receiver")
+            log.info("Closing partition {} receiver", partition)
             receiver.closeSync()
           }
         })
@@ -156,26 +150,26 @@ private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage
         */
       def getIoTHubReceiver(): PartitionReceiver = Retry(3, 2 seconds) {
         val receiverOptions = new ReceiverOptions()
-        receiverOptions.setReceiverRuntimeMetricEnabled(config.retrieveRuntimeMetric)
+        receiverOptions.setReceiverRuntimeMetricEnabled(config.streaming.retrieveRuntimeMetric)
         offsetType match {
 
           case SequenceOffset ⇒
-            log.info(s"Connecting to partition ${partition.toString} starting from offset '${offset}'")
-            IoTHubStorage(config)
+            log.info("Connecting to partition {} starting from offset '{}'", partition, offset)
+            IoTHubStorage(config.connect)
               .createClient()
               .createReceiverSync(
-                config.receiverConsumerGroup,
+                config.streaming.receiverConsumerGroup,
                 partition.toString,
                 offset,
                 OffsetInclusive,
                 receiverOptions)
 
           case TimeOffset ⇒
-            log.info(s"Connecting to partition ${partition.toString} starting from time '${startTime}'")
-            IoTHubStorage(config)
+            log.info("Connecting to partition {} starting from time '{}'", partition, startTime)
+            IoTHubStorage(config.connect)
               .createClient()
               .createReceiverSync(
-                config.receiverConsumerGroup,
+                config.streaming.receiverConsumerGroup,
                 partition.toString,
                 startTime,
                 receiverOptions)

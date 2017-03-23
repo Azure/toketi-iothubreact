@@ -69,9 +69,19 @@ trait ICPConfiguration {
   val cassandraAuth: Option[Auth]
 }
 
+object CPConfiguration {
+
+  def apply(): ICPConfiguration = new CPConfiguration()
+
+  def apply(configData: Config): ICPConfiguration = new CPConfiguration(configData)
+}
+
 /** Hold IoT Hub stream checkpointing configuration settings
   */
-private[iothubreact] class CPConfiguration(configData: Config) extends ICPConfiguration {
+class CPConfiguration(configData: Config) extends ICPConfiguration {
+
+  // Parameterless ctor
+  def this() = this(ConfigFactory.load)
 
   // TODO: Allow to use multiple configurations, e.g. while processing multiple streams
   //       a client will need a dedicated checkpoint container for each stream

@@ -8,23 +8,24 @@ import akka.Done
 import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.{Configuration, IConfiguration, Logger, MessageToDevice}
+import com.microsoft.azure.iot.iothubreact.config.{ConnectConfiguration, IConnectConfiguration}
+import com.microsoft.azure.iot.iothubreact.{Logger, MessageToDevice}
 import com.microsoft.azure.sdk.iot.service.{IotHubServiceClientProtocol, ServiceClient}
 
 object MessageToDeviceSink {
   def apply(): MessageToDeviceSink = new MessageToDeviceSink()
 
-  def apply(config: IConfiguration): MessageToDeviceSink = new MessageToDeviceSink(config)
+  def apply(config: IConnectConfiguration): MessageToDeviceSink = new MessageToDeviceSink(config)
 }
 
 /** Send commands (asynchronous messages) from cloud to devices
   */
-class MessageToDeviceSink(config: IConfiguration)
+class MessageToDeviceSink(config: IConnectConfiguration)
   extends ISink[MessageToDevice]
     with Logger {
 
   // Parameterless ctor
-  def this() = this(Configuration())
+  def this() = this(ConnectConfiguration())
 
   private[iothubreact] val protocol     = IotHubServiceClientProtocol.AMQPS
   private[iothubreact] val timeoutMsecs = 15000
@@ -42,13 +43,13 @@ class MessageToDeviceSink(config: IConfiguration)
     }
   }
 
-  log.info(s"Connecting client to ${config.accessHostname} ...")
+  log.info("Connecting client to ${} ...", config.accessHostname)
   serviceClient.open()
 
   def scalaSink(): ScalaSink[MessageToDevice, scala.concurrent.Future[Done]] =
     ScalaSink.foreach[MessageToDevice] {
       m ⇒ {
-        log.info("Sending message to device " + m.deviceId)
+        log.info("Sending message to device {}", m.deviceId)
         serviceClient.sendAsync(m.deviceId, m.message)
       }
     }

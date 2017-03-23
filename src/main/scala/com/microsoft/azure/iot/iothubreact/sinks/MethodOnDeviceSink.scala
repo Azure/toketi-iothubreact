@@ -9,7 +9,8 @@ import java.util.concurrent.CompletionStage
 import akka.Done
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.{Configuration, IConfiguration, Logger, MethodOnDevice}
+import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
+import com.microsoft.azure.iot.iothubreact.{Logger, MethodOnDevice}
 
 object MethodOnDeviceSink {
   def apply(): MethodOnDeviceSink = new MethodOnDeviceSink()

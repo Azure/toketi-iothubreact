@@ -3,7 +3,7 @@
 package OSN.Demo.Checkpoints
 
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.MessageFromDevice
+import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, SourceOptions}
 import com.microsoft.azure.iot.iothubreact.filters.{Device, MessageSchema}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
@@ -15,7 +15,6 @@ object Console {
     m ⇒ println(
       s"${m.received} - ${m.deviceId} - ${m.messageSchema}"
         + s" - ${m.contentAsString}")
-
   }
 }
 
@@ -23,7 +22,7 @@ object Demo extends App {
 
   IoTHub()
 
-    .source(withCheckpoints = true) // <===
+    .source(SourceOptions().savePosition()) // <===
 
     .filter(MessageSchema("temperature"))
 

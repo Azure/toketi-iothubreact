@@ -7,6 +7,7 @@ import java.util.concurrent.CompletionStage
 import akka.Done
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
+import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 import com.microsoft.azure.iot.iothubreact.sinks._
 
 import scala.concurrent.Future
@@ -27,9 +28,9 @@ trait TypedSink[A] {
 object TypedSink {
 
   implicit object MessageToDeviceSinkDef extends TypedSink[MessageToDevice] {
-    override def scalaDefinition(config: IConfiguration): ScalaSink[MessageToDevice, Future[Done]] = MessageToDeviceSink(config).scalaSink()
+    override def scalaDefinition(config: IConfiguration): ScalaSink[MessageToDevice, Future[Done]] = MessageToDeviceSink(config.connect).scalaSink()
 
-    override def javaDefinition(config: IConfiguration): JavaSink[MessageToDevice, CompletionStage[Done]] = MessageToDeviceSink(config).javaSink()
+    override def javaDefinition(config: IConfiguration): JavaSink[MessageToDevice, CompletionStage[Done]] = MessageToDeviceSink(config.connect).javaSink()
   }
 
   implicit object MethodOnDeviceSinkDef extends TypedSink[MethodOnDevice] {

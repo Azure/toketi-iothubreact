@@ -7,7 +7,7 @@ import java.time.Instant
 import akka.actor.Props
 import akka.pattern.ask
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.MessageFromDevice
+import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, SourceOptions}
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 import it.helpers.{Counter, Device}
@@ -52,11 +52,11 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
         // We'll use this as the streaming start date
         val startTime = Instant.now().minusSeconds(30)
-        log.info(s"Test run: ${testRunId}, Start time: ${startTime}")
+        log.info("Test run: {}, Start time: {}", testRunId, startTime)
 
         Given("An IoT hub is configured")
         val hub = IoTHub()
-        val messages = hub.source(startTime, false)
+        val messages = hub.source(SourceOptions().fromTime(startTime))
 
         And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
         for (msgNumber ← 1 to MessagesPerDevice) {
@@ -70,7 +70,7 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
         for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).disconnect()
 
-        log.info(s"Messages sent: $expectedMessageCount")
+        log.info("Messages sent: {}", expectedMessageCount)
 
         When("A client application processes messages from the stream")
         counter ! "reset"
@@ -90,7 +90,7 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
           Thread.sleep(pause)
           time -= pause
           actualMessageCount = readCounter
-          log.info(s"Messages received so far: ${actualMessageCount} of ${expectedMessageCount} [Time left ${time / 1000} secs]")
+          log.info("Messages received so far: {} of {} [Time left {} secs]", actualMessageCount, expectedMessageCount, time / 1000)
         }
 
         hub.close()

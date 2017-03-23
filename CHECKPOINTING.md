@@ -5,8 +5,13 @@ to restarts and crashes.
 
 *Checkpoints* are saved automatically, with a configured frequency, on a storage provided.
 
-For instance, the stream position can be saved every 15 seconds in Azure blobs, in Cassandra, or 
-(soon) a custom backend.
+For instance, the stream position can be saved in Azure blobs, or in Cassandra, every 15 seconds or 
+more (the value is configurable), or every N messages.
+
+Currently **at-least-once** behavior is not supported, because the position is saved concurrently 
+(although delayed), so it's possible that the position saved is ahead of your logic processing each 
+event. We plan to support *at-least-once*, guaranteeing that the position saved is always equal
+or behind the one already processed.
 
 To store checkpoints in Azure blobs the configuration looks like the following:
 
@@ -71,13 +76,15 @@ We plan to allow plugging in custom storage backends, by implementing a simple
 [interface](src/main/scala/com/microsoft/azure/iot/iothubreact/checkpointing/Backends/CheckpointBackend.scala)
 to read and write the stream position. Let us know if you are interested!
 
-There is also one API parameter to enable/disable the checkpointing feature, for example:
+The checkpointing feature must be enabled in the configuration, however, the library will not save 
+the position automatically, unless instructed. To use checkpointing, use the `savePosition` option:
 
 ```scala
-val start = java.time.Instant.now()
-val withCheckpoints = false
+val options = SourceOptions()
+  .fromTime(java.time.Instant.now())
+  .savePosition()
 
-IoTHub().source(start, withCheckpoints)
+IoTHub().source(options)
     .map(m ⇒ jsonParser.readValue(m.contentAsString, classOf[Temperature]))
     .filter(_.value > 100)
     .to(console)
@@ -88,13 +95,13 @@ IoTHub().source(start, withCheckpoints)
 
 ### Configuration
 
-The following table describes the impact of the settings within the `checkpointing` 
+The following table describes the impact of the settings within the `iothub-react.checkpointing` 
 configuration block. For further information, you can also check the 
 [reference.conf](src/main/resources/reference.conf) file.
 
 | Setting | Type | Example | Description |
 |---------|------|---------|-------------|
-| **enabled**             | bool                 | true        | Global switch to enable/disable the checkpointing feature. This value overrides the API parameter "withCheckpoints". |
+| **enabled**             | bool                 | true        | Global switch to enable/disable the checkpointing feature. The "savePosition" option works only when this is enabled. |
 | **frequency**           | duration             | 15s         | How often to check if the offset in memory should be saved to storage. The check is scheduled after at least one message has been received, for each partition individually. |
 | **countThreshold**      | int                  | 1000        | How many messages to stream before saving the position. The setting is applied to each partition individually. The value should be big enough to take into account buffering and batching. |
 | **timeThreshold**       | duration             | 60s         | In case of low traffic (i.e. when not reaching countThreshold), save a stream position older than this value.|
@@ -109,13 +116,13 @@ The following table describes the system behavior, based on **API parameters** a
 | Checkpointing | Start point | Saved position | Behavior |
 |:---:|:---:|:-------:|---|
 | No  | No  | No      | The stream starts from the beginning
-| No  | No  | **Yes** | The stream starts from the beginning (**the saved position is ignored**)
+| No  | No  | **Yes** | The stream starts from the beginning, unless you use `fromSavedPosition`
 | No  | Yes | No      | The stream starts from the 'start point' provided
-| No  | Yes | **Yes** | The stream starts from the 'start point' provided (**the saved position is ignored**)
+| No  | Yes | **Yes** | The stream starts from the 'start point' provided
 | Yes | No  | No      | The stream starts from the beginning
-| Yes | No  | **Yes** | **The stream starts from the saved position**
+| Yes | No  | **Yes** | The stream starts from the beginning, unless you use `fromSavedPosition`
 | Yes | Yes | No      | The stream starts from the 'start point' provided
-| Yes | Yes | **Yes** | **The stream starts from the saved position**
+| Yes | Yes | **Yes** | The stream starts from the saved position
 
 Legend:
 * **Checkpointing**: whether checkpointing (saving the stream position) is enabled or disabled

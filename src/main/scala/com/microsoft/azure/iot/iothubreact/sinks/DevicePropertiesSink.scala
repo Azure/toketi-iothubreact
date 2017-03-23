@@ -9,7 +9,8 @@ import java.util.concurrent.CompletionStage
 import akka.Done
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.{Configuration, DeviceProperties, IConfiguration, Logger}
+import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
+import com.microsoft.azure.iot.iothubreact.{DeviceProperties, Logger}
 
 object DevicePropertiesSink {
   def apply(): DevicePropertiesSink = new DevicePropertiesSink()
