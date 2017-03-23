@@ -5,10 +5,6 @@ package api
 
 // NOTE: No global imports from the library, to make easier detecting breaking changes
 
-import java.time.Instant
-
-import org.mockito.Mockito._
-
 class APIIsBackwardCompatible
   extends org.scalatest.FeatureSpec
     with org.scalatest.mockito.MockitoSugar {
@@ -158,9 +154,9 @@ class APIIsBackwardCompatible
       val o: SourceOptions = SourceOptions()
         .fromStart
         .fromStart()
-        .fromTime(Instant.now)
+        .fromTime(java.time.Instant.now)
         .fromSavedOffsets()
-        .fromSavedOffsets(Instant.now)
+        .fromSavedOffsets(java.time.Instant.now)
         .allPartitions
         .allPartitions()
         .partitions(0, 2, 4)

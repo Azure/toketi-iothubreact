@@ -101,16 +101,16 @@ class MessageFromDevice(
   lazy val contentAsString: String = new String(content)
 
   // Information about the partition containing the current message
-  lazy val partitionInfo: PartitionInfo =
+  lazy val runtimeInfo: SourceRuntimeInfo =
     if (partNumber.isEmpty) {
-      new PartitionInfo(None, None, None, None)
+      new SourceRuntimeInfo(new SourcePartitionInfo(None, None, None, None))
     } else if (partInfo.isEmpty) {
-      new PartitionInfo(partNumber, None, None, None)
+      new SourceRuntimeInfo(new SourcePartitionInfo(partNumber, None, None, None))
     } else {
-      new PartitionInfo(
+      new SourceRuntimeInfo(new SourcePartitionInfo(
         partNumber,
         Some(partInfo.get.getLastSequenceNumber),
         Some(partInfo.get.getLastEnqueuedOffset),
-        Some(partInfo.get.getLastEnqueuedTime))
+        Some(partInfo.get.getLastEnqueuedTime)))
     }
 }

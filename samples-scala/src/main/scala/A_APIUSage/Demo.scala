@@ -140,7 +140,8 @@ object StreamIncludingRuntimeInformation extends App {
   val messages = IoTHub().source(SourceOptions().fromStart().withRuntimeInfo())
 
   val console = Sink.foreach[MessageFromDevice] {
-    m ⇒ println(s"Partition ${m.partitionInfo.partitionNumber.get}: ${m.partitionInfo.lastSequenceNumber.get - m.sequenceNumber} messages left to stream")
+    m ⇒ println(s"Partition ${m.runtimeInfo.partitionInfo.partitionNumber.get}: " +
+      s"${m.runtimeInfo.partitionInfo.lastSequenceNumber.get - m.sequenceNumber} messages left to stream")
   }
 
   messages

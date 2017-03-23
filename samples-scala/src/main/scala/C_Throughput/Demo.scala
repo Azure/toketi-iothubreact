@@ -21,10 +21,10 @@ object Demo extends App {
     m ⇒ {
       Monitoring.total += 1
 
-      val partition = m.partitionInfo.partitionNumber.get
+      val partition = m.runtimeInfo.partitionInfo.partitionNumber.get
       Monitoring.totals(partition) += 1
-      Monitoring.remain(partition) = if (m.partitionInfo.lastSequenceNumber.isEmpty) 0
-                                     else m.partitionInfo.lastSequenceNumber.get - m.sequenceNumber
+      Monitoring.remain(partition) = if (m.runtimeInfo.partitionInfo.lastSequenceNumber.isEmpty) 0
+                                     else m.runtimeInfo.partitionInfo.lastSequenceNumber.get - m.sequenceNumber
     }
   }
 
