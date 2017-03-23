@@ -3,9 +3,15 @@
 // NOTE: Namespace chosen to avoid access to internal classes
 package api
 
-// NOTE: No global imports to make easier detecting breaking changes
+// NOTE: No global imports from the library, to make easier detecting breaking changes
 
-class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalatest.mockito.MockitoSugar {
+import java.time.Instant
+
+import org.mockito.Mockito._
+
+class APIIsBackwardCompatible
+  extends org.scalatest.FeatureSpec
+    with org.scalatest.mockito.MockitoSugar {
 
   info("As a developer using Azure IoT hub React")
   info("I want to be able to upgrade to new minor versions without changing my code")
@@ -144,6 +150,29 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with org.scalate
 
       hub1.close()
       hub2.close()
+    }
+
+    Scenario("Using SourceOptions") {
+      import com.microsoft.azure.iot.iothubreact.SourceOptions
+
+      val o: SourceOptions = SourceOptions()
+        .fromStart
+        .fromStart()
+        .fromTime(Instant.now)
+        .fromSavedOffsets()
+        .fromSavedOffsets(Instant.now)
+        .allPartitions
+        .allPartitions()
+        .partitions(0, 2, 4)
+        .partitions(Seq(0, 1, 2))
+        .partitions(Array(1, 2, 3, 4))
+        .fromOffsets("1", "2")
+        .fromOffsets(Seq("1", "2"))
+        .fromOffsets(Array("1", "2"))
+        .saveOffsets
+        .saveOffsets()
+        .withRuntimeInfo
+        .withRuntimeInfo()
     }
   }
 }
