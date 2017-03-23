@@ -150,7 +150,7 @@ private class MessageFromDeviceSource(config: IConfiguration) extends GraphStage
         */
       def getIoTHubReceiver(): PartitionReceiver = Retry(3, 2 seconds) {
         val receiverOptions = new ReceiverOptions()
-        receiverOptions.setReceiverRuntimeMetricEnabled(config.streaming.retrieveRuntimeMetric)
+        receiverOptions.setReceiverRuntimeMetricEnabled(config.streaming.retrieveRuntimeInfo)
         offsetType match {
 
           case SequenceOffset ⇒

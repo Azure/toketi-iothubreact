@@ -15,10 +15,6 @@ import scala.util.Try
   */
 trait ICPConfiguration {
 
-  /** Whether checkpointing is enabled
-    */
-  val isEnabled: Boolean
-
   /** Namespace where the table with checkpoint data is stored (e.g. Cassandra keyspace)
     */
   val storageNamespace: String
@@ -130,9 +126,6 @@ class CPConfiguration(configData: Config) extends ICPConfiguration {
     case _           ⇒ "iothub-react-checkpoints"
   }
 
-  // Whether checkpointing is enabled or not
-  lazy val isEnabled: Boolean = configData.getBoolean(confPath + "enabled")
-
   // How often checkpoint data is written to the storage
   lazy val checkpointFrequency: FiniteDuration = getDuration(
     confPath + "frequency",
@@ -180,12 +173,16 @@ class CPConfiguration(configData: Config) extends ICPConfiguration {
   // Cassandra cluster address
   lazy val cassandraCluster          : String       = configData.getString(confPath + "storage.cassandra.cluster")
   lazy val cassandraReplicationFactor: Int          = configData.getInt(confPath + "storage.cassandra.replicationFactor")
-  lazy val cassandraAuth             : Option[Auth] = (for {
-    u <- Try(configData.getString(confPath + "storage.cassandra.username"))
-    p <- Try(configData.getString(confPath + "storage.cassandra.password"))
-  } yield {
-    Auth(u, p)
-  }).toOption
+  lazy val cassandraAuth             : Option[Auth] =
+    (for {
+      u <- Try(configData.getString(confPath + "storage.cassandra.username"))
+      p <- Try(configData.getString(confPath + "storage.cassandra.password"))
+    } yield {
+      Auth(u, p)
+    }).toOption match {
+      case Some(x) if !x.username.isEmpty ⇒ Some(x)
+      case _                              ⇒ None
+    }
 
   /** Load Azure blob connection string, taking care of the Azure storage emulator case
     *

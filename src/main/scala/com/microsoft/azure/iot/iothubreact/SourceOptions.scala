@@ -23,14 +23,14 @@ class SourceOptions() {
   private[this] var _allPartitions          : Boolean             = true
   private[this] var _partitions             : Option[Seq[Int]]    = None
   private[this] var _isFromStart            : Boolean             = true
-  private[this] var _isFromOffset           : Boolean             = false
+  private[this] var _isFromOffsets          : Boolean             = false
   private[this] var _isFromTime             : Boolean             = false
   private[this] var _isFromCheckpoint       : Boolean             = false
   private[this] var _startTime              : Option[Instant]     = None
   private[this] var _startTimeOnNoCheckpoint: Option[Instant]     = None
   private[this] var _startOffsets           : Option[Seq[String]] = None
-  private[this] var _isStoreCheckpoint      : Boolean             = false
-  private[this] var _isWithMetrics          : Boolean             = false
+  private[this] var _isSaveOffsets          : Boolean             = false
+  private[this] var _isWithRuntimeInfo      : Boolean             = false
 
   /** Set the options to retrieve events from all the Hub partitions
     *
@@ -84,7 +84,7 @@ class SourceOptions() {
     */
   def fromStart(): SourceOptions = {
     _isFromStart = true
-    _isFromOffset = false
+    _isFromOffsets = false
     _isFromTime = false
     _isFromCheckpoint = false
     _startTime = None
@@ -102,7 +102,7 @@ class SourceOptions() {
   def fromTime(value: Instant): SourceOptions = {
     _startTime = Some(value)
     _isFromStart = false
-    _isFromOffset = false
+    _isFromOffsets = false
     _isFromTime = true
     _isFromCheckpoint = false
     _startTimeOnNoCheckpoint = None
@@ -119,7 +119,7 @@ class SourceOptions() {
   def fromOffsets[X: ClassTag](values: String*): SourceOptions = {
     _startOffsets = Some(values)
     _isFromStart = false
-    _isFromOffset = true
+    _isFromOffsets = true
     _isFromTime = false
     _isFromCheckpoint = false
     _startTime = None
@@ -151,15 +151,15 @@ class SourceOptions() {
     */
   def fromOffsets(values: Array[java.lang.String]): SourceOptions = fromOffsets(values.toSeq)
 
-  /** Set the options to start streaming for the saved position
+  /** Set the options to start streaming for the saved offsets
     *
     * @param startTimeIfMissing
     *
     * @return Current instance
     */
-  def fromSavedPosition(startTimeIfMissing: Instant = Instant.MIN): SourceOptions = {
+  def fromSavedOffsets(startTimeIfMissing: Instant = Instant.MIN): SourceOptions = {
     _isFromStart = false
-    _isFromOffset = false
+    _isFromOffsets = false
     _isFromTime = false
     _isFromCheckpoint = true
     _startOffsets = None
@@ -168,49 +168,54 @@ class SourceOptions() {
     this
   }
 
-  /** Set the options to store the stream position
+  /** Set the options to store the stream offset
     *
     * @return Current instance
     */
-  def savePosition(): SourceOptions = {
-    _isStoreCheckpoint = true
+  def saveOffsets(): SourceOptions = {
+    _isSaveOffsets = true
     this
   }
 
-  /** Set the options to include Hub runtime metrics in the stream
+  /** Set the options to include Hub runtime information in the stream
     *
     * @return Current instance
     */
-  def withMetrics(): SourceOptions = {
-    _isWithMetrics = true
+  def withRuntimeInfo(): SourceOptions = {
+    _isWithRuntimeInfo = true
     this
   }
 
-  private[iothubreact] def getStartTime: Instant = _startTime.get
+  private[iothubreact] def getStartTime: Option[Instant] = _startTime
 
   private[iothubreact] def getStartTimeOnNoCheckpoint: Option[Instant] = _startTimeOnNoCheckpoint
 
-  private[iothubreact] def getOffsets(config: IConnectConfiguration): Seq[String] = {
-    if (_isFromStart || _isFromCheckpoint)
+  private[iothubreact] def getStartOffsets(config: IConnectConfiguration): Seq[String] = {
+    if (!_isFromOffsets)
       List.fill[String](config.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream)
-    else
-      List.fill[String](config.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream)
+    else {
+      if (_startOffsets.get.size != config.iotHubPartitions)
+        throw new RuntimeException(s"The number of stream offsets [${_startOffsets.get.size}] " +
+          s"differs from the number of partitions [${config.iotHubPartitions}]")
+
+      _startOffsets.get
+    }
   }
-
-  private[iothubreact] def isFromStart: Boolean = _isFromStart
-
-  private[iothubreact] def isFromOffset: Boolean = _isFromOffset
-
-  private[iothubreact] def isFromTime: Boolean = _isFromTime
-
-  private[iothubreact] def isFromCheckpoint: Boolean = _isFromCheckpoint
 
   private[iothubreact] def getPartitions(config: IConnectConfiguration): Seq[Int] = {
     if (_allPartitions) 0 until config.iotHubPartitions
     else _partitions.get
   }
 
-  private[iothubreact] def isStoreCheckpoint: Boolean = _isStoreCheckpoint
+  private[iothubreact] def isFromStart: Boolean = _isFromStart
 
-  private[iothubreact] def isWithMetrics: Boolean = _isWithMetrics
+  private[iothubreact] def isFromOffsets: Boolean = _isFromOffsets
+
+  private[iothubreact] def isFromTime: Boolean = _isFromTime
+
+  private[iothubreact] def isFromSavedOffsets: Boolean = _isFromCheckpoint
+
+  private[iothubreact] def isSaveOffsets: Boolean = _isSaveOffsets
+
+  private[iothubreact] def isWithRuntimeInfo: Boolean = _isWithRuntimeInfo
 }

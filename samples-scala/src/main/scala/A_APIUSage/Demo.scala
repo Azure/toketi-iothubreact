@@ -77,11 +77,11 @@ object OnlyTwoPartitions extends App {
 
 /** Stream and save the position while streaming
   */
-object StorePositionWhileStreaming extends App {
+object StoreOffsetsWhileStreaming extends App {
 
-  println(s"Streaming messages and save position while streaming")
+  println(s"Streaming messages and save offsets while streaming")
 
-  val messages = IoTHub().source(SourceOptions().savePosition())
+  val messages = IoTHub().source(SourceOptions().saveOffsets())
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
@@ -96,11 +96,11 @@ object StorePositionWhileStreaming extends App {
 
 /** Streaming messages from a saved position, without updating the position stored
   */
-object StartFromStoredPositionButDontWriteNewPosition extends App {
+object StartFromStoredOffsetsButDontWriteNewOffsets extends App {
 
   println(s"Streaming messages from a saved position, without updating the position stored")
 
-  val messages = IoTHub().source(SourceOptions().fromSavedPosition())
+  val messages = IoTHub().source(SourceOptions().fromSavedOffsets())
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
@@ -116,11 +116,11 @@ object StartFromStoredPositionButDontWriteNewPosition extends App {
 /** Streaming messages from a saved position, without updating the position stored.
   * If there is no position saved, start from one hour in the past.
   */
-object StartFromStoredPositionIfAvailableOrByStartTimeOtherwise extends App {
+object StartFromStoredOffsetsIfAvailableOrByTimeOtherwise extends App {
 
   println(s"Streaming messages from a saved position, without updating the position stored. If there is no position saved, start from one hour in the past.")
 
-  val messages = IoTHub().source(SourceOptions().fromSavedPosition(Instant.now().minusSeconds(3600)))
+  val messages = IoTHub().source(SourceOptions().fromSavedOffsets(Instant.now().minusSeconds(3600)))
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
@@ -133,11 +133,11 @@ object StartFromStoredPositionIfAvailableOrByStartTimeOtherwise extends App {
     .run()
 }
 
-object StreamIncludingRuntimeMetrics extends App {
+object StreamIncludingRuntimeInformation extends App {
 
   println(s"Stream messages and print how many messages are left in each partition.")
 
-  val messages = IoTHub().source(SourceOptions().fromStart().withMetrics())
+  val messages = IoTHub().source(SourceOptions().fromStart().withRuntimeInfo())
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"Partition ${m.partitionInfo.partitionNumber.get}: ${m.partitionInfo.lastSequenceNumber.get - m.sequenceNumber} messages left to stream")
@@ -157,7 +157,7 @@ object MultipleStreamingOptionsAndSyntaxSugar extends App {
   val options = SourceOptions()
     .partitions(0, 2, 3)
     .fromOffsets("614", "64365", "123512")
-    .savePosition()
+    .saveOffsets()
 
   val messages = IoTHub().source(options)
 

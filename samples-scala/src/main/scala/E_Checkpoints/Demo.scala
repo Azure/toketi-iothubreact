@@ -22,7 +22,7 @@ object Demo extends App {
   }
 
   // Stream using checkpointing
-  IoTHub().source(SourceOptions().savePosition)
+  IoTHub().source(SourceOptions().saveOffsets)
     .filter(Device("device1000"))
     .to(console)
     .run()

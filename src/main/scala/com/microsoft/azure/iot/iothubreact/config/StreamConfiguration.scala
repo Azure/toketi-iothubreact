@@ -23,7 +23,7 @@ trait IStreamConfiguration {
   val receiverBatchSize: Int
 
   // Whether to retrieve information about the partitions while streming events from IoT Hub.
-  val retrieveRuntimeMetric: Boolean
+  val retrieveRuntimeInfo: Boolean
 }
 
 object StreamConfiguration {
@@ -63,5 +63,5 @@ class StreamConfiguration(configData: Config) extends IStreamConfiguration {
     case _                                 ⇒ MaxBatchSize
   }
 
-  lazy val retrieveRuntimeMetric = configData.getBoolean(confStreamingPath + "retrieveRuntimeMetric")
+  lazy val retrieveRuntimeInfo = configData.getBoolean(confStreamingPath + "retrieveRuntimeInfo")
 }

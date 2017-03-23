@@ -133,7 +133,7 @@ more partitions, you can use the `SourceOptions` class, combining multiple setti
 val options = SourceOptions()
   .partitions(0,2,3)
   .fromTime(java.time.Instant.now())
-  .withMetrics()
+  .withRuntimeInfo()
   .savePosition()
 
 IoTHub().source(options)
@@ -253,14 +253,13 @@ There are other settings, to tune performance and connection details:
 * **streaming.consumerGroup**: the 
   [consumer group](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview)
   used during the connection
-* **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. The 
-  default (and maximum) value is 999.
-* **streaming.receiverTimeout**: timeout applied to calls while retrieving messages. The default value is 
-  3 seconds.
-* **streaming.retrieveRuntimeMetric**: when enabled, the messages returned by `IoTHub.Source` will
+* **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. 
+  The default (and maximum) value is 999.
+* **streaming.receiverTimeout**: timeout applied to calls while retrieving messages. The default 
+  value is 3 seconds.
+* **streaming.retrieveRuntimeInfo**: when enabled, the messages returned by `IoTHub.Source` will
   contain some runtime information about the last message in each partition. You can use this 
   information to calculate how many telemetry events remain to process.
-* **checkpointing.enabled**: whether checkpointing is eanbled
 
 The complete configuration reference (and default values) is available in 
 [reference.conf](src/main/resources/reference.conf).
@@ -288,15 +287,15 @@ React API works. All the demos require an instance of Azure IoT hub, with some d
 11. **PrintTemperature** [Scala]: stream all Temperature events and print data to the console.
 12. **Throughput** [Scala]: stream all events and display statistics about the throughput.
 13. **Throttling** [Scala]: throttle the incoming stream to a defined speed of events/second.
-14. **StorePositionWhileStreaming** [Scala]: demonstrates how the stream can be restarted without losing its position.
+14. **StoreOffsetsWhileStreaming** [Scala]: demonstrates how the stream can be restarted without losing its position.
     The current position is stored in a Cassandra table (we suggest to run a docker container for
     the purpose of the demo, e.g. `docker run -ip 9042:9042 --rm cassandra`).
-15. **StartFromStoredPositionButDontWriteNewPosition** [Scala]: shows how to use the saved checkpoints
+15. **StartFromStoredOffsetsButDontWriteNewOffsets** [Scala]: shows how to use the saved checkpoints
     to start streaming from a known position, without changing the value in the storage. If the
     storage doesn't contain checkpoints, the stream starts from the beginning.
-16. **StartFromStoredPositionIfAvailableOrByStartTimeOtherwise** [Scala]: similar to the previous
+16. **StartFromStoredOffsetsIfAvailableOrByTimeOtherwise** [Scala]: similar to the previous
     demo, with a fallback datetime when the storage doesn't contain checkpoints.
-17. **StreamIncludingRuntimeMetrics** [Scala]: shows how runtime metrics work.
+17. **StreamIncludingRuntimeInformation** [Scala]: shows how runtime information works.
 18. **SendMessageToDevice** [Scala]: another example showing how to send 2 different messages to 
     connected devices.
 
@@ -320,15 +319,14 @@ and `run_<language>_samples.cmd`):
 
 ## Future work (MoSCoW)
 
-* M: realtime metrics about the remaining backlog
-* S: device twins and device methods
-* S: redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
-* S: checkpointing sink to acknowledge events after consumption
-* C: clustering awareness
+* M: device twins and device methods
+* M: support at-least-once when checkpointing
+* S: clustering awareness
+* C: redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
+* C: reopen hub after closing (currently one creates a new instance)
 * W: asynchronicity by using EventHub SDK async APIs
-* W: reopen hub after closing (currently one creates a new instance)
 
-# Contribute Code
+# Contributing
 
 ## Contribution license Agreement
 

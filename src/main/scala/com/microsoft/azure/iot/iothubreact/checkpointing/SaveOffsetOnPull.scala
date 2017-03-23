@@ -11,7 +11,7 @@ import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.Updat
   *
   * @param partition IoT hub partition number
   */
-private[iothubreact] class SavePositionOnPull(cpconfig: ICPConfiguration, partition: Int)
+private[iothubreact] class SaveOffsetOnPull(cpconfig: ICPConfiguration, partition: Int)
   extends GraphStage[FlowShape[MessageFromDevice, MessageFromDevice]] {
 
   val in   = Inlet[MessageFromDevice]("Checkpoint.Flow.in")

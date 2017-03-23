@@ -11,7 +11,7 @@ import akka.util.Timeout
 import com.microsoft.azure.eventhubs.PartitionReceiver
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, SavePositionOnPull}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, SaveOffsetOnPull}
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 import com.microsoft.azure.iot.iothubreact.filters.Ignore
 
@@ -44,7 +44,7 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
   def source(options: SourceOptions): Source[MessageFromDevice, NotUsed] = {
 
     // Load the partition offset saved in the checkpoint storage
-    val savedOffset = if (!options.isFromCheckpoint)
+    val savedOffset = if (!options.isFromSavedOffsets)
                         None
                       else {
                         val savedOffset = GetSavedOffset
@@ -64,20 +64,20 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
                       }
 
     // Define the start point offset
-    val startOffset = if (options.isFromStart) Some(IoTHubPartition.OffsetStartOfStream)
-                      else if (options.isFromOffset) Some(options.getOffsets(config.connect)(partition))
-                      else if (options.isFromCheckpoint) savedOffset
-                      else if (options.isFromTime) None
-                      else None
+    val startOffsets = if (options.isFromStart) Some(IoTHubPartition.OffsetStartOfStream)
+                       else if (options.isFromOffsets) Some(options.getStartOffsets(config.connect)(partition))
+                       else if (options.isFromSavedOffsets) savedOffset
+                       else if (options.isFromTime) None
+                       else None
 
     // Decide whether to start streaming from a time or an offset
     val withTimeOffset = if (options.isFromTime) true
-                         else if (startOffset.isDefined) false
+                         else if (startOffsets.isDefined) false
                          else if (options.getStartTimeOnNoCheckpoint.isDefined) true
                          else false
 
     // Define the start point timestamp
-    val startTime = if (options.isFromTime) options.getStartTime
+    val startTime = if (options.isFromTime) options.getStartTime.get
                     else if (withTimeOffset) options.getStartTimeOnNoCheckpoint.get
                     else Instant.MIN
 
@@ -85,12 +85,12 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
     val source = if (withTimeOffset)
                    MessageFromDeviceSource(config, partition, startTime).filter(Ignore.keepAlive)
                  else
-                   MessageFromDeviceSource(config, partition, startOffset.get).filter(Ignore.keepAlive)
+                   MessageFromDeviceSource(config, partition, startOffsets.get).filter(Ignore.keepAlive)
 
     // Inject a flow to store the stream position after each pull
-    if (options.isStoreCheckpoint) {
+    if (options.isSaveOffsets) {
       log.debug("Adding checkpointing flow to the partition {} stream", partition)
-      source.via(new SavePositionOnPull(config.checkpointing, partition))
+      source.via(new SaveOffsetOnPull(config.checkpointing, partition))
     } else {
       source
     }
@@ -105,7 +105,7 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
     implicit val rwTimeout = Timeout(config.checkpointing.checkpointRWTimeout)
     try {
       Retry(3, 5 seconds) {
-        log.debug("Loading the stream position for partition {}", partition)
+        log.debug("Loading the stream offset for partition {}", partition)
         val future = (partitionCp ? GetOffset).mapTo[String]
         val offset = Await.result(future, rwTimeout.duration)
         if (offset != IoTHubPartition.OffsetCheckpointNotFound) Some(offset) else None
