@@ -127,14 +127,14 @@ IoTHub().source(start)
 ### Multiple options
 
 `IoTHub().source()` provides a quick API to specify the start time or the partitions. To specify
-more partitions, you can use the `SourceOptions` class, combining multiple settings:
+more options, you can use the `SourceOptions` class, combining multiple settings:
 
 ```scala
 val options = SourceOptions()
   .partitions(0,2,3)
   .fromTime(java.time.Instant.now())
   .withRuntimeInfo()
-  .savePosition()
+  .saveOffsets()
 
 IoTHub().source(options)
     .map(m ⇒ parse(m.contentAsString).extract[Temperature])
@@ -161,8 +161,8 @@ For more information about the checkpointing feature, [please read here](checkpo
 
 ## Build configuration
 
-IoTHubReact is available in Maven Central for Scala 2.11 and 2.12. to import the library add the 
-following reference in your `build.sbt` file:
+IoTHubReact is available in Maven Central for Scala 2.11 and 2.12. To import the library into your
+project, add the following reference in your `build.sbt` file:
 
 ```libraryDependencies += "com.microsoft.azure.iot" %% "iothub-react" % "0.9.0"```
 
@@ -179,12 +179,13 @@ or this dependency in `pom.xml` file when working with Maven:
 IoTHubReact internally uses some libraries like Azure IoT SDK, Azure Storage SDK, Akka etc. 
 If your project depends on these libraries too, your can override the versions, explicitly importing 
 the packages in your `build.sbt` and `pom.xml` files. If you encounter some incompatibility with 
-future versions of these dependencies, let us know opening an issue or sending a PR.
+future versions of these, please let us know opening an issue, or sending a PR.
 
 ### IoTHub configuration
 
-IoTHubReact uses a configuration file to fetch the parameters required to connect to Azure IoT Hub.
-The exact values to use can be found in the [Azure Portal](https://portal.azure.com):
+By default IoTHubReact uses an `application.conf` configuration file to fetch the parameters 
+required to connect to Azure IoT Hub. The connection and authentication values to use, can be found 
+in the [Azure Portal](https://portal.azure.com):
 
 Properties required to receive Device-to-Cloud (D2C) messages:
 
@@ -238,6 +239,9 @@ iothub-react {
 Note that the library will automatically use these exact environment variables, unless overridden
 in your configuration file (all the default settings are stored in 
 [reference.conf](src/main/resources/reference.conf)).
+
+Although using a configuration file is the preferred approach, it's also possible to inject a 
+different configuration at runtime, providing an object implementing the `IConfiguration` interface.
 
 The logging level can be managed overriding Akka configuration, for example:
 
