@@ -34,16 +34,20 @@ class IoTHub(config: IConfiguration) {
 
   /** Sink to call synchronous methods on IoT devices
     *
+    * TODO: make public when implemented
+    *
     * @return Streaming sink
     */
-  def methodSink: Sink[MethodOnDevice, CompletionStage[Done]] =
+  private[this] def methodSink: Sink[MethodOnDevice, CompletionStage[Done]] =
     MethodOnDeviceSink().javaSink()
 
   /** Sink to asynchronously set properties on IoT devices
     *
+    * TODO: make public when implemented
+    *
     * @return Streaming sink
     */
-  def propertySink: Sink[DeviceProperties, CompletionStage[Done]] =
+  private[this] def propertySink: Sink[DeviceProperties, CompletionStage[Done]] =
     DevicePropertiesSink().javaSink()
 
   /** Stream returning all the messages since the beginning, from all the
