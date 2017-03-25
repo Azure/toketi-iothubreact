@@ -5,6 +5,8 @@ tools/devices-simulator/credentials.js
 .ensime
 _dev
 TODO.txt
+_releases
+RELEASING.md
 
 ### MacOS ###
 .DS_Store
