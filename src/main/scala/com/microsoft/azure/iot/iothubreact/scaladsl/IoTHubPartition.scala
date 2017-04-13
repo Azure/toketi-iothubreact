@@ -11,7 +11,7 @@ import akka.util.Timeout
 import com.microsoft.azure.eventhubs.PartitionReceiver
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CPConfiguration, CheckpointActorSystem, ICPConfiguration, SavePositionOnPull}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, ICPConfiguration, SavePositionOnPull}
 import com.microsoft.azure.iot.iothubreact.filters.Ignore
 
 import scala.concurrent.Await
@@ -33,7 +33,7 @@ object IoTHubPartition extends Logger {
   * @param partition IoT hub partition number (0-based). The number of
   *                  partitions is set during the deployment.
   */
-private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit config: ICPConfiguration = new CPConfiguration) extends Logger {
+private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit cpconfig: ICPConfiguration) extends Logger {
 
   /** Stream returning all the messages from the given offset
     *
@@ -46,7 +46,7 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit con
     getSource(
       withTimeOffset = true,
       startTime = startTime,
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && cpconfig.isEnabled)
   }
 
   /** Stream returning all the messages from the given offset
@@ -60,7 +60,7 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit con
     getSource(
       withTimeOffset = false,
       offset = offset,
-      withCheckpoints = withCheckpoints && config.isEnabled)
+      withCheckpoints = withCheckpoints && cpconfig.isEnabled)
   }
 
   /** Stream returning all the messages from the given offset. Checkpoints are NOT saved but ARE loaded at startup.
@@ -138,9 +138,9 @@ private[iothubreact] case class IoTHubPartition(val partition: Int)(implicit con
     *
     * @return Offset
     */
-  private[this] def GetSavedOffset(implicit config: ICPConfiguration): String = {
+  private[this] def GetSavedOffset(): String = {
     val partitionCp = CheckpointActorSystem.getCheckpointService(partition)
-    implicit val rwTimeout = Timeout(config.checkpointRWTimeout)
+    implicit val rwTimeout = Timeout(cpconfig.checkpointRWTimeout)
     try {
       Retry(3, 5 seconds) {
         log.debug(s"Loading the stream position for partition ${partition}")
