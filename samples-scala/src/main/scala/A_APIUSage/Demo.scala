@@ -9,7 +9,7 @@ import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
 import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, MessageToDevice}
-import com.microsoft.azure.sdk.iot.service.sdk.DeliveryAcknowledgement
+import com.microsoft.azure.iot.service.sdk.DeliveryAcknowledgement
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
