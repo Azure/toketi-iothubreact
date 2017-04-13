@@ -2,7 +2,7 @@
 
 package it.helpers
 
-import com.microsoft.azure.iothub._
+import com.microsoft.azure.sdk.iot.device._
 
 /* Test helper to send messages to the hub */
 class Device(deviceId: String) extends Logger {
