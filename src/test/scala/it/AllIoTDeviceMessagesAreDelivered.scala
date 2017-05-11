@@ -74,13 +74,16 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
         When("A client application processes messages from the stream")
         counter ! "reset"
-        val count = Sink.foreach[MessageFromDevice] {
-          m ⇒ counter ! "inc"
-        }
 
+        //send to offset sink
+        val os = hub.offsetSink(1)
         messages
           .filter(m ⇒ m.contentAsString contains testRunId)
-          .runWith(count)
+          .map{ m ⇒
+            counter ! "inc"
+            m
+          }
+          .runWith(os)
 
         Then("Then the client application receives all the messages sent")
         var time = TestTimeout.toMillis.toInt

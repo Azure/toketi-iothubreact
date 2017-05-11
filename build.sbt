@@ -23,7 +23,7 @@ libraryDependencies <++= (scalaVersion) {
 
     Seq(
       // Library dependencies
-      "com.microsoft.azure.iothub-java-client" % "iothub-java-service-client" % iothubServiceClientVersion,
+      "com.microsoft.azure.iothub-java-client" % "iothub-java-service-client" % iothubServiceClientVersion excludeAll ExclusionRule(organization = "com.microsoft.azure.iot"),
       "com.microsoft.azure" % "azure-eventhubs" % azureEventHubSDKVersion,
       "com.microsoft.azure" % "azure-storage" % azureStorageSDKVersion,
       "com.datastax.cassandra" % "cassandra-driver-core" % datastaxDriverVersion,
