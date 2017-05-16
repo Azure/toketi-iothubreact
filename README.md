@@ -6,9 +6,9 @@
 
 # IoTHubReact
 
-IoTHub React is an Akka Stream library that can be used **to read events** from 
+IoTHub React is an Akka Stream library that can be used to read data from 
 [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/), via a **reactive stream** with 
-**asynchronous back pressure**, and **to send commands** to connected devices. 
+**asynchronous back pressure**, and to send messages to connected devices. 
 Azure IoT Hub is a service used to connect thousands to millions of devices to the Azure cloud.
 
 The library can be used both in Java and Scala, providing a fluent DSL for both programming 
@@ -20,7 +20,7 @@ the temperature value:
 
 ```scala
 IoTHub().source()
-    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -36,21 +36,6 @@ new IoTHub().source()
     .filter(x -> x.value > 100)
     .to(console())
     .run(streamMaterializer);
-```
-
-The following shows how to send a command to devices connected to Azure IoT Hub, for instance when
-the device is measuring a high temperature, this sends a command to "turn fan ON":
-
-```scala
-val turnFanOn  = MessageToDevice("Turn fan ON")
-
-IoTHub()
-    .source()
-    .filter(MessageSchema("temperature"))
-    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
-    .filter(_.value > 85)
-    .map(t ⇒ turnFanOn.to(t.deviceId))
-    .to(hub.sink())
 ```
 
 #### Streaming from IoT hub to _any_
@@ -83,7 +68,7 @@ case class KafkaProducer(bootstrapServer: String)(implicit val system: ActorSyst
 val kafkaProducer = KafkaProducer(bootstrapServer)
  
 IoTHub().source()
-    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .runWith(kafkaProducer.getSink())
 ```
@@ -95,15 +80,15 @@ IoTHub().source()
 The library supports reading from a subset of 
 [partitions](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview), 
 to enable the development of distributed applications. Consider for instance the scenario of a 
-client application deployed to multiple nodes, where each node processes independently a subset of 
+client application deployed to multiple nodes, where each node process independently a subset of 
 the incoming telemetry.
 
 ```scala
 val p1 = 0
 val p2 = 3
 
-IoTHub().source(Seq(p1, p2))
-    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
+IoTHub().source(PartitionList(Seq(p1, p2)))
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -118,26 +103,7 @@ It's possible to start the stream from a given date and time too:
 val start = java.time.Instant.now()
 
 IoTHub().source(start)
-    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
-    .filter(_.value > 100)
-    .to(console)
-    .run()
-```
-
-### Multiple options
-
-`IoTHub().source()` provides a quick API to specify the start time or the partitions. To specify
-more options, you can use the `SourceOptions` class, combining multiple settings:
-
-```scala
-val options = SourceOptions()
-  .partitions(0,2,3)
-  .fromTime(java.time.Instant.now())
-  .withRuntimeInfo()
-  .saveOffsets()
-
-IoTHub().source(options)
-    .map(m ⇒ parse(m.contentAsString).extract[Temperature])
+    .map(m => parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
     .to(console)
     .run()
@@ -148,46 +114,109 @@ IoTHub().source(options)
 The library provides a mechanism to restart the stream from a recent *checkpoint*, to be resilient
 to restarts and crashes. 
 *Checkpoints* are saved automatically, with a configured frequency, on a storage provided.
-For instance, the stream position can be saved every 30 seconds and/or every 500 messages 
-(the values are configurable), in a table in Cassandra or using Azure blobs.
+For instance, the stream position can be saved every 15 seconds, in a table in Cassandra, or using 
+Azure blobs, or a custom backend.
 
-Currently the position is saved in a concurrent thread, delayed by time and/or count, depending 
-on the configuration settings. Given the current implementation it's possible that the position
-saved is ahead of your processing logic. While it's possible to mitigate the risk via the
-configuration settings, **at-least-once** cannot be guaranteed. We plan to support 
-**at-least-once** soon, providing more control on the checkpointing logic. 
+To store checkpoints in Azure blobs the configuration looks like this:
 
-For more information about the checkpointing feature, [please read here](checkpointing.md).
+```
+iothub-react{
+
+  [... other settings ...]
+  
+  checkpointing {
+    enabled = true
+    frequency = 15s
+    countThreshold = 1000
+    timeThreshold = 30s
+    
+    storage {
+      rwTimeout = 5s
+      namespace = "iothub-react-checkpoints"
+      
+      backendType = "AzureBlob"
+      azureblob {
+        lease = 15s
+        useEmulator = false
+        protocol = "https"
+        account = "..."
+        key = "..."
+      }
+    }
+  }
+}
+```
+
+Similarly, to store checkpoints in Cassandra:
+
+```
+iothub-react{
+  [...]
+  checkpointing {
+    [...]
+    storage {
+      [...]
+      
+      backendType = "cassandra"
+      cassandra {
+        cluster = "localhost:9042"
+        replicationFactor = 3
+      }
+    }
+  }
+}
+```
+
+There are some [configuration settings](src/main/resources/reference.conf) to manage the 
+checkpoint behavior, and in future it will also be possible to plug-in custom storage backends,
+implementing a simple 
+[interface](src/main/scala/com/microsoft/azure/iot/iothubreact/checkpointing/backends/CheckpointBackend.scala)
+to read and write the stream position.
+
+There is also one API parameter to enabled/disable the checkpointing feature, for example:
+
+```scala
+val start = java.time.Instant.now()
+val withCheckpoints = false
+
+IoTHub().source(start, withCheckpoints)
+    .map(m => parse(m.contentAsString).extract[Temperature])
+    .filter(_.value > 100)
+    .to(console)
+    .run()
+```
 
 ## Build configuration
 
-IoTHubReact is available in Maven Central for Scala 2.11 and 2.12. To import the library into your
-project, add the following reference in your `build.sbt` file:
+IoTHubReact is available on Maven Central, you just need to add the following reference in 
+your `build.sbt` file:
 
-```libraryDependencies += "com.microsoft.azure.iot" %% "iothub-react" % "0.9.0"```
+```scala
+libraryDependencies ++= {
+  val iothubReactV = "0.8.1"
+  
+  Seq(
+    "com.microsoft.azure.iot" %% "iothub-react" % iothubReactV
+  )
+}
+```
 
-or this dependency in `pom.xml` file when working with Maven:
+or this dependency in `pom.xml` file if working with Maven:
 
 ```xml
 <dependency>
     <groupId>com.microsoft.azure.iot</groupId>
     <artifactId>iothub-react_2.12</artifactId>
-    <version>0.9.0</version>
+    <version>0.8.1</version>
 </dependency>
 ```
 
-IoTHubReact internally uses some libraries like Azure IoT SDK, Azure Storage SDK, Akka etc. 
-If your project depends on these libraries too, your can override the versions, explicitly importing 
-the packages in your `build.sbt` and `pom.xml` files. If you encounter some incompatibility with 
-future versions of these, please let us know opening an issue, or sending a PR.
-
 ### IoTHub configuration
 
-By default IoTHubReact uses an `application.conf` configuration file to fetch the parameters 
-required to connect to Azure IoT Hub. The connection and authentication values to use, can be found 
-in the [Azure Portal](https://portal.azure.com):
+IoTHubReact uses a configuration file to fetch the parameters required to connect to Azure IoT Hub.
+The exact values to use can be found in the [Azure Portal](https://portal.azure.com):
 
-Properties required to receive Device-to-Cloud (D2C) messages:
+Properties required to receive device-to-cloud messages:
 
 * **hubName**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible name`
 * **hubEndpoint**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible endpoint`
@@ -195,7 +224,7 @@ Properties required to receive Device-to-Cloud (D2C) messages:
 * **accessPolicy**: usually `service`, see `Shared access policies`
 * **accessKey**: see `Shared access policies` ⇒ `key name` ⇒ `Primary key` (it's a base64 encoded string)
 
-Properties required to send Cloud-to-Device (C2D) commands:
+Properties required to send cloud-to-device messages:
 
 * **accessHostName**: see `Shared access policies` ⇒ `key name` ⇒ `Connection string` ⇒ `HostName`
 
@@ -236,12 +265,8 @@ iothub-react {
 }
 ````
 
-Note that the library will automatically use these exact environment variables, unless overridden
-in your configuration file (all the default settings are stored in 
-[reference.conf](src/main/resources/reference.conf)).
-
-Although using a configuration file is the preferred approach, it's also possible to inject a 
-different configuration at runtime, providing an object implementing the `IConfiguration` interface.
+Note that the library will automatically use these environment variables, unless overridden
+in the configuration file (all the default settings are stored in `reference.conf`).
 
 The logging level can be managed overriding Akka configuration, for example:
 
@@ -257,21 +282,19 @@ There are other settings, to tune performance and connection details:
 * **streaming.consumerGroup**: the 
   [consumer group](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview)
   used during the connection
-* **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. 
-  The default (and maximum) value is 999.
-* **streaming.receiverTimeout**: timeout applied to calls while retrieving messages. The default 
-  value is 3 seconds.
-* **streaming.retrieveRuntimeInfo**: when enabled, the messages returned by `IoTHub.Source` will
-  contain some runtime information about the last message in each partition. You can use this 
-  information to calculate how many telemetry events remain to process.
+* **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. The 
+  default (and maximum) value is 999.
+* **streaming.receiverTimeout**: timeout applied to calls while retrieving messages. The default value is 
+  3 seconds.
+* **checkpointing.enabled**: whether checkpointing is eanbled
 
-The complete configuration reference (and default values) is available in 
+The complete configuration reference (and default value) is available in 
 [reference.conf](src/main/resources/reference.conf).
 
 ## Samples
 
-The project includes several demos in Java and Scala, showing some of the use cases and how IoThub 
-React API works. All the demos require an instance of Azure IoT hub, with some devices and messages.
+The project includes multiple demos, showing some of the use cases and how IoThub React API works. 
+All the demos require an instance of Azure IoT hub, with some devices and messages.
 
 1. **DisplayMessages** [Java]: how to stream Azure IoT hub withing a Java application, filtering 
    temperature values greater than 60C
@@ -281,9 +304,8 @@ React API works. All the demos require an instance of Azure IoT hub, with some d
 4. **OnlyRecentMessages** [Scala]: stream all the events, starting from the current time.
 5. **OnlyTwoPartitions** [Scala]: shows how to stream events from a subset of partitions.
 6. **MultipleDestinations** [Scala]: shows how to read once and deliver events to multiple destinations.
-7. **FilterByMessageSchema** [Scala]: how to filter events by message schema. Note: the name of the
-   schema must be set by the device using the `$$MessageSchema` message property. In future this 
-   will be a system property, explicitly supported by Azure IoT SDK.
+7. **FilterByMessageType** [Scala]: how to filter events by message type. The type must be set by 
+   the device.
 8. **FilterByDeviceID** [Scala]: how to filter events by device ID. The device ID is automatically
    set by Azure IoT SDK.
 9. **CloseStream** [Scala]: show how to close the stream 
@@ -291,65 +313,44 @@ React API works. All the demos require an instance of Azure IoT hub, with some d
 11. **PrintTemperature** [Scala]: stream all Temperature events and print data to the console.
 12. **Throughput** [Scala]: stream all events and display statistics about the throughput.
 13. **Throttling** [Scala]: throttle the incoming stream to a defined speed of events/second.
-14. **StoreOffsetsWhileStreaming** [Scala]: demonstrates how the stream can be restarted without losing its position.
+14. **Checkpoints** [Scala]: demonstrates how the stream can be restarted without losing its position.
     The current position is stored in a Cassandra table (we suggest to run a docker container for
     the purpose of the demo, e.g. `docker run -ip 9042:9042 --rm cassandra`).
-15. **StartFromStoredOffsetsButDontWriteNewOffsets** [Scala]: shows how to use the saved checkpoints
-    to start streaming from a known position, without changing the value in the storage. If the
-    storage doesn't contain checkpoints, the stream starts from the beginning.
-16. **StartFromStoredOffsetsIfAvailableOrByTimeOtherwise** [Scala]: similar to the previous
-    demo, with a fallback datetime when the storage doesn't contain checkpoints.
-17. **StreamIncludingRuntimeInformation** [Scala]: shows how runtime information works.
-18. **SendMessageToDevice** [Scala]: another example showing how to send 2 different messages to 
+15. **SendMessageToDevice** [Scala]: another example showing how to send 2 different messages to 
     connected devices.
 
 We provide a [device simulator](tools/devices-simulator/README.md) in the tools section, 
-which will help simulating some devices sending sample telemetry events.
+which will help simulating some devices sending sample telemetry.
 
 When ready, you should either edit the `application.conf` configuration files 
 ([scala](samples-scala/src/main/resources/application.conf) and
 [java](samples-java/src/main/resources/application.conf)) 
 with your credentials, or set the corresponding environment variables.
-Follow the instructions described in the previous section on how to set the correct values.
+Follow the instructions in the previous section on how to set the correct values.
 
-The root folder includes also a script showing how to set the environment variables in 
-[Linux/MacOS](setup-env-vars.sh) and [Windows](setup-env-vars.bat).
+The sample folders include also some scripts showing how to setup the environment variables in 
+[Linux/MacOS](samples-scala/setup-env-vars.sh) and [Windows](samples-scala/setup-env-vars.bat).
 
-The demos can be executed using the scripts included in the root folder (`run_<language>_samples.sh` 
-and `run_<language>_samples.cmd`):
+* [`samples-scala`](samples-scala/src/main/scala):
+  You can use `sbt run` to run the demos (or the `run_samples.*` scripts)
+* [`samples-java`](samples-java/src/main/java): 
+  You can use `mvn clean compile exec:java -Dexec.mainClass="DisplayMessages.Demo"` to run the 
+  demo app (or the `run_samples.*` scripts)
 
-* [`run_scala_samples.sh`](run_scala_samples.sh): execute Scala demos
-* [`run_java_samples.sh`](run_java_samples.sh): execute Java demos
+## Future work
 
-## Future work (MoSCoW)
+* allow to redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
+* improve asynchronicity by using EventHub SDK async APIs
 
-* M: device twins and device methods
-* M: support at-least-once when checkpointing
-* S: clustering awareness
-* C: redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
-* C: reopen hub after closing (currently one creates a new instance)
-* W: asynchronicity by using EventHub SDK async APIs
-
-# Contributing
-
-## Contribution license Agreement
+# Contribute Code
 
 If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) 
 (Contribution license Agreement). A friendly bot will remind you about it when you submit 
 a pull-request.
 
-## Code style
-
-If you are sending a pull request, please check the code style with IntelliJ IDEA, 
+If you are sending a pull request, we kindly request to check the code style with IntelliJ IDEA, 
 importing the settings from 
 [`Codestyle.IntelliJ.xml`](https://github.com/Azure/toketi-iot-tools/blob/dev/Codestyle.IntelliJ.xml).
-
-## Running the tests
-
-You can use the included `build.sh` script to execute all the unit and functional tests in the suite.
-The functional tests require an existing Azure IoT Hub resource, that yous should setup. For the
-tests to connect to your IoT Hub, configure your environment using the `setup-env-vars.*` scripts
-mentioned above in this page.
 
 
 [maven-badge]: https://img.shields.io/maven-central/v/com.microsoft.azure.iot/iothub-react_2.11.svg
