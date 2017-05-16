@@ -102,7 +102,7 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
 
           var offsetToStore: String = ""
           val now = Instant.now.getEpochSecond
-          
+
           val timeThreshold = cpconfig.checkpointTimeThreshold.toSeconds
           val countThreshold = cpconfig.checkpointCountThreshold
 

@@ -118,7 +118,7 @@ class IoTHub(config: IConfiguration) extends Logger {
         import GraphDSL.Implicits._
 
         val merge = b.add(Merge[MessageFromDevice](partitions.size))
-        
+
         for (partition ← partitions) {
           val graph = IoTHubPartition(config, partition).source(options).via(streamManager)
           val source = Source.fromGraph(graph).async
