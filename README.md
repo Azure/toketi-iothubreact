@@ -154,7 +154,7 @@ For instance, the stream position can be saved every 30 seconds and/or every 500
 Currently the position may be saved in two different ways. The first, simpler method is accomplished by saving 
 in a concurrent thread, delayed by time and/or count, depending 
 on the configuration settings. The second requires slightly more coding but allows the developer to implement 
-[at-least-once delivery semantics](http://getakka.net/docs/persistence/at-least-once-delivery), due to the
+[at-least-once delivery semantics](http://www.cloudcomputingpatterns.org/at_least_once_delivery/), due to the
 fact the offset saves can be included downstream of processing in your graph. 
 
 For more information about the checkpointing feature, [please read here](checkpointing.md).
