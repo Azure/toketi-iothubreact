@@ -8,9 +8,10 @@ import java.util.concurrent.CompletionStage
 import akka.stream.javadsl.{Sink, Source ⇒ JavaSource}
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
+import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
-import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetCommitSink}
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
@@ -20,6 +21,8 @@ class IoTHub(config: IConfiguration) {
   def this() = this(Configuration())
 
   private lazy val iotHub = IoTHubScalaDSL(config)
+
+  private lazy val commitSinkBackend = CheckpointService.configToBackend(config.checkpointing)
 
   /** Stop the stream
     */
@@ -31,6 +34,11 @@ class IoTHub(config: IConfiguration) {
     */
   def messageSink: Sink[MessageToDevice, CompletionStage[Done]] =
     MessageToDeviceSink().javaSink()
+
+  /**
+    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics (withCheckpoints should be false)
+    */
+  def offsetSink(parallelism: Int): Sink[MessageFromDevice, CompletionStage[Done]] = OffsetCommitSink(parallelism, commitSinkBackend).javaSink()
 
   /** Sink to call synchronous methods on IoT devices
     *
