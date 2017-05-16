@@ -11,7 +11,6 @@ import akka.stream.Materializer;
  */
 public class ReactiveStreamingApp
 {
-
     private static ActorSystem system = ActorSystem.create("Demo");
 
     protected final static Materializer streamMaterializer = ActorMaterializer.create(system);

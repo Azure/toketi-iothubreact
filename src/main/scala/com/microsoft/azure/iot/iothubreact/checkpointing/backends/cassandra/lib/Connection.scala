@@ -16,15 +16,15 @@ private[iothubreact] case class Connection(
     auth: Option[Auth],
     table: TableSchema) {
 
-  private lazy  val hostPort = extractHostPort()
+  private lazy val hostPort = extractHostPort()
   private lazy val cluster  = {
     val builder = Cluster.builder().addContactPoint(hostPort._1).withPort(hostPort._2)
     auth map {
-        creds ⇒ builder.withCredentials(creds.username, creds.password)
-      } getOrElse (builder) build()
+      creds ⇒ builder.withCredentials(creds.username, creds.password)
+    } getOrElse (builder) build()
   }
 
-  implicit lazy val session  = cluster.connect()
+  implicit lazy val session = cluster.connect()
 
   /** Create the key space if not present
     */
@@ -71,7 +71,7 @@ private[iothubreact] case class Connection(
     * @param columns   Columns
     */
   private[this] def createT(tableName: String, columns: Seq[Column]): Unit = {
-    val columnsSql = columns.foldLeft("")((b, a) => s"$b\n${a.name} ${ColumnType.toString(a.`type`)},")
+    val columnsSql = columns.foldLeft("")((b, a) ⇒ s"$b\n${a.name} ${ColumnType.toString(a.`type`)},")
     val indexesSql = columns.filter(_.index).map(_.name).mkString("PRIMARY KEY(", ", ", ")")
     val createTable = s"CREATE TABLE IF NOT EXISTS ${table.keyspaceCQL}.$tableName($columnsSql $indexesSql)"
     session.execute(createTable)

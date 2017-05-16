@@ -9,7 +9,8 @@ import akka.stream.javadsl.Source;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice;
 import com.microsoft.azure.iot.iothubreact.MessageToDevice;
-import com.microsoft.azure.iot.iothubreact.filters.MessageType;
+import com.microsoft.azure.iot.iothubreact.SourceOptions;
+import com.microsoft.azure.iot.iothubreact.filters.MessageSchema;
 import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub;
 
 import java.time.Instant;
@@ -31,14 +32,17 @@ public class Main extends ReactiveStreamingApp
         // IoTHub
         IoTHub hub = new IoTHub();
 
-        // Source retrieving from all IoT hub partitions for the past 24 hours
-        Source<MessageFromDevice, NotUsed> messages = hub.source(Instant.now().minus(1, ChronoUnit.DAYS));
+        // Source retrieving from all IoT hub partitions for the past 24 hours and saving the current position
+        SourceOptions options = new SourceOptions()
+                .fromTime(Instant.now().minus(1, ChronoUnit.DAYS))
+                .saveOffsets();
+        Source<MessageFromDevice, NotUsed> messages = hub.source(options);
 
         MessageToDevice turnFanOn = new MessageToDevice("turnFanOn")
                 .addProperty("speed", "high")
                 .addProperty("duration", "60");
 
-        MessageType msgTypeFilter = new MessageType("temperature");
+        MessageSchema msgTypeFilter = new MessageSchema("temperature");
 
         messages
                 .filter(m -> msgTypeFilter.filter(m))

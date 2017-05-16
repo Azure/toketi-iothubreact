@@ -2,7 +2,7 @@
 
 package it.helpers
 
-import com.microsoft.azure.iothub._
+import com.microsoft.azure.sdk.iot.device._
 
 /* Test helper to send messages to the hub */
 class Device(deviceId: String) extends Logger {
@@ -15,7 +15,7 @@ class Device(deviceId: String) extends Logger {
     override def execute(status: IotHubStatusCode, context: scala.Any): Unit = {
       ready = true
       val i = context.asInstanceOf[Int]
-      log.debug(s"${deviceId}: Message ${i} status ${status.name()}")
+      log.debug("{}: Message {} status {}", deviceId, i, status.name())
 
       // Sleep to avoid being throttled
       Thread.sleep(50)
@@ -31,7 +31,7 @@ class Device(deviceId: String) extends Logger {
 
   // Prepare client to send messages
   private[this] lazy val client = {
-    log.info(s"Opening connection for device '${deviceId}'")
+    log.info("Opening connection for device '{}'", deviceId)
     new DeviceClient(connString, IotHubClientProtocol.AMQPS)
   }
 
@@ -47,14 +47,14 @@ class Device(deviceId: String) extends Logger {
     // Open internally checks if it is already connected
     client.open()
 
-    log.debug(s"Device '$deviceId' sending '$text'")
+    log.debug("Device '{}' sending '{}'", deviceId, text)
     val message = new Message(text)
     client.sendEventAsync(message, new EventCallback(), sequenceNumber)
   }
 
   def waitConfirmation(): Unit = {
 
-    log.debug(s"Device '${deviceId}' waiting for confirmation...")
+    log.debug("Device '{}' waiting for confirmation...", deviceId)
 
     var wait = waitOnSend
     if (!ready) while (wait > 0 && !ready) {
@@ -62,11 +62,11 @@ class Device(deviceId: String) extends Logger {
       wait -= waitUnit
     }
 
-    if (!ready) log.debug(s"Device '${deviceId}', confirmation not received")
+    if (!ready) log.debug("Device '{}', confirmation not received", deviceId)
   }
 
   def disconnect(): Unit = {
     client.close()
-    log.debug(s"Device '$deviceId' disconnected")
+    log.debug("Device '{}' disconnected", deviceId)
   }
 }

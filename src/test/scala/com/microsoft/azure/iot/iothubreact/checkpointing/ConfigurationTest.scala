@@ -12,42 +12,42 @@ class ConfigurationTest extends FeatureSpec with GivenWhenThen with MockitoSugar
   info("I want logic around returned values to be consistent with application expectations")
 
   val confPath = "iothub-react.checkpointing."
-  feature("Configuration Cassandra authorization") {
+  Feature("Configuration Cassandra authorization") {
 
-    scenario("Only one of username or password is supplied") {
+    Scenario("Only one of username or password is supplied") {
       var cfg = mock[Config]
       when(cfg.getString(confPath + "storage.cassandra.username")).thenReturn("username")
       when(cfg.getString(confPath + "storage.cassandra.password")).thenThrow(new ConfigException.Missing("path"))
-      assert(new CPConfiguration()(cfg).cassandraAuth == None)
+      assert(new CPConfiguration(cfg).cassandraAuth == None)
 
       cfg = mock[Config]
       when(cfg.getString(confPath + "storage.cassandra.username")).thenThrow(new ConfigException.Missing("path"))
       when(cfg.getString(confPath + "storage.cassandra.password")).thenReturn("password")
-      assert(new CPConfiguration()(cfg).cassandraAuth == None)
+      assert(new CPConfiguration(cfg).cassandraAuth == None)
     }
 
-    scenario("Both username and password are supplied") {
+    Scenario("Both username and password are supplied") {
       var cfg = mock[Config]
       when(cfg.getString(confPath + "storage.cassandra.username")).thenReturn("username")
       when(cfg.getString(confPath + "storage.cassandra.password")).thenReturn("password")
-      assert(new CPConfiguration()(cfg).cassandraAuth == Some(Auth("username", "password")))
+      assert(new CPConfiguration(cfg).cassandraAuth == Some(Auth("username", "password")))
     }
   }
 
-  feature("Storage namespace") {
+  Feature("Storage namespace") {
 
-    scenario("Cassandra has a special namespace value") {
+    Scenario("Cassandra has a special namespace value") {
       var cfg = mock[Config]
       when(cfg.getString(confPath + "storage.namespace")).thenReturn("")
 
       when(cfg.getString(confPath + "storage.backendType")).thenReturn("anythingbutcassandra")
-      assert(new CPConfiguration()(cfg).storageNamespace == "iothub-react-checkpoints")
+      assert(new CPConfiguration(cfg).storageNamespace == "iothub-react-checkpoints")
 
       when(cfg.getString(confPath + "storage.backendType")).thenReturn("AZUREBLOB")
-      assert(new CPConfiguration()(cfg).storageNamespace == "iothub-react-checkpoints")
+      assert(new CPConfiguration(cfg).storageNamespace == "iothub-react-checkpoints")
 
       when(cfg.getString(confPath + "storage.backendType")).thenReturn("CASSANDRA")
-      assert(new CPConfiguration()(cfg).storageNamespace == "iothub_react_checkpoints")
+      assert(new CPConfiguration(cfg).storageNamespace == "iothub_react_checkpoints")
     }
   }
 }

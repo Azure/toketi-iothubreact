@@ -7,7 +7,7 @@ import java.time.Instant
 import akka.NotUsed
 import akka.stream.scaladsl.{Sink, Source}
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, IoTHubPartition}
+import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 import org.scalatest._
 
 class IoTHubReactHasAnAwesomeAPI extends FeatureSpec with GivenWhenThen {
@@ -16,16 +16,16 @@ class IoTHubReactHasAnAwesomeAPI extends FeatureSpec with GivenWhenThen {
   info("I want to be able to receive device messages as a stream")
   info("So I can process them asynchronously and at scale")
 
-  feature("IoT Hub React has an awesome API") {
+  Feature("IoT Hub React has an awesome API") {
 
-    scenario("Developer wants to retrieve IoT messages") {
+    Scenario("Developer wants to retrieve IoT messages") {
 
       Given("An IoT hub is configured")
       val hub = IoTHub()
 
       When("A developer wants to fetch messages from Azure IoT hub")
-      val messagesFromAllPartitions: Source[MessageFromDevice, NotUsed] = hub.source(false)
-      val messagesFromNowOn: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now(), false)
+      val messagesFromAllPartitions: Source[MessageFromDevice, NotUsed] = hub.source()
+      val messagesFromNowOn: Source[MessageFromDevice, NotUsed] = hub.source(Instant.now())
 
       Then("The messages are presented as a stream")
       messagesFromAllPartitions.to(Sink.ignore)

@@ -18,9 +18,9 @@ case class OffsetCommitSink(parallelism: Int, backend: CheckpointBackend) extend
   private[this] object JavaSinkProcedure extends Procedure[MessageFromDevice] {
     @scala.throws[Exception](classOf[Exception])
     override def apply(m: MessageFromDevice): Unit = {
-      m.partition.map { p =>
-        log.info(s"Committing offset ${m.offset} on partition ${p}")
-        backend.writeOffset(m.partition.get, m.offset)
+      m.runtimeInfo.partitionInfo.partitionNumber.map { p =>
+        log.debug(s"Committing offset ${m.offset} on partition ${p}")
+        backend.writeOffset(p, m.offset)
       }
     }
   }
@@ -28,8 +28,8 @@ case class OffsetCommitSink(parallelism: Int, backend: CheckpointBackend) extend
   def scalaSink(): ScalaSink[MessageFromDevice, scala.concurrent.Future[Done]] = {
     import scala.concurrent.ExecutionContext.Implicits.global
     ScalaSink.foreachParallel[MessageFromDevice](parallelism) { m =>
-      m.partition.map { p =>
-        log.info(s"Committing offset ${m.offset} on partition ${p}")
+      m.runtimeInfo.partitionInfo.partitionNumber.map { p =>
+        log.debug(s"Committing offset ${m.offset} on partition ${p}")
         backend.writeOffset(p, m.offset)
       }
     }

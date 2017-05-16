@@ -2,8 +2,6 @@
 
 package B_PrintTemperature
 
-import java.time.{ZoneId, ZonedDateTime}
-
 /** Temperature measure by a device
   *
   * @param value Temperature value measured by the device

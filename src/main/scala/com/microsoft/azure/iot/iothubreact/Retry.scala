@@ -26,15 +26,13 @@ private[iothubreact] object Retry extends Logger {
         result = Some(code)
         remaining = 0
       } catch {
-
-        case e: Exception ⇒ {
+        case e: Exception ⇒
           if (remaining > 0) {
-            log.warning(s"Retry loop: ${remaining} attempts left [${e.getMessage}]")
+            log.warning("Retry loop: {} attempts left [{}]", remaining, e.getMessage)
             Thread.sleep(pause.toMillis)
           } else {
             throw e
           }
-        }
       }
     }
     result.get

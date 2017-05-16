@@ -10,7 +10,7 @@ import com.microsoft.azure.iot.iothubreact.scaladsl._
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-/** Measure the streaming throughput
+/** Measure the streaming throughput and show how many messages are left
   */
 object Demo extends App {
 
@@ -20,7 +20,11 @@ object Demo extends App {
   val monitor = Sink.foreach[MessageFromDevice] {
     m ⇒ {
       Monitoring.total += 1
-      Monitoring.totals(m.partition.get) += 1
+
+      val partition = m.runtimeInfo.partitionInfo.partitionNumber.get
+      Monitoring.totals(partition) += 1
+      Monitoring.remain(partition) = if (m.runtimeInfo.partitionInfo.lastSequenceNumber.isEmpty) 0
+                                     else m.runtimeInfo.partitionInfo.lastSequenceNumber.get - m.sequenceNumber
     }
   }
 

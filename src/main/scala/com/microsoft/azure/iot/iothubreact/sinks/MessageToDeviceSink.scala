@@ -8,17 +8,32 @@ import akka.Done
 import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.{Configuration, Logger, MessageToDevice}
-import com.microsoft.azure.iot.service.sdk.{IotHubServiceClientProtocol, ServiceClient}
+import com.microsoft.azure.iot.iothubreact.config.{ConnectConfiguration, IConnectConfiguration}
+import com.microsoft.azure.iot.iothubreact.{Logger, MessageToDevice}
+import com.microsoft.azure.sdk.iot.service.{IotHubServiceClientProtocol, ServiceClient}
 
-/** Send messages from cloud to devices
+
+object MessageToDeviceSink {
+  def apply(): MessageToDeviceSink = new MessageToDeviceSink()
+
+  def apply(config: IConnectConfiguration): MessageToDeviceSink = new MessageToDeviceSink(config)
+}
+
+/** Send commands (asynchronous messages) from cloud to devices
   */
-case class MessageToDeviceSink() extends ISink[MessageToDevice] with Logger {
+class MessageToDeviceSink(config: IConnectConfiguration)
+  extends ISink[MessageToDevice]
+    with Logger {
+
+  // Parameterless ctor
+  def this() = this(ConnectConfiguration())
 
   private[iothubreact] val protocol     = IotHubServiceClientProtocol.AMQPS
   private[iothubreact] val timeoutMsecs = 15000
 
-  private[this] val connString    = s"HostName=${Configuration.accessHostname};SharedAccessKeyName=${Configuration.accessPolicy};SharedAccessKey=${Configuration.accessKey}"
+  private[this] val connString    = s"HostName=${config.accessHostname};" +
+    s"SharedAccessKeyName=${config.accessPolicy};" +
+    s"SharedAccessKey=${config.accessKey}"
   private[this] val serviceClient = ServiceClient.createFromConnectionString(connString, protocol)
 
   private[this] object JavaSinkProcedure extends Procedure[MessageToDevice] {
@@ -29,13 +44,13 @@ case class MessageToDeviceSink() extends ISink[MessageToDevice] with Logger {
     }
   }
 
-  log.info(s"Connecting client to ${Configuration.accessHostname} ...")
+  log.info("Connecting client to ${} ...", config.accessHostname)
   serviceClient.open()
 
   def scalaSink(): ScalaSink[MessageToDevice, scala.concurrent.Future[Done]] =
     ScalaSink.foreach[MessageToDevice] {
       m ⇒ {
-        log.info("Sending message to device " + m.deviceId)
+        log.info("Sending message to device {}", m.deviceId)
         serviceClient.sendAsync(m.deviceId, m.message)
       }
     }

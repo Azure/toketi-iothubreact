@@ -21,21 +21,21 @@
 ::
 ::  SET IOTHUB_ACCESS_HOSTNAME = "my-iothub-one.azure-devices.net"
 ::
-::  SET IOTHUB_CHECKPOINT_ACCOUNT = 'myazurestorage'
+::  SET IOTHUB_CHECKPOINT_ACCOUNT = "myazurestorage"
 ::
 ::  SET IOTHUB_CHECKPOINT_KEY = "A0BcDef1gHIJKlmn23o8PQrStUvWxyzAbc4dEFG5HOIJklMnopqR+StuVwxYzJjxsU6vnDeNTv7Ipqs8MaBcDE=="
 ::
 
-:: see: Endpoints ⇒ Messaging ⇒ Events ⇒ "Event Hub-compatible name"
+:: see: Endpoints ⇒ Messaging ⇒ Events ⇒ `Event Hub-compatible name`
 SET IOTHUB_EVENTHUB_NAME = ""
 
-:: see: Endpoints ⇒ Messaging ⇒ Events ⇒ "Event Hub-compatible endpoint"
+:: see: Endpoints ⇒ Messaging ⇒ Events ⇒ `Event Hub-compatible endpoint`
 SET IOTHUB_EVENTHUB_ENDPOINT = ""
 
 :: see: Endpoints ⇒ Messaging ⇒ Events ⇒ Partitions
 SET IOTHUB_EVENTHUB_PARTITIONS = ""
 
-:: see: Shared access policies, we suggest to use "service" here
+:: see: Shared access policies, we suggest to use `service` here
 SET IOTHUB_IOTHUB_ACCESS_POLICY = ""
 
 :: see: Shared access policies ⇒ key name ⇒ Primary key
@@ -49,3 +49,4 @@ SET IOTHUB_CHECKPOINT_ACCOUNT = ""
 
 :: When using checkpoints stored in Azure Blob, this is the Azure Storage Account secret key
 SET IOTHUB_CHECKPOINT_KEY = ""
+

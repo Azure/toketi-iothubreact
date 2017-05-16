@@ -1,39 +1,35 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-// Namespace chosen to avoid access to internal classes
+// NOTE: Namespace chosen to avoid access to internal classes
 package api
 
-import java.util.UUID
+// NOTE: No global imports from the library, to make easier detecting breaking changes
 
-import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
-import org.mockito.Mockito.when
-import org.scalatest.mockito.MockitoSugar
-
-// No global imports to make easier detecting breaking changes
-
-class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSugar {
+class APIIsBackwardCompatible
+  extends org.scalatest.FeatureSpec
+    with org.scalatest.mockito.MockitoSugar {
 
   info("As a developer using Azure IoT hub React")
   info("I want to be able to upgrade to new minor versions without changing my code")
   info("So I can benefit from improvements without excessive development costs")
 
-  implicit val cpconfig = mock[ICPConfiguration]
+  Feature("Version 0.x is backward compatible") {
 
-  feature("Version 0.x is backward compatible") {
-
-    scenario("Using MessageFromDevice") {
+    Scenario("Using MessageFromDevice") {
+      import com.microsoft.azure.eventhubs.{EventData, ReceiverRuntimeInformation}
       import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 
-      val data: Option[com.microsoft.azure.eventhubs.EventData] = None
+      val data: Option[EventData] = None
       val partition: Option[Int] = Some(1)
 
       // Test properties
-      val message1 = new MessageFromDevice(data, partition)
+      val partitionInfo = Some(new ReceiverRuntimeInformation(partition.toString))
+      val message1 = new MessageFromDevice(data, partition, partitionInfo)
       lazy val properties: java.util.Map[String, String] = message1.properties
       lazy val isKeepAlive: Boolean = message1.isKeepAlive
-      lazy val messageType: String = message1.messageType
+      lazy val messageSchema: String = message1.messageSchema
       lazy val contentType: String = message1.contentType
-      lazy val created: java.time.Instant = message1.created
+      lazy val created: java.time.Instant = message1.received
       lazy val offset: String = message1.offset
       lazy val sequenceNumber: Long = message1.sequenceNumber
       lazy val deviceId: String = message1.deviceId
@@ -43,98 +39,14 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSuga
       assert(message1.isKeepAlive == false)
 
       // Named parameters
-      val message2: MessageFromDevice = new MessageFromDevice(data = data, partition = partition)
+      val message2: MessageFromDevice = new MessageFromDevice(data = data, partNumber = partition, partInfo = partitionInfo)
 
       // Keepalive
-      val message3: MessageFromDevice = new MessageFromDevice(data, None)
+      val message3: MessageFromDevice = new MessageFromDevice(data, partNumber = None, partInfo = None)
       assert(message3.isKeepAlive == true)
     }
 
-    scenario("Using Scala DSL OffsetList") {
-      import com.microsoft.azure.iot.iothubreact.scaladsl.OffsetList
-
-      val o1: String = "123"
-      val o2: String = "foo"
-
-      // Ctors
-      val offset1: OffsetList = OffsetList(Seq(o1, o2))
-      val offset2: OffsetList = new OffsetList(Seq(o1, o2))
-
-      // Named parameters
-      val offset3: OffsetList = OffsetList(values = Seq(o1, o2))
-      val offset4: OffsetList = new OffsetList(values = Seq(o1, o2))
-
-      assert(offset1.values(0) == o1)
-      assert(offset1.values(1) == o2)
-      assert(offset2.values(0) == o1)
-      assert(offset2.values(1) == o2)
-      assert(offset3.values(0) == o1)
-      assert(offset3.values(1) == o2)
-      assert(offset4.values(0) == o1)
-      assert(offset4.values(1) == o2)
-    }
-
-    scenario("Using Java DSL OffsetList") {
-      import com.microsoft.azure.iot.iothubreact.javadsl.OffsetList
-
-      val o1: String = "123"
-      val o2: String = "foo"
-
-      // Ctors
-      val offset1: OffsetList = new OffsetList(java.util.Arrays.asList(o1, o2))
-
-      // Named parameters
-      val offset2: OffsetList = new OffsetList(values = java.util.Arrays.asList(o1, o2))
-
-      assert(offset1.values.get(0) == o1)
-      assert(offset1.values.get(1) == o2)
-      assert(offset2.values.get(0) == o1)
-      assert(offset2.values.get(1) == o2)
-    }
-
-    scenario("Using Scala DSL PartitionList") {
-      import com.microsoft.azure.iot.iothubreact.scaladsl.PartitionList
-
-      val o1: Int = 1
-      val o2: Int = 5
-
-      // Ctors
-      val offset1: PartitionList = PartitionList(Seq(o1, o2))
-      val offset2: PartitionList = new PartitionList(Seq(o1, o2))
-
-      // Named parameters
-      val offset3: PartitionList = PartitionList(values = Seq(o1, o2))
-      val offset4: PartitionList = new PartitionList(values = Seq(o1, o2))
-
-      assert(offset1.values(0) == o1)
-      assert(offset1.values(1) == o2)
-      assert(offset2.values(0) == o1)
-      assert(offset2.values(1) == o2)
-      assert(offset3.values(0) == o1)
-      assert(offset3.values(1) == o2)
-      assert(offset4.values(0) == o1)
-      assert(offset4.values(1) == o2)
-    }
-
-    scenario("Using Java DSL PartitionList") {
-      import com.microsoft.azure.iot.iothubreact.javadsl.PartitionList
-
-      val o1: Int = 1
-      val o2: Int = 5
-
-      // Ctors
-      val offset1: PartitionList = new PartitionList(java.util.Arrays.asList(o1, o2))
-
-      // Named parameters
-      val offset2: PartitionList = new PartitionList(values = java.util.Arrays.asList(o1, o2))
-
-      assert(offset1.values.get(0) == o1)
-      assert(offset1.values.get(1) == o2)
-      assert(offset2.values.get(0) == o1)
-      assert(offset2.values.get(1) == o2)
-    }
-
-    scenario("Using ResumeOnError") {
+    Scenario("Using ResumeOnError") {
       import akka.actor.ActorSystem
       import akka.stream.ActorMaterializer
       import com.microsoft.azure.iot.iothubreact.ResumeOnError._
@@ -143,7 +55,7 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSuga
       val mat: ActorMaterializer = materializer
     }
 
-    scenario("Using StopOnError") {
+    Scenario("Using StopOnError") {
       import akka.actor.ActorSystem
       import akka.stream.ActorMaterializer
       import com.microsoft.azure.iot.iothubreact.StopOnError._
@@ -152,8 +64,10 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSuga
       val mat: ActorMaterializer = materializer
     }
 
-    scenario("Using CheckpointBackend") {
+    Scenario("Using CheckpointBackend") {
+      import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
       import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
+      import org.mockito.Mockito.when
 
       class CustomBackend extends CheckpointBackend {
 
@@ -166,121 +80,95 @@ class APIIsBackwardCompatible extends org.scalatest.FeatureSpec with MockitoSuga
 
       val backend: CustomBackend = new CustomBackend()
 
-      val anyname = UUID.randomUUID.toString
+      val anyname = java.util.UUID.randomUUID.toString
+      val cpconfig = mock[ICPConfiguration]
       when(cpconfig.storageNamespace).thenReturn(anyname)
-      assert(backend.checkpointNamespace == anyname)
+      assert(backend.checkpointNamespace(cpconfig) == anyname)
     }
 
-    scenario("Using Message Type") {
+    Scenario("Using Message Type") {
       import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-      import com.microsoft.azure.iot.iothubreact.filters.MessageType
+      import com.microsoft.azure.iot.iothubreact.filters.MessageSchema
 
-      val filter1: (MessageFromDevice) ⇒ Boolean = MessageType("some")
-      val filter2: MessageType = new MessageType("some")
+      val filter1: (MessageFromDevice) ⇒ Boolean = MessageSchema("some")
+      val filter2: MessageSchema = new MessageSchema("some")
     }
 
-    scenario("Using Scala DSL IoTHub") {
+    Scenario("Using Scala DSL IoTHub") {
       import java.time.Instant
 
       import akka.NotUsed
       import akka.stream.scaladsl.Source
-      import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-      import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub, OffsetList, PartitionList}
+      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, SourceOptions}
+      import com.microsoft.azure.iot.iothubreact.config.IConfiguration
+      import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 
-      val hub1: IoTHub = new IoTHub()
-      val hub2: IoTHub = IoTHub()
+      val hub1: IoTHub = IoTHub()
+      val hub2: IoTHub = IoTHub(mock[IConfiguration])
 
-      val offsets: OffsetList = OffsetList(Seq("1", "0", "0", "-1", "234623"))
-      val partitions: PartitionList = PartitionList(Seq(0, 1, 3))
+      val partitions = Seq(0, 1, 3)
+      val options = SourceOptions()
 
       var source: Source[MessageFromDevice, NotUsed] = hub1.source()
-
       source = hub1.source(partitions)
       source = hub1.source(partitions = partitions)
-
       source = hub1.source(Instant.now())
       source = hub1.source(startTime = Instant.now())
-
-      source = hub1.source(Instant.now(), partitions)
-      source = hub1.source(startTime = Instant.now(), partitions = partitions)
-
-      source = hub1.source(false)
-      source = hub1.source(withCheckpoints = false)
-
-      source = hub1.source(false, partitions)
-      source = hub1.source(withCheckpoints = false, partitions = partitions)
-
-      source = hub1.source(offsets)
-      source = hub1.source(offsets = offsets)
-
-      source = hub1.source(offsets, partitions)
-      source = hub1.source(offsets = offsets, partitions = partitions)
-
-      source = hub1.source(Instant.now(), false)
-      source = hub1.source(startTime = Instant.now(), withCheckpoints = false)
-
-      source = hub1.source(Instant.now(), false, partitions)
-      source = hub1.source(startTime = Instant.now(), withCheckpoints = false, partitions = partitions)
-
-      source = hub1.source(offsets, false)
-      source = hub1.source(offsets = offsets, withCheckpoints = false)
-
-      source = hub1.source(offsets, false, partitions)
-      source = hub1.source(offsets = offsets, withCheckpoints = false, partitions = partitions)
+      source = hub1.source(options)
+      source = hub1.source(options = options)
 
       hub1.close()
       hub2.close()
     }
 
-    scenario("Using Java DSL IoTHub") {
+    Scenario("Using Java DSL IoTHub") {
       import java.time.Instant
 
       import akka.NotUsed
       import akka.stream.javadsl.Source
-      import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-      import com.microsoft.azure.iot.iothubreact.javadsl.{IoTHub, OffsetList, PartitionList}
+      import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, SourceOptions}
+      import com.microsoft.azure.iot.iothubreact.config.IConfiguration
+      import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub
 
-      val hub: IoTHub = new IoTHub()
+      val hub1: IoTHub = new IoTHub()
+      val hub2: IoTHub = new IoTHub(mock[IConfiguration])
 
-      val offsets: OffsetList = new OffsetList(java.util.Arrays.asList("1", "0", "0", "0", "-1", "234623"))
-      val partitions: PartitionList = new PartitionList(java.util.Arrays.asList(0, 1, 3))
+      val partitions: java.util.List[java.lang.Integer] = java.util.Arrays.asList(0, 1, 3)
+      val options = new SourceOptions()
 
-      var source: Source[MessageFromDevice, NotUsed] = hub.source()
+      var source: Source[MessageFromDevice, NotUsed] = hub1.source()
+      source = hub1.source(partitions)
+      source = hub1.source(partitions = partitions)
+      source = hub1.source(Instant.now())
+      source = hub1.source(startTime = Instant.now())
+      source = hub1.source(options)
+      source = hub1.source(options = options)
 
-      source = hub.source(partitions)
-      source = hub.source(partitions = partitions)
+      hub1.close()
+      hub2.close()
+    }
 
-      source = hub.source(Instant.now())
-      source = hub.source(startTime = Instant.now())
+    Scenario("Using SourceOptions") {
+      import com.microsoft.azure.iot.iothubreact.SourceOptions
 
-      source = hub.source(Instant.now(), partitions)
-      source = hub.source(startTime = Instant.now(), partitions = partitions)
-
-      source = hub.source(false)
-      source = hub.source(withCheckpoints = false)
-
-      source = hub.source(false, partitions)
-      source = hub.source(withCheckpoints = false, partitions = partitions)
-
-      source = hub.source(offsets)
-      source = hub.source(offsets = offsets)
-
-      source = hub.source(offsets, partitions)
-      source = hub.source(offsets = offsets, partitions = partitions)
-
-      source = hub.source(Instant.now(), false)
-      source = hub.source(startTime = Instant.now(), withCheckpoints = false)
-
-      source = hub.source(Instant.now(), false, partitions)
-      source = hub.source(startTime = Instant.now(), withCheckpoints = false, partitions = partitions)
-
-      source = hub.source(offsets, false)
-      source = hub.source(offsets = offsets, withCheckpoints = false)
-
-      source = hub.source(offsets, false, partitions)
-      source = hub.source(offsets = offsets, withCheckpoints = false, partitions = partitions)
-
-      hub.close()
+      val o: SourceOptions = SourceOptions()
+        .fromStart
+        .fromStart()
+        .fromTime(java.time.Instant.now)
+        .fromSavedOffsets()
+        .fromSavedOffsets(java.time.Instant.now)
+        .allPartitions
+        .allPartitions()
+        .partitions(0, 2, 4)
+        .partitions(Seq(0, 1, 2))
+        .partitions(Array(1, 2, 3, 4))
+        .fromOffsets("1", "2")
+        .fromOffsets(Seq("1", "2"))
+        .fromOffsets(Array("1", "2"))
+        .saveOffsets
+        .saveOffsets()
+        .withRuntimeInfo
+        .withRuntimeInfo()
     }
   }
 }

@@ -1,5 +1,0 @@
-Tests to add:
-
-* (UT) Applications using IoTHubReact only to receive, don't need to set `accessHostName`
-* (UT) Applications using IoTHubReact only to set, don't need to set `hubName`, `hubEndpoint`, `hubPartitions`
-* (IT) Test sink end to end

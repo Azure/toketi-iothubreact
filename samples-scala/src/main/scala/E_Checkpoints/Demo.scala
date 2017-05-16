@@ -3,7 +3,7 @@
 package E_Checkpoints
 
 import akka.stream.scaladsl.Sink
-import com.microsoft.azure.iot.iothubreact.MessageFromDevice
+import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, SourceOptions}
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters.Device
 import com.microsoft.azure.iot.iothubreact.scaladsl._
@@ -18,11 +18,11 @@ import com.microsoft.azure.iot.iothubreact.scaladsl._
 object Demo extends App {
 
   val console = Sink.foreach[MessageFromDevice] {
-    t ⇒ println(s"Message from ${t.deviceId} - Time: ${t.created}")
+    t ⇒ println(s"Message from ${t.deviceId} - Time: ${t.received}")
   }
 
   // Stream using checkpointing
-  IoTHub().source(withCheckpoints = true)
+  IoTHub().source(SourceOptions().saveOffsets)
     .filter(Device("device1000"))
     .to(console)
     .run()

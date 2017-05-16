@@ -17,37 +17,34 @@ import scala.language.{implicitConversions, postfixOps}
 
 /** Storage logic to write checkpoints to Azure blobs
   */
-private[iothubreact] class AzureBlob(implicit val config: ICPConfiguration) extends CheckpointBackend with Logger {
+private[iothubreact] class AzureBlob(cpconfig: ICPConfiguration) extends CheckpointBackend with Logger {
 
   // Set the account to point either to Azure or the emulator
-  val account: CloudStorageAccount = if (config.azureBlobEmulator)
+  val account: CloudStorageAccount = if (cpconfig.azureBlobEmulator)
                                        CloudStorageAccount.getDevelopmentStorageAccount()
                                      else
-                                       CloudStorageAccount.parse(config.azureBlobConnectionString)
+                                       CloudStorageAccount.parse(cpconfig.azureBlobConnectionString)
 
   val client = account.createCloudBlobClient()
 
   // Set the container, ensure it's ready
-  val container = client.getContainerReference(checkpointNamespace)
+  val container = client.getContainerReference(checkpointNamespace(cpconfig))
   try {
     Retry(2, 5 seconds) {
       container.createIfNotExists()
     }
   } catch {
-    case e: StorageException ⇒ {
+    case e: StorageException ⇒
       log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
       throw e
-    }
 
-    case e: IOException ⇒ {
+    case e: IOException ⇒
       log.error(e, e.getMessage)
       throw e
-    }
 
-    case e: Exception ⇒ {
+    case e: Exception ⇒
       log.error(e, e.getMessage)
       throw e
-    }
   }
 
   /** Read the offset of the last record processed for the given partition
@@ -61,24 +58,21 @@ private[iothubreact] class AzureBlob(implicit val config: ICPConfiguration) exte
     try {
       file.downloadText()
     } catch {
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         if (e.getErrorCode == "BlobNotFound") {
           IoTHubPartition.OffsetCheckpointNotFound
         } else {
           log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
           throw e
         }
-      }
 
-      case e: IOException ⇒ {
+      case e: IOException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
   }
 
@@ -100,20 +94,17 @@ private[iothubreact] class AzureBlob(implicit val config: ICPConfiguration) exte
       }
     } catch {
 
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: URISyntaxException ⇒ {
+      case e: URISyntaxException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
   }
 
@@ -121,22 +112,20 @@ private[iothubreact] class AzureBlob(implicit val config: ICPConfiguration) exte
     // Note: the lease ID must be a Guid otherwise the service returs 400
     var leaseId = UUID.randomUUID().toString
     try {
-      file.acquireLease(config.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
+      file.acquireLease(cpconfig.azureBlobLeaseDuration.toSeconds.toInt, leaseId)
     } catch {
 
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         if (e.getErrorCode == "BlobNotFound") {
           leaseId = ""
         } else {
           log.error(e, s"Err: ${e.getMessage}; Code: ${e.getErrorCode}; Status: ${e.getHttpStatusCode}")
           throw e
         }
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
 
     leaseId
@@ -157,20 +146,17 @@ private[iothubreact] class AzureBlob(implicit val config: ICPConfiguration) exte
       if (leaseId != "") file.releaseLease(accessCondition)
     } catch {
 
-      case e: StorageException ⇒ {
+      case e: StorageException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: IOException ⇒ {
+      case e: IOException ⇒
         log.error(e, e.getMessage)
         throw e
-      }
 
-      case e: Exception ⇒ {
+      case e: Exception ⇒
         log.error(e, e.getMessage)
         throw e
-      }
     }
   }
 

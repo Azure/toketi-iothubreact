@@ -14,5 +14,3 @@ fi
 if [ "$opt" = "2" ]; then
   mvn clean compile exec:java -Dexec.mainClass="SendMessageToDevice.Main"
 fi
-
-
