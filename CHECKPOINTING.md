@@ -8,12 +8,16 @@ When the option is enabled, *offsets* are saved periodically in a storage table 
 frequency configured. As an example, the stream position can be saved in Azure blobs, or in 
 Cassandra, every 15 seconds and/or every 500 messages.
 
-Currently **at-least-once** behavior is not supported, because the position is saved concurrently 
-(although delayed), so it's possible that the position saved is ahead of your logic processing each 
-event. We plan to support *at-least-once*, guaranteeing that the position saved is always equal
-or behind the one already processed.
+This library currently supports both out-of-process checkpointing, which can be achieved with a datastore 
+and some simple configuration; or checkpointing with 
+[at-least-once delivery semantics](http://getakka.net/docs/persistence/at-least-once-delivery). The 
+latter method requires more code on the part of a developer but has the advantage of a reasonable expectation 
+that all messages will be delivered. Note that this is not the case in the out-of-process method, since
+the concurrent actor system performing the writes may save offsets for messages that have yet to be processed.
 
-To store checkpoints in Azure blobs the configuration looks like the following:
+### Out-of-process Checkpointing
+
+To store checkpoints in Azure blobs using a separate actor firing intermittently, the configuration looks like the following:
 
 ```
 iothub-react{
@@ -88,6 +92,28 @@ IoTHub().source(options)
     .to(console)
     .run()
 ```
+
+# At-Least-Once Checkpointing
+
+At-least-once delivery semantic (ALOS) guarantees require that the offsets are checkpointed after and only after processing
+on a graph is complete. This in turn requires a different approach to building a graph. Note that all configuration options
+listed above apply to the system except for those governing frequency of saves (frequency, countThreshold, timeThreshold).
+
+An example of code running with ALOS looks like
+
+```scala
+val options = SourceOptions().fromSavedOffsets()
+val hub = IoTHub()
+hub.source(options)
+    .map(m ⇒ jsonParser.readValue(m.contentAsString, classOf[Temperature]))
+    .filter(_.value > 100)
+    .via(console)
+    .to(hub.offsetSink(32)) //32 is the parallelism used to make concurrent saves
+    .run()
+```
+
+Note that all processing occurs upstream of the offset save in this graph, and that use has been made of
+the `offsetSink` method on `IoTHub`.
 
 # Checkpointing behavior
 

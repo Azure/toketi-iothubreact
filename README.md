@@ -151,11 +151,11 @@ to restarts and crashes.
 For instance, the stream position can be saved every 30 seconds and/or every 500 messages 
 (the values are configurable), in a table in Cassandra or using Azure blobs.
 
-Currently the position is saved in a concurrent thread, delayed by time and/or count, depending 
-on the configuration settings. Given the current implementation it's possible that the position
-saved is ahead of your processing logic. While it's possible to mitigate the risk via the
-configuration settings, **at-least-once** cannot be guaranteed. We plan to support 
-**at-least-once** soon, providing more control on the checkpointing logic. 
+Currently the position may be saved in two different ways. The first, simpler method is accomplished by saving 
+in a concurrent thread, delayed by time and/or count, depending 
+on the configuration settings. The second requires slightly more coding but allows the developer to implement 
+[at-least-once delivery semantics](http://getakka.net/docs/persistence/at-least-once-delivery), due to the
+fact the offset saves can be included downstream of processing in your graph. 
 
 For more information about the checkpointing feature, [please read here](checkpointing.md).
 
@@ -164,7 +164,7 @@ For more information about the checkpointing feature, [please read here](checkpo
 IoTHubReact is available in Maven Central for Scala 2.11 and 2.12. To import the library into your
 project, add the following reference in your `build.sbt` file:
 
-```libraryDependencies += "com.microsoft.azure.iot" %% "iothub-react" % "0.9.0"```
+```libraryDependencies += "com.microsoft.azure.iot" %% "iothub-react" % "0.9.1"```
 
 or this dependency in `pom.xml` file when working with Maven:
 
@@ -172,7 +172,7 @@ or this dependency in `pom.xml` file when working with Maven:
 <dependency>
     <groupId>com.microsoft.azure.iot</groupId>
     <artifactId>iothub-react_2.12</artifactId>
-    <version>0.9.0</version>
+    <version>0.9.1</version>
 </dependency>
 ```
 
@@ -324,7 +324,6 @@ and `run_<language>_samples.cmd`):
 ## Future work (MoSCoW)
 
 * M: device twins and device methods
-* M: support at-least-once when checkpointing
 * S: clustering awareness
 * C: redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
 * C: reopen hub after closing (currently one creates a new instance)
