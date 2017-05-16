@@ -126,7 +126,7 @@ object StartFromStoredOffsetsWithAtLeastOnceSemantics extends App {
 
   val console = Flow[MessageFromDevice].map {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
-      m
+    m
   }
 
   messages
