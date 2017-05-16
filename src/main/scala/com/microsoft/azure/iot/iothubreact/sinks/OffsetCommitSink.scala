@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-// TODO: Implement once SDK is ready
-
 package com.microsoft.azure.iot.iothubreact.sinks
 
 import java.util.concurrent.CompletionStage

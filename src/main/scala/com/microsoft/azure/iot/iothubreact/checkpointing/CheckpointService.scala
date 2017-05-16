@@ -37,7 +37,6 @@ private[iothubreact] object CheckpointService {
   *
   * @param partition IoT hub partition number [0..N]
   */
-
 private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partition: Int)
   extends Actor
     with Stash
@@ -103,6 +102,7 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
 
           var offsetToStore: String = ""
           val now = Instant.now.getEpochSecond
+          
           val timeThreshold = cpconfig.checkpointTimeThreshold.toSeconds
           val countThreshold = cpconfig.checkpointCountThreshold
 

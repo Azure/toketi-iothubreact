@@ -12,7 +12,6 @@ import com.microsoft.azure.iot.iothubreact.config.{ConnectConfiguration, IConnec
 import com.microsoft.azure.iot.iothubreact.{Logger, MessageToDevice}
 import com.microsoft.azure.sdk.iot.service.{IotHubServiceClientProtocol, ServiceClient}
 
-
 object MessageToDeviceSink {
   def apply(): MessageToDeviceSink = new MessageToDeviceSink()
 

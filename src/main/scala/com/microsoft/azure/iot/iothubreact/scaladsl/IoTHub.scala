@@ -25,7 +25,6 @@ object IoTHub {
   *
   * TODO: Provide ClearCheckpoints() method to clear the state
   */
-
 class IoTHub(config: IConfiguration) extends Logger {
 
   // Parameterless ctor
@@ -103,7 +102,6 @@ class IoTHub(config: IConfiguration) extends Logger {
     *
     * @return A source of IoT messages
     */
-
   def source(startTime: Instant): Source[MessageFromDevice, NotUsed] = source(SourceOptions().fromTime(startTime))
 
   /** Stream returning all the messages, from the given starting point, optionally with
@@ -119,20 +117,8 @@ class IoTHub(config: IConfiguration) extends Logger {
       implicit b ⇒
         import GraphDSL.Implicits._
 
-//        val merge = b.add(Merge[MessageFromDevice](partitions.get.values.size))
-//
-//        for (partition ← partitions.get.values) {
-//          val graph = (startFromSavedCheckpoint, withTimeOffset) match {
-//            case (false, false) => IoTHubPartition(partition).source(offsets.get.values(partition), withCheckpoints).via(streamManager)
-//            case (false, true) => IoTHubPartition(partition).source(startTime, withCheckpoints).via(streamManager)
-//            case (true, false) => IoTHubPartition(partition).sourceWithSavedCheckpoint(offsets.get.values(partition)).via(streamManager)
-//            case (true, true) => IoTHubPartition(partition).sourceWithSavedCheckpoint(startTime).via(streamManager)
-//
-//          }
-
         val merge = b.add(Merge[MessageFromDevice](partitions.size))
-
-
+        
         for (partition ← partitions) {
           val graph = IoTHubPartition(config, partition).source(options).via(streamManager)
           val source = Source.fromGraph(graph).async
