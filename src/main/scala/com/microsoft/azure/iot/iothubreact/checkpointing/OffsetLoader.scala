@@ -1,15 +1,14 @@
 package com.microsoft.azure.iot.iothubreact.checkpointing
 
 import akka.util.Timeout
-import com.microsoft.azure.iot.iothubreact.Retry
+import com.microsoft.azure.iot.iothubreact.{Logger, Retry}
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
-import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub.log
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 
 import scala.concurrent.Await
 
-object OffsetLoader {
+object OffsetLoader extends Logger {
 
   /** Get the offset saved for the current partition
     *

@@ -9,6 +9,7 @@ import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetCommitSink}
 
