@@ -4,18 +4,20 @@ package com.microsoft.azure.iot.iothubreact.scaladsl
 
 import java.time.Instant
 
-import akka.NotUsed
+import akka.{Done, NotUsed}
 import akka.pattern.ask
-import akka.stream.scaladsl.Source
+import akka.stream.impl.StreamLayout
+import akka.stream.scaladsl.{Sink, Source}
 import akka.util.Timeout
 import com.microsoft.azure.eventhubs.PartitionReceiver
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, SaveOffsetOnPull}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, CheckpointService, OffsetLoader, SaveOffsetOnPull}
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 import com.microsoft.azure.iot.iothubreact.filters.Ignore
+import com.microsoft.azure.iot.iothubreact.sinks.OffsetCommitSink
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
@@ -47,7 +49,7 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
     val savedOffset = if (!options.isFromSavedOffsets)
                         None
                       else {
-                        val savedOffset = GetSavedOffset
+                        val savedOffset = OffsetLoader.GetSavedOffset(partition, config)
                         if (savedOffset.isDefined) {
                           log.info("Starting partition {} from saved offset {}", partition, savedOffset.get)
                           savedOffset
@@ -96,28 +98,4 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
     }
   }
 
-  /** Get the offset saved for the current partition
-    *
-    * @return Offset
-    */
-  private[this] def GetSavedOffset(): Option[String] = {
-    val partitionCp = CheckpointActorSystem(config.checkpointing).getCheckpointService(partition)
-    implicit val rwTimeout = Timeout(config.checkpointing.checkpointRWTimeout)
-    try {
-      Retry(3, 5 seconds) {
-        log.debug("Loading the stream offset for partition {}", partition)
-        val future = (partitionCp ? GetOffset).mapTo[String]
-        val offset = Await.result(future, rwTimeout.duration)
-        if (offset != IoTHubPartition.OffsetCheckpointNotFound) Some(offset) else None
-      }
-    } catch {
-      case e: java.util.concurrent.TimeoutException ⇒
-        log.error(e, "Timeout while retrieving the offset from the storage")
-        throw e
-
-      case e: Exception ⇒
-        log.error(e, e.getMessage)
-        throw e
-    }
-  }
 }
