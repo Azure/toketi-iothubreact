@@ -9,6 +9,7 @@ import akka.actor.{Actor, Stash}
 import com.microsoft.azure.iot.iothubreact.Logger
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{GetOffset, StoreOffset, UpdateOffset}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.{AzureBlob, CassandraTable, CheckpointBackend}
+import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 
 import scala.concurrent.ExecutionContext
@@ -37,7 +38,7 @@ private[iothubreact] object CheckpointService {
   *
   * @param partition IoT hub partition number [0..N]
   */
-private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partition: Int)
+private[iothubreact] class CheckpointService(config: IConfiguration, partition: Int)
   extends Actor
     with Stash
     with Logger {
@@ -64,7 +65,7 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
         context.become(busyReading)
         stash()
         log.debug("Retrieving partition {} offset from the storage", partition)
-        val offset = storage.readOffset(partition)
+        val offset = storage.readOffset(config.connect.iotHubNamespace, partition)
         if (offset != IoTHubPartition.OffsetCheckpointNotFound) {
           currentOffset = offset
         }
@@ -103,8 +104,8 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
           var offsetToStore: String = ""
           val now = Instant.now.getEpochSecond
 
-          val timeThreshold = cpconfig.checkpointTimeThreshold.toSeconds
-          val countThreshold = cpconfig.checkpointCountThreshold
+          val timeThreshold = config.checkpointing.checkpointTimeThreshold.toSeconds
+          val countThreshold = config.checkpointing.checkpointCountThreshold
 
           // Check if the queue contains old offsets to flush (time threshold)
           // Check if the queue contains data of too many messages (count threshold)
@@ -117,10 +118,10 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
           }
 
           if (offsetToStore == "") {
-            log.debug("Checkpoint skipped: partition={}, count {} < threshold {}", partition, queuedOffsets, cpconfig.checkpointCountThreshold)
+            log.debug("Checkpoint skipped: partition={}, count {} < threshold {}", partition, queuedOffsets, config.checkpointing.checkpointCountThreshold)
           } else {
             log.info("Writing checkpoint: partition={}, storing {} (current offset={})", partition, offsetToStore, currentOffset)
-            storage.writeOffset(partition, offsetToStore)
+            storage.writeOffset(config.connect.iotHubNamespace, partition, offsetToStore)
           }
         } else {
           log.debug("Partition={}, checkpoint queue is empty [count {}, current offset={}]", partition, queuedOffsets, currentOffset)
@@ -146,7 +147,7 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
   def updateOffsetAction(offset: String) = {
 
     if (!schedulerStarted) {
-      val time = cpconfig.checkpointFrequency
+      val time = config.checkpointing.checkpointFrequency
       schedulerStarted = true
       context.system.scheduler.schedule(time, time, self, StoreOffset)
       log.info("Scheduled checkpoint for partition {} every {} ms", partition, time.toMillis)
@@ -172,7 +173,7 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
   }
 
   // TODO: Support plugins
-  def getCheckpointBackend = CheckpointService.configToBackend(cpconfig)
+  def getCheckpointBackend = CheckpointService.configToBackend(config.checkpointing)
 
   def offsetOf(x: OffsetsData): String = x._1
 

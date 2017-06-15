@@ -43,7 +43,7 @@ final case class OffsetCommitSink(parallelism: Int, backend: CheckpointBackend, 
           val cur: Long = current.getOrElse(p, -1)
           if (os > cur) {
             log.debug(s"Committing offset ${m.offset} on partition ${p}")
-            backend.writeOffset(p, m.offset)
+            backend.writeOffset(config.connect.iotHubNamespace, p, m.offset)
             current += p → os
           } else {
               log.debug(s"Ignoring offset ${m.offset} since it precedes ${cur}")
