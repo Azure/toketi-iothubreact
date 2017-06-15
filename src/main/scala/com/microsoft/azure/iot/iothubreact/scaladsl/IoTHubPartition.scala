@@ -92,7 +92,7 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
     // Inject a flow to store the stream position after each pull
     if (options.isSaveOffsetsOnPull) {
       log.debug("Adding checkpointing flow to the partition {} stream", partition)
-      source.via(new SaveOffsetOnPull(config, partition))
+      source.via(new SaveOffsetOnPull(config.checkpointing, partition))
     } else {
       source
     }
