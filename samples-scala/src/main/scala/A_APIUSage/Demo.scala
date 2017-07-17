@@ -83,7 +83,7 @@ object StoreOffsetsWhileStreaming extends App {
 
   println(s"Streaming messages and save offsets while streaming")
 
-  val messages = IoTHub().source(SourceOptions().saveOffsets())
+  val messages = IoTHub().source(SourceOptions().saveOffsetsOnPull())
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
@@ -119,6 +119,7 @@ object StartFromStoredOffsetsButDontWriteNewOffsets extends App {
   */
 object StartFromStoredOffsetsWithAtLeastOnceSemantics extends App {
 
+  val PARALLELISM = 32
   println(s"Streaming messages from a saved position using at least once delivery semantics")
 
   val hub = IoTHub()
@@ -131,7 +132,7 @@ object StartFromStoredOffsetsWithAtLeastOnceSemantics extends App {
 
   messages
     .via(console)
-    .to(hub.offsetSink(32))
+    .to(hub.offsetSink(PARALLELISM))
     .run()
 }
 
@@ -180,7 +181,7 @@ object MultipleStreamingOptionsAndSyntaxSugar extends App {
   val options = SourceOptions()
     .partitions(0, 2, 3)
     .fromOffsets("614", "64365", "123512")
-    .saveOffsets()
+    .saveOffsetsOnPull()
 
   val messages = IoTHub().source(options)
 

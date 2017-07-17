@@ -84,12 +84,12 @@ We plan to allow plugging in custom storage backends, by implementing a simple
 to read and write the stream position. Let us know if you are interested!
 
 The checkpointing feature is not enabled by default, so the library will not save the stream offsets
-automatically. To use checkpointing, use the `saveOffsets` option when creating the stream:
+automatically. To use checkpointing with automatic commits, use the `saveOffsetsOnPull` option when creating the stream:
 
 ```scala
 val options = SourceOptions()
   .fromTime(java.time.Instant.now())
-  .saveOffsets()
+  .saveOffsetsOnPull()
 
 IoTHub().source(options)
     .map(m ⇒ jsonParser.readValue(m.contentAsString, classOf[Temperature]))
@@ -154,7 +154,7 @@ The following table describes the system behavior, based on **API parameters** a
 | Yes | Yes | **Yes** | The stream starts from the saved position
 
 Legend:
-* **Checkpointing**: whether saving the stream offset is enabled (with `saveOffsets`)
+* **Checkpointing**: whether saving the stream offset is enabled (with `saveOffsetsOnPull`)
 * **Start point**: whether the client provides a starting position (date or offset) or ask for all
 the events from the beginning
 * **Saved position**: whether there is a position saved in the storage

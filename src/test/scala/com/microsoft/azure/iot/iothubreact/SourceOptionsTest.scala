@@ -127,7 +127,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       val o: SourceOptions = SourceOptions()
       assert(!o.isSaveOffsetsOnPull)
 
-      o.saveOffsets()
+      o.saveOffsetsOnPull()
       assert(o.isSaveOffsetsOnPull)
     }
 

@@ -22,7 +22,7 @@ object Demo extends App {
 
   IoTHub()
 
-    .source(SourceOptions().saveOffsets()) // <===
+    .source(SourceOptions().saveOffsetsOnPull()) // <===
 
     .filter(MessageSchema("temperature"))
 

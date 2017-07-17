@@ -165,8 +165,8 @@ class APIIsBackwardCompatible
         .fromOffsets("1", "2")
         .fromOffsets(Seq("1", "2"))
         .fromOffsets(Array("1", "2"))
-        .saveOffsets
-        .saveOffsets()
+        .saveOffsetsOnPull
+        .saveOffsetsOnPull()
         .withRuntimeInfo
         .withRuntimeInfo()
     }
