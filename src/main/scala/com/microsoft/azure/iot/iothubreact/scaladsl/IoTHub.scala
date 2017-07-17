@@ -37,7 +37,7 @@ class IoTHub(config: IConfiguration) extends Logger {
 
   private[this] def fromStart = Some(List.fill[String](config.connect.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream))
 
-  private lazy val commitSinkBackend = CheckpointService.configToBackend(config.checkpointing)
+  private lazy val commitSinkBackend = CheckpointService.getCheckpointBackend(config.checkpointing)
 
   /** Stop the stream
     */
@@ -74,9 +74,11 @@ class IoTHub(config: IConfiguration) extends Logger {
     DevicePropertiesSink(config).scalaSink()
 
   /**
-    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics (withCheckpoints should be false)
+    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
     */
-  def offsetSink(parallelism: Int)(implicit backend: CheckpointBackend = commitSinkBackend): Sink[MessageFromDevice, Future[Done]] = OffsetCommitSink(parallelism, backend, config).scalaSink()
+  def offsetSink(parallelism: Int)
+    (implicit backend: CheckpointBackend = commitSinkBackend): Sink[MessageFromDevice, Future[Done]] =
+    OffsetCommitSink(parallelism, backend, config).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise

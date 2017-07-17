@@ -22,7 +22,7 @@ class IoTHub(config: IConfiguration) {
 
   private lazy val iotHub = IoTHubScalaDSL(config)
 
-  private lazy val commitSinkBackend = CheckpointService.configToBackend(config.checkpointing)
+  private lazy val commitSinkBackend = CheckpointService.getCheckpointBackend(config.checkpointing)
 
   /** Stop the stream
     */
@@ -36,7 +36,7 @@ class IoTHub(config: IConfiguration) {
     MessageToDeviceSink().javaSink()
 
   /**
-    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics (withCheckpoints should be false)
+    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
     */
   def offsetSink(parallelism: Int): Sink[MessageFromDevice, CompletionStage[Done]] =
     OffsetCommitSink(parallelism, commitSinkBackend, config).javaSink()
