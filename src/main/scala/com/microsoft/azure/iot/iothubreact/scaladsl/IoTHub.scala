@@ -11,7 +11,7 @@ import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
-import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetCommitSink}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetSaveSink}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -78,7 +78,7 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger
     */
   def offsetSink(parallelism: Int)
     (implicit backend: CheckpointBackend = commitSinkBackend): Sink[MessageFromDevice, Future[Done]] =
-    OffsetCommitSink(parallelism, backend, config, offsetLoader).scalaSink()
+    OffsetSaveSink(parallelism, backend, config, offsetLoader).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise

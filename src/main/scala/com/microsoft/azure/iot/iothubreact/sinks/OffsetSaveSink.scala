@@ -17,7 +17,7 @@ import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
-final case class OffsetCommitSink(parallelism: Int, backend: CheckpointBackend, config: IConfiguration, offsetLoader: IOffsetLoader) extends ISink[MessageFromDevice] with Logger {
+final case class OffsetSaveSink(parallelism: Int, backend: CheckpointBackend, config: IConfiguration, offsetLoader: IOffsetLoader) extends ISink[MessageFromDevice] with Logger {
 
   val current: TrieMap[Int, Long] = TrieMap()
   offsetLoader.GetSavedOffsets.foreach{ case (a, c) ⇒

@@ -4,21 +4,14 @@ package com.microsoft.azure.iot.iothubreact.scaladsl
 
 import java.time.Instant
 
-import akka.{Done, NotUsed}
-import akka.pattern.ask
-import akka.stream.impl.StreamLayout
-import akka.stream.scaladsl.{Sink, Source}
-import akka.util.Timeout
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import com.microsoft.azure.eventhubs.PartitionReceiver
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
 import com.microsoft.azure.iot.iothubreact.checkpointing._
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 import com.microsoft.azure.iot.iothubreact.filters.Ignore
-import com.microsoft.azure.iot.iothubreact.sinks.OffsetCommitSink
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
 object IoTHubPartition extends Logger {
