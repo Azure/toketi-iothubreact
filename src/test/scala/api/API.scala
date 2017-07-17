@@ -3,6 +3,8 @@
 // NOTE: Namespace chosen to avoid access to internal classes
 package api
 
+import com.microsoft.azure.iot.iothubreact.checkpointing.IOffsetLoader
+
 // NOTE: No global imports from the library, to make easier detecting breaking changes
 
 class APIIsBackwardCompatible
@@ -131,7 +133,7 @@ class APIIsBackwardCompatible
       import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub
 
       val hub1: IoTHub = new IoTHub()
-      val hub2: IoTHub = new IoTHub(mock[IConfiguration])
+      val hub2: IoTHub = new IoTHub(mock[IConfiguration], mock[IOffsetLoader])
 
       val partitions: java.util.List[java.lang.Integer] = java.util.Arrays.asList(0, 1, 3)
       val options = new SourceOptions()

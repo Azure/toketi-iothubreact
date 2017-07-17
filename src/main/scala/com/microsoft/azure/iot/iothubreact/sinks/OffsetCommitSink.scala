@@ -9,7 +9,7 @@ import akka.Done
 import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.checkpointing.OffsetLoader
+import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
@@ -17,10 +17,10 @@ import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
-final case class OffsetCommitSink(parallelism: Int, backend: CheckpointBackend, config: IConfiguration) extends ISink[MessageFromDevice] with Logger {
+final case class OffsetCommitSink(parallelism: Int, backend: CheckpointBackend, config: IConfiguration, offsetLoader: IOffsetLoader) extends ISink[MessageFromDevice] with Logger {
 
   val current: TrieMap[Int, Long] = TrieMap()
-  OffsetLoader.GetSavedOffsets(config).foreach{ case (a, c) ⇒
+  offsetLoader.GetSavedOffsets.foreach{ case (a, c) ⇒
     current += a → c.toLong
   }
 

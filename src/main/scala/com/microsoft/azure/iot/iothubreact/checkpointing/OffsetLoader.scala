@@ -8,13 +8,18 @@ import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 
 import scala.concurrent.Await
 
-object OffsetLoader extends Logger {
+trait IOffsetLoader {
+  private[iothubreact] def GetSavedOffset(partition: Int): Option[String]
+  private[iothubreact] def GetSavedOffsets: Map[Int, String]
+}
+
+class OffsetLoader(config: IConfiguration) extends IOffsetLoader with Logger {
 
   /** Get the offset saved for the current partition
     *
     * @return Offset
     */
-  private[iothubreact] def GetSavedOffset(partition: Int, config: IConfiguration): Option[String] = {
+  private[iothubreact] def GetSavedOffset(partition: Int): Option[String] = {
     import scala.language.postfixOps
     import scala.concurrent.duration._
     import akka.pattern.ask
@@ -37,9 +42,9 @@ object OffsetLoader extends Logger {
     }
   }
 
-  private[iothubreact] def GetSavedOffsets(config: IConfiguration): Map[Int, String] = {
+  private[iothubreact] def GetSavedOffsets: Map[Int, String] = {
     (0 to config.connect.iotHubPartitions).flatMap { p ⇒
-      GetSavedOffset(p, config).map { o ⇒
+      GetSavedOffset(p).map { o ⇒
         p → o
       }
     }(collection.breakOut)

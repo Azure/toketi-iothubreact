@@ -12,7 +12,7 @@ import akka.util.Timeout
 import com.microsoft.azure.eventhubs.PartitionReceiver
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.GetOffset
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, CheckpointService, OffsetLoader, SaveOffsetOnPull}
+import com.microsoft.azure.iot.iothubreact.checkpointing._
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 import com.microsoft.azure.iot.iothubreact.filters.Ignore
 import com.microsoft.azure.iot.iothubreact.sinks.OffsetCommitSink
@@ -36,7 +36,7 @@ object IoTHubPartition extends Logger {
   * @param partition IoT hub partition number (0-based). The number of
   *                  partitions is set during the deployment.
   */
-private[iothubreact] case class IoTHubPartition(config: IConfiguration, val partition: Int) extends Logger {
+private[iothubreact] case class IoTHubPartition(config: IConfiguration, offsetLoader: IOffsetLoader, val partition: Int) extends Logger {
 
   /** Create a stream returning all the messages for the defined partition, from the given start
     * point, optionally with checkpointing
@@ -49,7 +49,7 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, val part
     val savedOffset = if (!options.isFromSavedOffsets)
                         None
                       else {
-                        val savedOffset = OffsetLoader.GetSavedOffset(partition, config)
+                        val savedOffset = offsetLoader.GetSavedOffset(partition)
                         if (savedOffset.isDefined) {
                           log.info("Starting partition {} from saved offset {}", partition, savedOffset.get)
                           savedOffset
