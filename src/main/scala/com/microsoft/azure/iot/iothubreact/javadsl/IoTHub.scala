@@ -39,7 +39,7 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) {
     * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
     */
   def offsetSink(parallelism: Int): Sink[MessageFromDevice, CompletionStage[Done]] =
-    OffsetSaveSink(parallelism, commitSinkBackend, config, offsetLoader).javaSink()
+    OffsetSaveSink(parallelism, config, offsetLoader).javaSink()
 
   /** Sink to call synchronous methods on IoT devices
     *

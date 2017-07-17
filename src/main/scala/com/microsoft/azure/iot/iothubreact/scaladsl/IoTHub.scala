@@ -78,7 +78,7 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger
     */
   def offsetSink(parallelism: Int)
     (implicit backend: CheckpointBackend = commitSinkBackend): Sink[MessageFromDevice, Future[Done]] =
-    OffsetSaveSink(parallelism, backend, config, offsetLoader).scalaSink()
+    OffsetSaveSink(parallelism, config, offsetLoader).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise

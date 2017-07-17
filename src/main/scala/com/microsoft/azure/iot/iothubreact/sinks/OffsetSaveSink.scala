@@ -6,10 +6,12 @@ import java.util.concurrent.CompletionStage
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.Done
+import akka.actor.ActorRef
 import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
+import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.UpdateOffset
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
@@ -17,7 +19,11 @@ import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
-final case class OffsetSaveSink(parallelism: Int, backend: CheckpointBackend, config: IConfiguration, offsetLoader: IOffsetLoader) extends ISink[MessageFromDevice] with Logger {
+final case class OffsetSaveSink(parallelism: Int, config: IConfiguration, offsetLoader: IOffsetLoader) extends ISink[MessageFromDevice] with Logger {
+
+  lazy val checkpointService = (0 until config.connect.iotHubPartitions).map { p ⇒
+    p → CheckpointActorSystem(config.checkpointing).getCheckpointService(p)
+  }(collection.breakOut): Map[Int, ActorRef]
 
   val current: TrieMap[Int, Long] = TrieMap()
   offsetLoader.GetSavedOffsets.foreach{ case (a, c) ⇒
@@ -43,7 +49,7 @@ final case class OffsetSaveSink(parallelism: Int, backend: CheckpointBackend, co
           val cur: Long = current.getOrElse(p, -1)
           if (os > cur) {
             log.debug(s"Committing offset ${m.offset} on partition ${p}")
-            backend.writeOffset(p, m.offset)
+            checkpointService(p) ! UpdateOffset(m.offset)
             current += p → os
           } else {
               log.debug(s"Ignoring offset ${m.offset} since it precedes ${cur}")
