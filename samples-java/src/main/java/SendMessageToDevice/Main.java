@@ -35,7 +35,7 @@ public class Main extends ReactiveStreamingApp
         // Source retrieving from all IoT hub partitions for the past 24 hours and saving the current position
         SourceOptions options = new SourceOptions()
                 .fromTime(Instant.now().minus(1, ChronoUnit.DAYS))
-                .saveOffsets();
+                .saveOffsetsOnPull();
         Source<MessageFromDevice, NotUsed> messages = hub.source(options);
 
         MessageToDevice turnFanOn = new MessageToDevice("turnFanOn")

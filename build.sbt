@@ -3,7 +3,7 @@
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
 
-version := "0.9.0"
+version := "0.9.1"
 //version := "0.9.0-DEV.170323a"
 
 scalaVersion := "2.12.1"

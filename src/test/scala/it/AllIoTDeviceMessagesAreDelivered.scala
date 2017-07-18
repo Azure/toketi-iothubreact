@@ -9,11 +9,13 @@ import akka.pattern.ask
 import akka.stream.scaladsl.Sink
 import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, SourceOptions}
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHub
 import it.helpers.{Counter, Device}
 import org.scalatest._
 
-import scala.concurrent.Await
+import scala.collection.concurrent.TrieMap
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -34,6 +36,19 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
     def readCounter: Long = {
       Await.result(counter.ask("get")(5 seconds), 5 seconds).asInstanceOf[Long]
+    }
+
+    var commits = TrieMap[Int, Seq[String]]()
+    class CustomBackend extends CheckpointBackend {
+
+      override def readOffset(partition: Int): String = {
+        return commits.getOrElse(partition, Seq()).lastOption.getOrElse("-1")
+      }
+
+      override def writeOffset(partition: Int, offset: String): Unit = {
+        val row = commits.getOrElse(partition, Seq()) :+ offset
+        commits += partition → row
+      }
     }
 
     Feature("All IoT device messages are delivered") {
@@ -74,13 +89,27 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
         When("A client application processes messages from the stream")
         counter ! "reset"
-        val count = Sink.foreach[MessageFromDevice] {
-          m ⇒ counter ! "inc"
-        }
 
+        //send to offset sink
+        implicit val backend: CustomBackend = new CustomBackend()
+        val os = hub.offsetSink(1)
+        var maxOffset = TrieMap[Int, Long]()
         messages
           .filter(m ⇒ m.contentAsString contains testRunId)
-          .runWith(count)
+          .map{ m ⇒
+            counter ! "inc"
+            m.runtimeInfo.partitionInfo.partitionNumber.map { p ⇒
+                maxOffset += p → math.max(m.offset.toLong, maxOffset.getOrElse(p, -1L))
+            }
+            m
+          }
+          .mapAsync(10) { m ⇒
+            //slow down higher offsets and process asynchronously so that offsets are likely to be out of order
+            val offset = m.offset.toLong
+            Thread.sleep(math.log10(offset).toInt)
+            Future successful m
+          }
+          .runWith(os)
 
         Then("Then the client application receives all the messages sent")
         var time = TestTimeout.toMillis.toInt
@@ -97,6 +126,15 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
         assert(actualMessageCount == expectedMessageCount,
           s"Expecting ${expectedMessageCount} messages but received ${actualMessageCount}")
+
+        Then("Then the offsets should be saved in ascending order")
+        assert(commits.size >= 1, "Commits should have at least one partition to them")
+        assert(commits.head._2.size >= 1, "Commits should have at least one commit")
+
+        commits.map { case (partition, offsets) ⇒
+          assert(offsets.last.toLong == maxOffset(partition), s"Partition ${partition} should have last stored the max offset (${offsets.last} vs. ${maxOffset(partition)})")
+        }
+
       }
     }
   }

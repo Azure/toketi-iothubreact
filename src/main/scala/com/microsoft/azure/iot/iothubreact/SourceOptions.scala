@@ -29,7 +29,7 @@ class SourceOptions() {
   private[this] var _startTime              : Option[Instant]     = None
   private[this] var _startTimeOnNoCheckpoint: Option[Instant]     = None
   private[this] var _startOffsets           : Option[Seq[String]] = None
-  private[this] var _isSaveOffsets          : Boolean             = false
+  private[this] var _isSaveOffsetsOnPull    : Boolean             = false
   private[this] var _isWithRuntimeInfo      : Boolean             = false
 
   /** Set the options to retrieve events from all the Hub partitions
@@ -172,8 +172,8 @@ class SourceOptions() {
     *
     * @return Current instance
     */
-  def saveOffsets(): SourceOptions = {
-    _isSaveOffsets = true
+  def saveOffsetsOnPull(): SourceOptions = {
+    _isSaveOffsetsOnPull = true
     this
   }
 
@@ -215,7 +215,7 @@ class SourceOptions() {
 
   private[iothubreact] def isFromSavedOffsets: Boolean = _isFromCheckpoint
 
-  private[iothubreact] def isSaveOffsets: Boolean = _isSaveOffsets
+  private[iothubreact] def isSaveOffsetsOnPull: Boolean = _isSaveOffsetsOnPull
 
   private[iothubreact] def isWithRuntimeInfo: Boolean = _isWithRuntimeInfo
 }

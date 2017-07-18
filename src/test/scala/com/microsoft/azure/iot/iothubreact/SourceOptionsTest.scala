@@ -29,7 +29,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       assert(o.getStartOffsets(conf).size == pcount)
       assert(o.getStartOffsets(conf).filter(x ⇒ x == IoTHubPartition.OffsetStartOfStream).size == pcount)
       assert(o.isFromStart)
-      assert(!o.isSaveOffsets)
+      assert(!o.isSaveOffsetsOnPull)
       assert(!o.isFromSavedOffsets)
       assert(!o.isFromTime)
       assert(!o.isFromOffsets)
@@ -108,7 +108,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       val o: SourceOptions = SourceOptions().fromSavedOffsets()
       assert(o.getStartTimeOnNoCheckpoint.get == Instant.MIN)
       assert(o.isFromSavedOffsets)
-      assert(!o.isSaveOffsets)
+      assert(!o.isSaveOffsetsOnPull)
       assert(!o.isFromOffsets)
       assert(!o.isFromTime)
       assert(!o.isFromStart)
@@ -117,7 +117,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       o.fromStart.fromSavedOffsets(time)
       assert(o.getStartTimeOnNoCheckpoint.get == time)
       assert(o.isFromSavedOffsets)
-      assert(!o.isSaveOffsets)
+      assert(!o.isSaveOffsetsOnPull)
       assert(!o.isFromOffsets)
       assert(!o.isFromTime)
       assert(!o.isFromStart)
@@ -125,10 +125,10 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
 
     Scenario("Save offsets while streaming") {
       val o: SourceOptions = SourceOptions()
-      assert(!o.isSaveOffsets)
+      assert(!o.isSaveOffsetsOnPull)
 
-      o.saveOffsets()
-      assert(o.isSaveOffsets)
+      o.saveOffsetsOnPull()
+      assert(o.isSaveOffsetsOnPull)
     }
 
     Scenario("Include runtime information in the stream") {
