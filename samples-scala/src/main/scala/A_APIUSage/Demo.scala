@@ -4,7 +4,8 @@ package A_APIUSage
 
 import java.time.Instant
 
-import akka.stream.scaladsl.Sink
+import akka.Done
+import akka.stream.scaladsl.{Flow, Sink}
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters._
 import com.microsoft.azure.iot.iothubreact.scaladsl._
@@ -12,6 +13,7 @@ import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, MessageToDevice, 
 import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
@@ -81,7 +83,7 @@ object StoreOffsetsWhileStreaming extends App {
 
   println(s"Streaming messages and save offsets while streaming")
 
-  val messages = IoTHub().source(SourceOptions().saveOffsets())
+  val messages = IoTHub().source(SourceOptions().saveOffsetsOnPull())
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
@@ -110,6 +112,27 @@ object StartFromStoredOffsetsButDontWriteNewOffsets extends App {
 
     .to(console)
 
+    .run()
+}
+
+/** Streaming messages from a saved position, without updating the position stored
+  */
+object StartFromStoredOffsetsWithAtLeastOnceSemantics extends App {
+
+  val PARALLELISM = 32
+  println(s"Streaming messages from a saved position using at least once delivery semantics")
+
+  val hub = IoTHub()
+  val messages = hub.source(SourceOptions().fromSavedOffsets())
+
+  val console = Flow[MessageFromDevice].map {
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
+    m
+  }
+
+  messages
+    .via(console)
+    .to(hub.offsetSink(PARALLELISM))
     .run()
 }
 
@@ -158,7 +181,7 @@ object MultipleStreamingOptionsAndSyntaxSugar extends App {
   val options = SourceOptions()
     .partitions(0, 2, 3)
     .fromOffsets("614", "64365", "123512")
-    .saveOffsets()
+    .saveOffsetsOnPull()
 
   val messages = IoTHub().source(options)
 

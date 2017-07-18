@@ -1,34 +1,43 @@
 # Stream partitions offset checkpointing, aka saving the position of the stream
 
 The library provides a mechanism to restart the stream from a recent *checkpoint*, to be resilient
-to restarts and crashes. For each partition, the library saves the current *offset*, a value 
+to restarts and crashes. For each partition, the library saves the current *offset*, a value
 pointing to the current stream position.
 
-When the option is enabled, *offsets* are saved periodically in a storage table or blob, with the 
-frequency configured. As an example, the stream position can be saved in Azure blobs, or in 
-Cassandra, every 15 seconds and/or every 500 messages.
+The stream position can be saved in two different ways: **out-of-process** or **post-execution**
+with [at-least-once delivery semantics](http://getakka.net/docs/persistence/at-least-once-delivery).
 
-Currently **at-least-once** behavior is not supported, because the position is saved concurrently 
-(although delayed), so it's possible that the position saved is ahead of your logic processing each 
-event. We plan to support *at-least-once*, guaranteeing that the position saved is always equal
-or behind the one already processed.
+When saving the stream position out-of-process, the **offsets** are saved periodically in a
+storage table or blob, with a configured frequency. For example, the stream position can be
+saved in Azure blobs, or in Cassandra, every 15 seconds and/or every 500 messages. The logic
+performing the writes may save offset for messages that have yet to be processed, this is where
+the configurable delay allows to manage this risk. The longer it takes to process a message,
+the higher the risk of missing messages after a restart.
 
-To store checkpoints in Azure blobs the configuration looks like the following:
+The post-execution checkpointing method requires more code on the part of a developer, however
+it has the advantage of a reasonable expectation that all messages are processed, regardless of
+crashes, restarts, and very long processing times. This is the recommended approach when missing
+even a singe message is not acceptable.
+
+### Out-of-Process Checkpointing
+
+To store checkpoints in Azure blobs, using a time or threashold based logic, the configuration
+looks like the following:
 
 ```
 iothub-react{
 
   [... other settings ...]
-  
+
   checkpointing {
     frequency = 15s
     countThreshold = 1000
     timeThreshold = 30s
-    
+
     storage {
       rwTimeout = 5s
       namespace = "iothub-react-checkpoints"
-      
+
       backendType = "AzureBlob"
       azureblob {
         lease = 15s
@@ -48,16 +57,16 @@ To store checkpoints in Cassandra, the configuration looks like the following:
 iothub-react{
 
   [... other settings ...]
-  
+
   checkpointing {
     frequency = 15s
     countThreshold = 1000
     timeThreshold = 30s
-    
+
     storage {
       rwTimeout = 5s
       namespace = "iothub_react_checkpoints"
-      
+
       backendType = "Cassandra"
       cassandra {
         cluster = "localhost:9042"
@@ -70,17 +79,17 @@ iothub-react{
 }
 ```
 
-We plan to allow plugging in custom storage backends, by implementing a simple 
+We plan to allow plugging in custom storage backends, by implementing a simple
 [interface](src/main/scala/com/microsoft/azure/iot/iothubreact/checkpointing/Backends/CheckpointBackend.scala)
 to read and write the stream position. Let us know if you are interested!
 
-The checkpointing feature is not enabled by default, so the library will not save the stream offsets 
-automatically. To use checkpointing, use the `saveOffsets` option when creating the stream:
+The checkpointing feature is not enabled by default, so the library will not save the stream offsets
+automatically. To use checkpointing with automatic commits, use the `saveOffsetsOnPull` option when creating the stream:
 
 ```scala
 val options = SourceOptions()
   .fromTime(java.time.Instant.now())
-  .saveOffsets()
+  .saveOffsetsOnPull()
 
 IoTHub().source(options)
     .map(m ⇒ jsonParser.readValue(m.contentAsString, classOf[Temperature]))
@@ -89,12 +98,41 @@ IoTHub().source(options)
     .run()
 ```
 
+# Post-Execution At-Least-Once Checkpointing
+
+At-least-once delivery semantic (ALOS) guarantees require that stream offsets are checkpointed after, and
+only after, the processing task is complete. This in turn requires a different approach to building Akka
+streaming graphs. Note that all configuration options listed above apply to the system, except for those
+governing frequency of saves (frequency, countThreshold, timeThreshold).
+
+The following example illustrates how code with ALOS looks like, taking temperature values over 100 and outputting 
+them to the console. The original `MessageFromDevice` must be passed through the system and sent to the
+offset sink once all processing stages are complete.
+
+```scala
+case class TemperatureWithPassThrough(temp: Temperature, passThrough: MessageFromDevice)
+val options = SourceOptions().fromSavedOffsets()
+val hub = IoTHub()
+hub.source(options)
+    .map(m ⇒ TemperatureWithPassThrough(jsonParser.readValue(m.contentAsString, classOf[Temperature]), m))
+    .filter(_.temp.value > 100)
+    .map{in ⇒ 
+      println(s"Temperature was ${in.temp}")
+      in.passThrough
+    }
+    .to(hub.offsetSink(32)) //32 is the parallelism used to make concurrent saves
+    .run()
+```
+
+Note that in this graph, all processing occurs upstream of the offset save, and that we used the
+`offsetSink` method to store the stream position.
+
 # Checkpointing behavior
 
 ### Configuration
 
-The following table describes the impact of the settings within the `iothub-react.checkpointing` 
-configuration block. For further information, you can also check the 
+The following table describes the impact of the settings within the `iothub-react.checkpointing`
+configuration block. For further information, you can also check the
 [reference.conf](src/main/resources/reference.conf) file.
 
 | Setting | Type | Example | Description |
@@ -122,15 +160,15 @@ The following table describes the system behavior, based on **API parameters** a
 | Yes | Yes | **Yes** | The stream starts from the saved position
 
 Legend:
-* **Checkpointing**: whether saving the stream offset is enabled (with `saveOffsets`)
-* **Start point**: whether the client provides a starting position (date or offset) or ask for all 
+* **Checkpointing**: whether saving the stream offset is enabled (with `saveOffsetsOnPull`)
+* **Start point**: whether the client provides a starting position (date or offset) or ask for all
 the events from the beginning
-* **Saved position**: whether there is a position saved in the storage 
+* **Saved position**: whether there is a position saved in the storage
 
 ### Edge cases
 
 * Azure IoT Hub stores messages up to 7 days. It's possible that the position stored doesn't exist
   anymore. In such case the stream will start from the first message available.
 * If the checkpoint position is ahead of the last available message, the stream will fail with an
-  error. This can happen only with invalid configurations where two streams are sharing the 
+  error. This can happen only with invalid configurations where two streams are sharing the
   same checkpoints.

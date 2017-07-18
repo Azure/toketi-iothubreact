@@ -24,6 +24,13 @@ private[iothubreact] object CheckpointService {
   // Command use to write the position from memory to storage
   case object StoreOffset
 
+  // TODO: Support plugins
+  def getCheckpointBackend(implicit config: ICPConfiguration) = config.checkpointBackendType.toUpperCase match {
+    case "AZUREBLOB" ⇒ new AzureBlob(config)
+    case "CASSANDRA" ⇒ new CassandraTable(config)
+    case x           ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${x}")
+  }
+
 }
 
 /** Checkpointing agent. Takes care of initializing the right storage, reading and writing to it.
@@ -165,15 +172,7 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
     }
   }
 
-  // TODO: Support plugins
-  def getCheckpointBackend: CheckpointBackend = {
-    val conf = cpconfig.checkpointBackendType
-    conf.toUpperCase match {
-      case "AZUREBLOB" ⇒ new AzureBlob(cpconfig)
-      case "CASSANDRA" ⇒ new CassandraTable(cpconfig)
-      case _           ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${conf}")
-    }
-  }
+  def getCheckpointBackend = CheckpointService.getCheckpointBackend(cpconfig)
 
   def offsetOf(x: OffsetsData): String = x._1
 

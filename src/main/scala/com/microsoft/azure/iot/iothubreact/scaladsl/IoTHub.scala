@@ -8,8 +8,10 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, IOffsetLoader, OffsetLoader}
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
-import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetSaveSink}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -17,24 +19,25 @@ import scala.language.postfixOps
 object IoTHub {
   def apply(): IoTHub = new IoTHub()
 
-  def apply(config: IConfiguration): IoTHub = new IoTHub(config)
+  def apply(config: IConfiguration): IoTHub = new IoTHub(config, new OffsetLoader(config))
 }
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   *
   * TODO: Provide ClearCheckpoints() method to clear the state
   */
-class IoTHub(config: IConfiguration)
-  extends Logger {
+class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger {
 
   // Parameterless ctor
-  def this() = this(Configuration())
+  def this() = this(Configuration(), new OffsetLoader(Configuration()))
 
   private[this] val streamManager = new StreamManager
 
   private[this] def allPartitions = Some(0 until config.connect.iotHubPartitions)
 
   private[this] def fromStart = Some(List.fill[String](config.connect.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream))
+
+  private lazy val commitSinkBackend = CheckpointService.getCheckpointBackend(config.checkpointing)
 
   /** Stop the stream
     */
@@ -69,6 +72,13 @@ class IoTHub(config: IConfiguration)
     */
   def propertySink: Sink[DeviceProperties, Future[Done]] =
     DevicePropertiesSink(config).scalaSink()
+
+  /**
+    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
+    */
+  def offsetSink(parallelism: Int)
+    (implicit backend: CheckpointBackend = commitSinkBackend): Sink[MessageFromDevice, Future[Done]] =
+    OffsetSaveSink(parallelism, config, offsetLoader).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise
@@ -113,7 +123,7 @@ class IoTHub(config: IConfiguration)
         val merge = b.add(Merge[MessageFromDevice](partitions.size))
 
         for (partition ← partitions) {
-          val graph = IoTHubPartition(config, partition).source(options).via(streamManager)
+          val graph = IoTHubPartition(config, offsetLoader, partition).source(options).via(streamManager)
           val source = Source.fromGraph(graph).async
           source ~> merge
         }
