@@ -4,7 +4,8 @@
 [![Issues][issues-badge]][issues-url]
 [![Gitter][gitter-badge]][gitter-url]
 
-# IoTHubReact
+IoTHubReact
+===========
 
 IoTHub React is an Akka Stream library that can be used **to read events** from
 [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/), via a **reactive stream** with
@@ -268,7 +269,8 @@ There are other settings, to tune performance and connection details:
 The complete configuration reference (and default values) is available in
 [reference.conf](src/main/resources/reference.conf).
 
-## Samples
+Samples
+=======
 
 The project includes several demos in Java and Scala, showing some of the use cases and how IoThub
 React API works. All the demos require an instance of Azure IoT hub, with some devices and messages.
@@ -328,34 +330,27 @@ and `run_<language>_samples.cmd`):
 * [`run_scala_samples.sh`](run_scala_samples.sh): execute Scala demos
 * [`run_java_samples.sh`](run_java_samples.sh): execute Java demos
 
-## Future work (MoSCoW)
 
-* M: device twins and device methods
-* S: clustering awareness
-* C: redefine the streaming graph at runtime, e.g. add/remove partitions on the fly
-* C: reopen hub after closing (currently one creates a new instance)
-* W: asynchronicity by using EventHub SDK async APIs
-
-# Contributing
-
-## Contribution license Agreement
-
-If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/)
-(Contribution license Agreement). A friendly bot will remind you about it when you submit
-a pull-request.
-
-## Code style
-
-If you are sending a pull request, please check the code style with IntelliJ IDEA,
-importing the settings from
-[`Codestyle.IntelliJ.xml`](https://github.com/Azure/toketi-iot-tools/blob/dev/Codestyle.IntelliJ.xml).
-
-## Running the tests
+Running the tests
+=================
 
 You can use the included `build.sh` script to execute all the unit and functional tests in the suite.
+
 The functional tests require an existing Azure IoT Hub resource, that yous should setup. For the
 tests to connect to your IoT Hub, configure your environment using the `setup-env-vars.*` scripts
 mentioned above in this page.
+
+
+Other docs
+==========
+
+* [Contributing](CONTRIBUTING.md)
+* [Checkpointing](CHECKPOINTING.md)
+* [API specs](https://azure.github.io/toketi-iothubreact)
+
+
+
+
 
 
 [maven-badge]: https://img.shields.io/maven-central/v/com.microsoft.azure.iot/iothub-react_2.11.svg

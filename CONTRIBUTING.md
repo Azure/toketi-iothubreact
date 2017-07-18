@@ -50,3 +50,10 @@ Finally, push the commits to your fork, submit a pull request against the
 the code review progress. The team might ask for some
 [changes](https://help.github.com/articles/committing-changes-to-a-pull-request-branch-created-from-a-fork)
 before merging the pull request.
+
+Code style
+==========
+
+If you are sending a pull request, please check the code style with IntelliJ IDEA,
+importing the settings from
+[`Codestyle.IntelliJ.xml`](https://github.com/Azure/toketi-iot-tools/blob/dev/Codestyle.IntelliJ.xml).
