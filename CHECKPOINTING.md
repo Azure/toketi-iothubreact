@@ -105,15 +105,21 @@ only after, the processing task is complete. This in turn requires a different a
 streaming graphs. Note that all configuration options listed above apply to the system, except for those
 governing frequency of saves (frequency, countThreshold, timeThreshold).
 
-The following example illustrates how code with ALOS looks like:
+The following example illustrates how code with ALOS looks like, taking temperature values over 100 and outputting 
+them to the console. The original `MessageFromDevice` must be passed through the system and sent to the
+offset sink once all processing stages are complete.
 
 ```scala
+case class TemperatureWithPassThrough(temp: Temperature, passThrough: MessageFromDevice)
 val options = SourceOptions().fromSavedOffsets()
 val hub = IoTHub()
 hub.source(options)
-    .map(m ⇒ jsonParser.readValue(m.contentAsString, classOf[Temperature]))
-    .filter(_.value > 100)
-    .via(console)
+    .map(m ⇒ TemperatureWithPassThrough(jsonParser.readValue(m.contentAsString, classOf[Temperature]), m))
+    .filter(_.temp.value > 100)
+    .map{in ⇒ 
+      println(s"Temperature was ${in.temp}")
+      in.passThrough
+    }
     .to(hub.offsetSink(32)) //32 is the parallelism used to make concurrent saves
     .run()
 ```
