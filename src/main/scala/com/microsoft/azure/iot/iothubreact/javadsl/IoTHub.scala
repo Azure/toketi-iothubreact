@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage
 import akka.stream.javadsl.{Sink, Source ⇒ JavaSource}
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, IOffsetLoader, OffsetLoader}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetSaveSink}
@@ -21,8 +21,6 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) {
   def this() = this(Configuration(), new OffsetLoader(Configuration()))
 
   private lazy val iotHub = IoTHubScalaDSL(config)
-
-  private lazy val commitSinkBackend = CheckpointService.getCheckpointBackend(config.checkpointing)
 
   /** Stop the stream
     */
@@ -38,8 +36,8 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) {
   /**
     * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
     */
-  def offsetSink(parallelism: Int): Sink[MessageFromDevice, CompletionStage[Done]] =
-    OffsetSaveSink(parallelism, config, offsetLoader).javaSink()
+  def offsetSink(): Sink[MessageFromDevice, CompletionStage[Done]] =
+    OffsetSaveSink(config, offsetLoader).javaSink()
 
   /** Sink to call synchronous methods on IoT devices
     *

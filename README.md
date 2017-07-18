@@ -6,16 +6,16 @@
 
 # IoTHubReact
 
-IoTHub React is an Akka Stream library that can be used **to read events** from 
-[Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/), via a **reactive stream** with 
-**asynchronous back pressure**, and **to send commands** to connected devices. 
+IoTHub React is an Akka Stream library that can be used **to read events** from
+[Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/), via a **reactive stream** with
+**asynchronous back pressure**, and **to send commands** to connected devices.
 Azure IoT Hub is a service used to connect thousands to millions of devices to the Azure cloud.
 
-The library can be used both in Java and Scala, providing a fluent DSL for both programming 
+The library can be used both in Java and Scala, providing a fluent DSL for both programming
 languages, similarly to the approach used by Akka.
 
-The following is a simple example showing how to use the library in Scala. A stream of incoming 
-telemetry data is read, parsed and converted to a `Temperature` object, and then filtered based on 
+The following is a simple example showing how to use the library in Scala. A stream of incoming
+telemetry data is read, parsed and converted to a `Temperature` object, and then filtered based on
 the temperature value:
 
 ```scala
@@ -55,11 +55,11 @@ IoTHub()
 
 #### Streaming from IoT hub to _any_
 
-An interesting example is reading telemetry data from Azure IoT Hub, and sending it to a Kafka 
+An interesting example is reading telemetry data from Azure IoT Hub, and sending it to a Kafka
 topic, so that it can be consumed by other services downstream:
 
 ```scala
-... 
+...
 import org.apache.kafka.common.serialization.StringSerializer
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -81,7 +81,7 @@ case class KafkaProducer(bootstrapServer: String)(implicit val system: ActorSyst
 
 ```scala
 val kafkaProducer = KafkaProducer(bootstrapServer)
- 
+
 IoTHub().source()
     .map(m ⇒ parse(m.contentAsString).extract[Temperature])
     .filter(_.value > 100)
@@ -92,10 +92,10 @@ IoTHub().source()
 
 ### IoT hub partitions
 
-The library supports reading from a subset of 
-[partitions](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview), 
-to enable the development of distributed applications. Consider for instance the scenario of a 
-client application deployed to multiple nodes, where each node processes independently a subset of 
+The library supports reading from a subset of
+[partitions](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview),
+to enable the development of distributed applications. Consider for instance the scenario of a
+client application deployed to multiple nodes, where each node processes independently a subset of
 the incoming telemetry.
 
 ```scala
@@ -111,7 +111,7 @@ IoTHub().source(Seq(p1, p2))
 
 ### Starting point
 
-Unless specified, the stream starts from the beginning of the data present in each partition. 
+Unless specified, the stream starts from the beginning of the data present in each partition.
 It's possible to start the stream from a given date and time too:
 
 ```scala
@@ -146,16 +146,16 @@ IoTHub().source(options)
 ### Stream processing restart - saving the current position
 
 The library provides a mechanism to restart the stream from a recent *checkpoint*, to be resilient
-to restarts and crashes. 
+to restarts and crashes.
 *Checkpoints* are saved automatically, with a configured frequency, on a storage provided.
-For instance, the stream position can be saved every 30 seconds and/or every 500 messages 
+For instance, the stream position can be saved every 30 seconds and/or every 500 messages
 (the values are configurable), in a table in Cassandra or using Azure blobs.
 
-Currently the position may be saved in two different ways. The first, simpler method is accomplished by saving 
-in a concurrent thread, delayed by time and/or count, depending 
-on the configuration settings. The second requires slightly more coding but allows the developer to implement 
+Currently the position may be saved in two different ways. The first, simpler method is accomplished by saving
+in a concurrent thread, delayed by time and/or count, depending
+on the configuration settings. The second requires slightly more coding but allows the developer to implement
 [at-least-once delivery semantics](http://www.cloudcomputingpatterns.org/at_least_once_delivery/), due to the
-fact the offset saves can be included downstream of processing in your graph. 
+fact the offset saves can be included downstream of processing in your graph.
 
 For more information about the checkpointing feature, [please read here](checkpointing.md).
 
@@ -176,15 +176,15 @@ or this dependency in `pom.xml` file when working with Maven:
 </dependency>
 ```
 
-IoTHubReact internally uses some libraries like Azure IoT SDK, Azure Storage SDK, Akka etc. 
-If your project depends on these libraries too, your can override the versions, explicitly importing 
-the packages in your `build.sbt` and `pom.xml` files. If you encounter some incompatibility with 
+IoTHubReact internally uses some libraries like Azure IoT SDK, Azure Storage SDK, Akka etc.
+If your project depends on these libraries too, your can override the versions, explicitly importing
+the packages in your `build.sbt` and `pom.xml` files. If you encounter some incompatibility with
 future versions of these, please let us know opening an issue, or sending a PR.
 
 ### IoTHub configuration
 
-By default IoTHubReact uses an `application.conf` configuration file to fetch the parameters 
-required to connect to Azure IoT Hub. The connection and authentication values to use, can be found 
+By default IoTHubReact uses an `application.conf` configuration file to fetch the parameters
+required to connect to Azure IoT Hub. The connection and authentication values to use, can be found
 in the [Azure Portal](https://portal.azure.com):
 
 Properties required to receive Device-to-Cloud (D2C) messages:
@@ -199,7 +199,7 @@ Properties required to send Cloud-to-Device (C2D) commands:
 
 * **accessHostName**: see `Shared access policies` ⇒ `key name` ⇒ `Connection string` ⇒ `HostName`
 
-The values should be stored in your `application.conf` resource (or equivalent). Optionally you can 
+The values should be stored in your `application.conf` resource (or equivalent). Optionally you can
 reference environment settings if you prefer, for example to hide sensitive data.
 
 ```
@@ -213,7 +213,7 @@ iothub-react {
     accessKey      = "<access policy key>"
     accessHostName = "<access host name>"
   }
-  
+
   [... other settings...]
 }
 ````
@@ -231,16 +231,16 @@ iothub-react {
     accessKey      = ${?IOTHUB_ACCESS_KEY}
     accessHostName = ${?IOTHUB_ACCESS_HOSTNAME}
   }
-  
+
   [... other settings...]
 }
 ````
 
 Note that the library will automatically use these exact environment variables, unless overridden
-in your configuration file (all the default settings are stored in 
+in your configuration file (all the default settings are stored in
 [reference.conf](src/main/resources/reference.conf)).
 
-Although using a configuration file is the preferred approach, it's also possible to inject a 
+Although using a configuration file is the preferred approach, it's also possible to inject a
 different configuration at runtime, providing an object implementing the `IConfiguration` interface.
 
 The logging level can be managed overriding Akka configuration, for example:
@@ -254,68 +254,75 @@ akka {
 
 There are other settings, to tune performance and connection details:
 
-* **streaming.consumerGroup**: the 
+* **streaming.consumerGroup**: the
   [consumer group](https://azure.microsoft.com/en-us/documentation/articles/event-hubs-overview)
   used during the connection
-* **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub. 
+* **streaming.receiverBatchSize**: the number of messages retrieved on each call to Azure IoT hub.
   The default (and maximum) value is 999.
-* **streaming.receiverTimeout**: timeout applied to calls while retrieving messages. The default 
+* **streaming.receiverTimeout**: timeout applied to calls while retrieving messages. The default
   value is 3 seconds.
 * **streaming.retrieveRuntimeInfo**: when enabled, the messages returned by `IoTHub.Source` will
-  contain some runtime information about the last message in each partition. You can use this 
+  contain some runtime information about the last message in each partition. You can use this
   information to calculate how many telemetry events remain to process.
 
-The complete configuration reference (and default values) is available in 
+The complete configuration reference (and default values) is available in
 [reference.conf](src/main/resources/reference.conf).
 
 ## Samples
 
-The project includes several demos in Java and Scala, showing some of the use cases and how IoThub 
+The project includes several demos in Java and Scala, showing some of the use cases and how IoThub
 React API works. All the demos require an instance of Azure IoT hub, with some devices and messages.
 
-1. **DisplayMessages** [Java]: how to stream Azure IoT hub withing a Java application, filtering 
+1. **DisplayMessages** [Java]: how to stream Azure IoT hub withing a Java application, filtering
    temperature values greater than 60C
-2. **SendMessageToDevice** [Java]: how to turn on a fan when a device reports a temperature higher 
+1. **SendMessageToDevice** [Java]: how to turn on a fan when a device reports a temperature higher
    than 22C
-3. **AllMessagesFromBeginning** [Scala]: simple example streaming all the events in the hub.
-4. **OnlyRecentMessages** [Scala]: stream all the events, starting from the current time.
-5. **OnlyTwoPartitions** [Scala]: shows how to stream events from a subset of partitions.
-6. **MultipleDestinations** [Scala]: shows how to read once and deliver events to multiple destinations.
-7. **FilterByMessageSchema** [Scala]: how to filter events by message schema. Note: the name of the
-   schema must be set by the device using the `$$MessageSchema` message property. In future this 
+1. **AllMessagesFromBeginning** [Scala]: simple example streaming all the events in the hub.
+1. **OnlyRecentMessages** [Scala]: stream all the events, starting from the current time.
+1. **OnlyTwoPartitions** [Scala]: shows how to stream events from a subset of partitions.
+1. **MultipleDestinations** [Scala]: shows how to read once and deliver events to multiple destinations.
+1. **FilterByMessageSchema** [Scala]: how to filter events by message schema. Note: the name of the
+   schema must be set by the device using the `$$MessageSchema` message property. In future this
    will be a system property, explicitly supported by Azure IoT SDK.
-8. **FilterByDeviceID** [Scala]: how to filter events by device ID. The device ID is automatically
+1. **FilterByDeviceID** [Scala]: how to filter events by device ID. The device ID is automatically
    set by Azure IoT SDK.
-9. **CloseStream** [Scala]: show how to close the stream 
-10. **SendMessageToDevice** [Scala]: shows the API to send messages to connected devices.
-11. **PrintTemperature** [Scala]: stream all Temperature events and print data to the console.
-12. **Throughput** [Scala]: stream all events and display statistics about the throughput.
-13. **Throttling** [Scala]: throttle the incoming stream to a defined speed of events/second.
-14. **StoreOffsetsWhileStreaming** [Scala]: demonstrates how the stream can be restarted without losing its position.
-    The current position is stored in a Cassandra table (we suggest to run a docker container for
+1. **CloseStream** [Scala]: show how to close the stream
+1. **SendMessageToDevice** [Scala]: shows the API to send messages to connected devices.
+1. **PrintTemperature** [Scala]: stream all Temperature events and print data to the console.
+1. **Throughput** [Scala]: stream all events and display statistics about the throughput.
+1. **Throttling** [Scala]: throttle the incoming stream to a defined speed of events/second.
+1. **StoreOffsets_While_Processing** [Scala]: demonstrates how the stream can be restarted without
+    losing its position, using an optimistic approach (the position is stored in parallel, with some
+    configurable delay fomr the moment of processing). The current position is stored in a Cassandra
+    table (we suggest to run a docker container for the purpose of the demo,
+    e.g. `docker run -ip 9042:9042 --rm cassandra`).
+1. **StoreOffsets_After_Processing** [Scala]: demonstrates how the stream can be restarted without
+    losing its position, using At Least Once Delivery semantic (this guarantees that every event
+    is delivered at least once, regardless of frequency and crashes).The current position is stored
+    in a Cassandra table (we suggest to run a docker container for
     the purpose of the demo, e.g. `docker run -ip 9042:9042 --rm cassandra`).
-15. **StartFromStoredOffsetsButDontWriteNewOffsets** [Scala]: shows how to use the saved checkpoints
+1. **StartFromStoredOffsetsButDontWriteNewOffsets** [Scala]: shows how to use the saved checkpoints
     to start streaming from a known position, without changing the value in the storage. If the
     storage doesn't contain checkpoints, the stream starts from the beginning.
-16. **StartFromStoredOffsetsIfAvailableOrByTimeOtherwise** [Scala]: similar to the previous
+1. **StartFromStoredOffsetsIfAvailableOrByTimeOtherwise** [Scala]: similar to the previous
     demo, with a fallback datetime when the storage doesn't contain checkpoints.
-17. **StreamIncludingRuntimeInformation** [Scala]: shows how runtime information works.
-18. **SendMessageToDevice** [Scala]: another example showing how to send 2 different messages to 
+1. **StreamIncludingRuntimeInformation** [Scala]: shows how runtime information works.
+1. **SendMessageToDevice** [Scala]: another example showing how to send 2 different messages to
     connected devices.
 
-We provide a [device simulator](tools/devices-simulator/README.md) in the tools section, 
+We provide a [device simulator](tools/devices-simulator/README.md) in the tools section,
 which will help simulating some devices sending sample telemetry events.
 
-When ready, you should either edit the `application.conf` configuration files 
+When ready, you should either edit the `application.conf` configuration files
 ([scala](samples-scala/src/main/resources/application.conf) and
-[java](samples-java/src/main/resources/application.conf)) 
+[java](samples-java/src/main/resources/application.conf))
 with your credentials, or set the corresponding environment variables.
 Follow the instructions described in the previous section on how to set the correct values.
 
-The root folder includes also a script showing how to set the environment variables in 
+The root folder includes also a script showing how to set the environment variables in
 [Linux/MacOS](setup-env-vars.sh) and [Windows](setup-env-vars.bat).
 
-The demos can be executed using the scripts included in the root folder (`run_<language>_samples.sh` 
+The demos can be executed using the scripts included in the root folder (`run_<language>_samples.sh`
 and `run_<language>_samples.cmd`):
 
 * [`run_scala_samples.sh`](run_scala_samples.sh): execute Scala demos
@@ -333,14 +340,14 @@ and `run_<language>_samples.cmd`):
 
 ## Contribution license Agreement
 
-If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/) 
-(Contribution license Agreement). A friendly bot will remind you about it when you submit 
+If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft.com/)
+(Contribution license Agreement). A friendly bot will remind you about it when you submit
 a pull-request.
 
 ## Code style
 
-If you are sending a pull request, please check the code style with IntelliJ IDEA, 
-importing the settings from 
+If you are sending a pull request, please check the code style with IntelliJ IDEA,
+importing the settings from
 [`Codestyle.IntelliJ.xml`](https://github.com/Azure/toketi-iot-tools/blob/dev/Codestyle.IntelliJ.xml).
 
 ## Running the tests

@@ -8,8 +8,7 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, IOffsetLoader, OffsetLoader}
-import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
+import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetSaveSink}
 
@@ -36,8 +35,6 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger
   private[this] def allPartitions = Some(0 until config.connect.iotHubPartitions)
 
   private[this] def fromStart = Some(List.fill[String](config.connect.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream))
-
-  private lazy val commitSinkBackend = CheckpointService.getCheckpointBackend(config.checkpointing)
 
   /** Stop the stream
     */
@@ -76,9 +73,8 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger
   /**
     * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
     */
-  def offsetSink(parallelism: Int)
-    (implicit backend: CheckpointBackend = commitSinkBackend): Sink[MessageFromDevice, Future[Done]] =
-    OffsetSaveSink(parallelism, config, offsetLoader).scalaSink()
+  def offsetSink() =
+    OffsetSaveSink(config, offsetLoader).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise

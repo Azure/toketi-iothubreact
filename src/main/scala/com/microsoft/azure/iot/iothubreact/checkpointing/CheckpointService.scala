@@ -8,7 +8,7 @@ import java.util.concurrent.Executors
 import akka.actor.{Actor, Stash}
 import com.microsoft.azure.iot.iothubreact.Logger
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{GetOffset, StoreOffset, UpdateOffset}
-import com.microsoft.azure.iot.iothubreact.checkpointing.backends.{AzureBlob, CassandraTable, CheckpointBackend}
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.{AzureBlob, CassandraTable}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 
 import scala.concurrent.ExecutionContext
@@ -44,6 +44,8 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
     with Logger {
 
   type OffsetsData = Tuple3[String, Long, Long]
+
+  log.debug("New instance of CheckpointService [partition {}]", partition)
 
   implicit val executionContext = ExecutionContext
     .fromExecutorService(Executors.newFixedThreadPool(sys.runtime.availableProcessors))
