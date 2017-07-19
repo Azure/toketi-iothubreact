@@ -66,7 +66,7 @@ class Device(deviceId: String) extends Logger {
   }
 
   def disconnect(): Unit = {
-    client.close()
+    client.closeNow()
     log.debug("Device '{}' disconnected", deviceId)
   }
 }

@@ -14,6 +14,11 @@ import scala.concurrent.Future
 
 /** Type class to support different classes of communication through IoTHub
   *
+  * How it works: when using hub.sink(), the library will automatically select
+  * the right sink below, depending on the incoming object class. For instance,
+  * if hub.sink() receives a `MethodOnDevice` then the library automatically
+  * routes the object to `MethodOnDeviceSink`.
+  *
   * @tparam A
   */
 trait TypedSink[A] {

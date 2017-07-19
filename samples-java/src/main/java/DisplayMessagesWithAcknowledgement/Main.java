@@ -43,22 +43,23 @@ public class Main extends ReactiveStreamingApp
                 .map(m -> parseTemperature(m))
                 .filter(x -> x != null && (x.value < 18 || x.value > 22))
                 .via(console())
-                .to(hub.offsetSink(32))
+                .to(hub.offsetSaveSink())
                 .run(streamMaterializer);
     }
 
     public static Flow<Temperature, MessageFromDevice, NotUsed> console()
     {
-        return Flow.of(Temperature.class).map(m -> {
-                    if (m.value <= 18)
-                    {
-                        out.println("Device: " + m.deviceId + ": temperature too LOW: " + m.value);
-                    } else
-                    {
-                        out.println("Device: " + m.deviceId + ": temperature to HIGH: " + m.value);
-                    }
-                    return m.passThrough;
-                });
+        return Flow.of(Temperature.class).map(m ->
+        {
+            if (m.value <= 18)
+            {
+                out.println("Device: " + m.deviceId + ": temperature too LOW: " + m.value);
+            } else
+            {
+                out.println("Device: " + m.deviceId + ": temperature to HIGH: " + m.value);
+            }
+            return m.passThrough;
+        });
     }
 
     @SuppressWarnings("unchecked")
