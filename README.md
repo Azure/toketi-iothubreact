@@ -158,7 +158,7 @@ on the configuration settings. The second requires slightly more coding but allo
 [at-least-once delivery semantics](http://www.cloudcomputingpatterns.org/at_least_once_delivery/), due to the
 fact the offset saves can be included downstream of processing in your graph.
 
-For more information about the checkpointing feature, [please read here](checkpointing.md).
+For more information about the checkpointing feature, [please read here](CHECKPOINTING.md).
 
 ## Build configuration
 
@@ -270,7 +270,7 @@ The complete configuration reference (and default values) is available in
 [reference.conf](src/main/resources/reference.conf).
 
 Samples
-=======
+========
 
 The project includes several demos in Java and Scala, showing some of the use cases and how IoThub
 React API works. All the demos require an instance of Azure IoT hub, with some devices and messages.
