@@ -159,7 +159,7 @@ needs some extra logic to save the the stream offset **after** processing the me
 
 The most important coding aspect, is that regardless of messages transformation (e.g.
 using `map()`), the original message needs to be carried through the streaming graph, and passed
-in input to the `offsetSink` which saves the stream offset.
+in input to the `offsetSaveSink` which saves the stream offset.
 
 The following example illustrates how the code looks like. The example maps the original stream
 message to a `TemperatureWithPassThrough` object, filters out temperatures lower than 100, outputs
@@ -180,7 +180,7 @@ hub.source(options)
       println(s"Temperature: ${in.temp}")
       in.passThrough // return the original message
     }
-    .to(hub.offsetSink()) // save the offset
+    .to(hub.offsetSaveSink()) // save the offset
     .run()
 ```
 
@@ -188,7 +188,7 @@ Things to note about the example:
 * all processing occurs upstream of the offset save
 * the `TemperatureWithPassThrough` class holds a copy of the original message
 * the `map` function returns the original message
-* `hub.offsetSink()` is the last step in the flow
+* `hub.offsetSaveSink()` is the last step in the flow
 
 Checkpointing behavior
 ======================

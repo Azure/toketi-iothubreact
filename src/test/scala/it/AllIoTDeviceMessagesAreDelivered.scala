@@ -92,7 +92,7 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
         //send to offset sink
         implicit val backend: CustomBackend = new CustomBackend()
-        val os = hub.offsetSink()
+        val os = hub.offsetSaveSink()
         var maxOffset = TrieMap[Int, Long]()
         messages
           .filter(m ⇒ m.contentAsString contains testRunId)

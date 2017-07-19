@@ -110,8 +110,8 @@ object StoreOffsets_While_Processing extends App {
   * crashes, after a restart it will never skip a record that hasn't been processed yet.
   *
   * Note how the checkpointing logic is explicitly called out in the streaming graph.
-  * The most important aspect here, is that the `hub.offsetSink` is the last step, to ensure
-  * At Least Once Delivery.
+  * The most important aspect here, is that the `hub.offsetSaveSink` is the last step,
+  * to ensure At Least Once Delivery.
   */
 object StoreOffsets_After_Processing extends App {
 
@@ -119,7 +119,7 @@ object StoreOffsets_After_Processing extends App {
 
   val hub         = IoTHub()
   val messages    = hub.source(SourceOptions().fromSavedOffsets())
-  val saveOffsets = hub.offsetSink()
+  val saveOffsets = hub.offsetSaveSink()
 
   val console = Flow[MessageFromDevice].map {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")

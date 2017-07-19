@@ -43,7 +43,7 @@ public class Main extends ReactiveStreamingApp
                 .map(m -> parseTemperature(m))
                 .filter(x -> x != null && (x.value < 18 || x.value > 22))
                 .via(console())
-                .to(hub.offsetSink())
+                .to(hub.offsetSaveSink())
                 .run(streamMaterializer);
     }
 

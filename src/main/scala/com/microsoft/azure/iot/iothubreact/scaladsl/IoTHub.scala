@@ -73,7 +73,7 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger
   /**
     * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
     */
-  def offsetSink() =
+  def offsetSaveSink() =
     OffsetSaveSink(config, offsetLoader).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
