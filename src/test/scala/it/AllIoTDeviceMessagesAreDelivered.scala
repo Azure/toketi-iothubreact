@@ -92,22 +92,25 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
 
         //send to offset sink
         implicit val backend: CustomBackend = new CustomBackend()
-        val os = hub.offsetSink(1)
+        val os = hub.offsetSink()
         var maxOffset = TrieMap[Int, Long]()
         messages
           .filter(m ⇒ m.contentAsString contains testRunId)
-          .map{ m ⇒
-            counter ! "inc"
-            m.runtimeInfo.partitionInfo.partitionNumber.map { p ⇒
-                maxOffset += p → math.max(m.offset.toLong, maxOffset.getOrElse(p, -1L))
-            }
-            m
+          .map {
+            m ⇒
+              counter ! "inc"
+              m.runtimeInfo.partitionInfo.partitionNumber.map {
+                p ⇒
+                  maxOffset += p → math.max(m.offset.toLong, maxOffset.getOrElse(p, -1L))
+              }
+              m
           }
-          .mapAsync(10) { m ⇒
-            //slow down higher offsets and process asynchronously so that offsets are likely to be out of order
-            val offset = m.offset.toLong
-            Thread.sleep(math.log10(offset).toInt)
-            Future successful m
+          .mapAsync(10) {
+            m ⇒
+              //slow down higher offsets and process asynchronously so that offsets are likely to be out of order
+              val offset = m.offset.toLong
+              Thread.sleep(math.log10(offset).toInt)
+              Future successful m
           }
           .runWith(os)
 
@@ -131,8 +134,9 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
         assert(commits.size >= 1, "Commits should have at least one partition to them")
         assert(commits.head._2.size >= 1, "Commits should have at least one commit")
 
-        commits.map { case (partition, offsets) ⇒
-          assert(offsets.last.toLong == maxOffset(partition), s"Partition ${partition} should have last stored the max offset (${offsets.last} vs. ${maxOffset(partition)})")
+        commits.map {
+          case (partition, offsets) ⇒
+            assert(offsets.last.toLong == maxOffset(partition), s"Partition ${partition} should have last stored the max offset (${offsets.last} vs. ${maxOffset(partition)})")
         }
 
       }
