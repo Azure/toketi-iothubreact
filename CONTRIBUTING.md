@@ -55,5 +55,4 @@ Code style
 ==========
 
 If you are sending a pull request, please check the code style with IntelliJ IDEA,
-importing the settings from
-[`Codestyle.IntelliJ.xml`](https://github.com/Azure/toketi-iot-tools/blob/dev/Codestyle.IntelliJ.xml).
+importing the settings from [`Codestyle.IntelliJ.xml`](Codestyle.IntelliJ.xml).
