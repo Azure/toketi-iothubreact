@@ -20,6 +20,9 @@ libraryDependencies ++= {
     // https://github.com/Azure/azure-storage-java/releases
     "com.microsoft.azure" % "azure-storage" % "5.4.0",
 
+    // https://github.com/Azure/azure-documentdb-java/releases
+    "com.microsoft.azure" % "azure-documentdb" % "1.12.0",
+
     // https://github.com/datastax/java-driver/releases
     "com.datastax.cassandra" % "cassandra-driver-core" % "3.3.0",
 
@@ -77,6 +80,13 @@ pomExtra :=
         <id>microsoft</id> <name>Microsoft</name>
       </developer>
     </developers>
+
+// Assembly
+assemblyMergeStrategy in assembly := {
+  case m if m.startsWith("META-INF") ? MergeStrategy.discard
+  case m if m.contains(".txt")       ? MergeStrategy.discard
+  case x                             ? (assemblyMergeStrategy in assembly).value(x)
+}
 
 /** Miscs
   */

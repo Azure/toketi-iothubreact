@@ -150,13 +150,14 @@ The library provides a mechanism to restart the stream from a recent *checkpoint
 to restarts and crashes.
 *Checkpoints* are saved automatically, with a configured frequency, on a storage provided.
 For instance, the stream position can be saved every 30 seconds and/or every 500 messages
-(the values are configurable), in a table in Cassandra or using Azure blobs.
+(the values are configurable), in a table in Cassandra, or in a DocumentDb Collection
+(Azure CosmosDb SQL) or using Azure blobs.
 
-Currently the position may be saved in two different ways. The first, simpler method is accomplished by saving
-in a concurrent thread, delayed by time and/or count, depending
-on the configuration settings. The second requires slightly more coding but allows the developer to implement
-[at-least-once delivery semantics](http://www.cloudcomputingpatterns.org/at_least_once_delivery/), due to the
-fact the offset saves can be included downstream of processing in your graph.
+Currently the position may be saved in two different ways. The first, simpler method is accomplished
+by saving in a concurrent thread, delayed by time and/or count, depending
+on the configuration settings. The second requires slightly more coding but allows the developer to
+implement [at-least-once delivery semantics](http://www.cloudcomputingpatterns.org/at_least_once_delivery/),
+due to the fact the offset saves can be included downstream of processing in your graph.
 
 For more information about the checkpointing feature, [please read here](CHECKPOINTING.md).
 
@@ -214,8 +215,6 @@ iothub-react {
     accessKey      = "<access policy key>"
     accessHostName = "<access host name>"
   }
-
-  [... other settings...]
 }
 ````
 
@@ -232,8 +231,6 @@ iothub-react {
     accessKey      = ${?IOTHUB_ACCESS_KEY}
     accessHostName = ${?IOTHUB_ACCESS_HOSTNAME}
   }
-
-  [... other settings...]
 }
 ````
 

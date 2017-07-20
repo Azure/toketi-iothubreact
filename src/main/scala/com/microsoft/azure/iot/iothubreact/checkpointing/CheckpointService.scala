@@ -7,6 +7,7 @@ import java.util.concurrent.Executors
 
 import akka.actor.{Actor, Stash}
 import com.microsoft.azure.iot.iothubreact.Logger
+import com.microsoft.azure.iot.iothubreact.checkpointing.Backends.CosmosDbSql
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{GetOffset, StoreOffset, UpdateOffset}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.{AzureBlob, CassandraTable}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
@@ -26,9 +27,10 @@ private[iothubreact] object CheckpointService {
 
   // TODO: Support plugins
   def getCheckpointBackend(implicit config: ICPConfiguration) = config.checkpointBackendType.toUpperCase match {
-    case "AZUREBLOB" ⇒ new AzureBlob(config)
-    case "CASSANDRA" ⇒ new CassandraTable(config)
-    case x           ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${x}")
+    case "AZUREBLOB"   ⇒ new AzureBlob(config)
+    case "CASSANDRA"   ⇒ new CassandraTable(config)
+    case "COSMOSDBSQL" ⇒ new CosmosDbSql(config)
+    case x             ⇒ throw new UnsupportedOperationException(s"Unknown storage type ${x}")
   }
 
 }

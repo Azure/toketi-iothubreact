@@ -4,27 +4,24 @@ Stream partitions offset checkpointing, i.e. saving the position of the stream
 The library provides a mechanism to restart the stream from a recent *checkpoint*, to be resilient
 to restarts and crashes. For each partition, the library saves the current *offset*, a value
 pointing to the current stream position. Currently, the library supports checkpoints stored either
-in Azure Blobs or Cassandra.
+in Azure Blobs, CosmosDb SQL (DocumentDb) or Cassandra.
 
 ## Checkpoint storage
 
-To store checkpoints in Azure blobs, using a time or threashold based logic, the configuration
-looks like the following:
+To store checkpoints in Azure blobs, the configuration looks like the following.
+The namespace is used as the name for the Blob container.
 
 ```
 iothub-react{
 
-  [... other settings ...]
-
   checkpointing {
 
-    [... other settings ...]
-
     storage {
-      rwTimeout = 5s
+
       namespace = "iothub-react-checkpoints"
 
       backendType = "AzureBlob"
+
       azureblob {
         lease = 15s
         useEmulator = false
@@ -37,16 +34,36 @@ iothub-react{
 }
 ```
 
-To store checkpoints in Cassandra, the configuration looks like the following:
+To store checkpoints in CosmosDB SQL (DocumentDb), the configuration looks like the following.
+The namespace is used as the name for the Database and the Collection, which are created
+automatically.
 
 ```
 iothub-react{
 
-  [... other settings ...]
-
   checkpointing {
 
-      [... other settings ...]
+    storage {
+
+      namespace = "iothub-react-checkpoints"
+
+      backendType = "CosmosDbSQL"
+
+      cosmosdbsql {
+        connString = "AccountEndpoint=https://_______.documents.azure.com:443/;AccountKey=_______;"
+      }
+    }
+  }
+}
+```
+
+To store checkpoints in Cassandra, the configuration looks like the following.
+The namespace is used as the name for the Keyspace container.
+
+```
+iothub-react{
+
+  checkpointing {
 
     storage {
       rwTimeout = 5s
@@ -108,14 +125,10 @@ looks like the following:
 ```
 iothub-react{
 
-  [... other settings ...]
-
   checkpointing {
     frequency = 15s
     countThreshold = 1000
     timeThreshold = 30s
-
-    [... other settings ...]
   }
 }
 ```
@@ -206,7 +219,7 @@ configuration block. For further information, you can also check the
 | **timeThreshold**       | duration             | 60s         | In case of low traffic (i.e. when not reaching countThreshold), save a stream position older than this value. |
 | storage.**rwTimeout**   | duration             | 5000ms      | How long to wait, when writing to the storage, before triggering a storage timeout exception. |
 | storage.**namespace**   | string               | "mycptable" | The table/container which will contain the checkpoints data. When streaming data from multiple IoT Hubs, you can use this setting to use separate tables/containers. |
-| storage.**backendType** | string or class name | "AzureBlob" | Currently "AzureBlob" and "Cassandra" are supported. The name of the backend, or the class FQDN, to use to write to the storage. This provides a way to inject custom storage logic. |
+| storage.**backendType** | string or class name | "AzureBlob" | Currently "AzureBlob", "CosmosDbSQL" and "Cassandra" are supported. The name of the backend to use to write to the storage. |
 
 ### Runtime
 
