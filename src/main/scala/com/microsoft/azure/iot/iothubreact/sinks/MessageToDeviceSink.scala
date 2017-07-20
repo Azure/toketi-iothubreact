@@ -5,6 +5,7 @@ package com.microsoft.azure.iot.iothubreact.sinks
 import java.util.concurrent.CompletionStage
 
 import akka.Done
+import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
 import com.microsoft.azure.iot.iothubreact.config.{ConnectConfiguration, IConnectConfiguration}
@@ -45,9 +46,16 @@ class MessageToDeviceSink(config: IConnectConfiguration)
       })
 
   def javaSink(): JavaSink[MessageToDevice, CompletionStage[Done]] =
-    JavaSink.foreach[MessageToDevice](
-      m ⇒ {
-        log.info("Sending message to device " + m.deviceId)
-        serviceClient.sendAsync(m.deviceId, m.message)
-      })
+    JavaSink.foreach[MessageToDevice] {
+      JavaSinkProcedure
+    }
+
+  // Required for Scala 2.11
+  private[this] object JavaSinkProcedure extends Procedure[MessageToDevice] {
+    @scala.throws[Exception](classOf[Exception])
+    override def apply(m: MessageToDevice): Unit = {
+      log.info("Sending message to device " + m.deviceId)
+      serviceClient.sendAsync(m.deviceId, m.message)
+    }
+  }
 }

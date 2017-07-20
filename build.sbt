@@ -3,8 +3,8 @@
 name := "iothub-react"
 organization := "com.microsoft.azure.iot"
 
-version := "0.10.0"
-//version := "0.10.0-DEV.170715"
+version := "0.10.1"
+//version := "0.10.0-DEV.170719"
 
 scalaVersion := "2.12.2"
 crossScalaVersions := Seq("2.11.11", "2.12.2")
@@ -35,7 +35,7 @@ libraryDependencies ++= {
 // Test dependencies
 libraryDependencies ++= Seq(
   // https://github.com/scalatest/scalatest/releases
-  "org.scalatest" %% "scalatest" % "3.2.0-SNAP9" % "test",
+  "org.scalatest" %% "scalatest" % "3.2.0-SNAP7" % "test",
 
   // https://github.com/Azure/azure-iot-sdk-java/releases
   "com.microsoft.azure.sdk.iot" % "iot-device-client" % "1.3.31" % "test",
