@@ -6,6 +6,7 @@ import java.util.concurrent.CompletionStage
 
 import akka.Done
 import akka.actor.ActorRef
+import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.UpdateOffset
@@ -44,7 +45,15 @@ private[iothubreact] final case class OffsetSaveSink(
 
   def javaSink(): JavaSink[MessageFromDevice, CompletionStage[Done]] = {
     JavaSink.foreach[MessageFromDevice] {
-      doWrite
+      JavaSinkProcedure
+    }
+  }
+
+  // Required for Scala 2.11
+  private[this] object JavaSinkProcedure extends Procedure[MessageFromDevice] {
+    @scala.throws[Exception](classOf[Exception])
+    override def apply(m: MessageFromDevice): Unit = {
+      doWrite(m)
     }
   }
 
