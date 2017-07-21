@@ -20,6 +20,9 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) {
   // Parameterless ctor
   def this() = this(Configuration(), new OffsetLoader(Configuration()))
 
+  // Allows to inject configuration at runtime
+  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()))
+
   private lazy val iotHub = IoTHubScalaDSL(config)
 
   /** Stop the stream

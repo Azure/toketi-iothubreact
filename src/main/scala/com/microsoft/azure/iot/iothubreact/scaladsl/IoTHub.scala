@@ -30,6 +30,9 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger
   // Parameterless ctor
   def this() = this(Configuration(), new OffsetLoader(Configuration()))
 
+  // Allows to inject configuration at runtime
+  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()))
+
   private[this] val streamManager = new StreamManager
 
   private[this] def allPartitions = Some(0 until config.connect.iotHubPartitions)
