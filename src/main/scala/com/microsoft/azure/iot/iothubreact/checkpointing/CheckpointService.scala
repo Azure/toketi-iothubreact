@@ -7,7 +7,7 @@ import java.util.concurrent.Executors
 
 import akka.actor.{Actor, Stash}
 import com.microsoft.azure.iot.iothubreact.Logger
-import com.microsoft.azure.iot.iothubreact.checkpointing.Backends.CosmosDbSql
+import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CosmosDbSql
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{ReadCheckpoint, CheckpointToStorage, CheckpointInMemory}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.{AzureBlob, CassandraTable}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
