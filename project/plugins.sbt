@@ -7,7 +7,7 @@ resolvers += Classpaths.sbtPluginReleases
 // publishing dev snapshots to Bintray
 // - https://github.com/sbt/sbt-bintray/releases
 // old: addSbtPlugin("me.lessis" % "bintray-sbt" % "0.3.0"
-addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.0")
+addSbtPlugin("org.foundweekends" % "sbt-bintray" % "0.5.1")
 
 // `sbt assembly`
 // - https://github.com/sbt/sbt-assembly/releases
