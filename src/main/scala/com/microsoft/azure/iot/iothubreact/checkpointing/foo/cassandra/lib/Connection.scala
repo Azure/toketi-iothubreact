@@ -77,4 +77,3 @@ private[iothubreact] case class Connection(
     session.execute(createTable)
   }
 }
-
