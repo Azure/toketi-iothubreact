@@ -194,12 +194,11 @@ Properties required to receive Device-to-Cloud (D2C) messages:
 * **hubName**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible name`
 * **hubEndpoint**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Event Hub-compatible endpoint`
 * **hubPartitions**: see `Endpoints` ⇒ `Messaging` ⇒ `Events` ⇒ `Partitions`
-* **accessPolicy**: usually `service`, see `Shared access policies`
-* **accessKey**: see `Shared access policies` ⇒ `key name` ⇒ `Primary key` (it's a base64 encoded string)
+* **accessConnString**: see `Shared access policies` ⇒ `key name`
 
 Properties required to send Cloud-to-Device (C2D) commands:
 
-* **accessHostName**: see `Shared access policies` ⇒ `key name` ⇒ `Connection string` ⇒ `HostName`
+* **accessConnString**: see `Shared access policies` ⇒ `key name`
 
 The values should be stored in your `application.conf` resource (or equivalent). Optionally you can
 reference environment settings if you prefer, for example to hide sensitive data.
@@ -208,12 +207,10 @@ reference environment settings if you prefer, for example to hide sensitive data
 iothub-react {
 
   connection {
-    hubName        = "<Event Hub compatible name>"
-    hubEndpoint    = "<Event Hub compatible endpoint>"
-    hubPartitions  = <the number of partitions in your IoT Hub>
-    accessPolicy   = "<access policy name>"
-    accessKey      = "<access policy key>"
-    accessHostName = "<access host name>"
+    hubName          = "<Event Hub compatible name>"
+    hubEndpoint      = "<Event Hub compatible endpoint>"
+    hubPartitions    = <the number of partitions in your IoT Hub>
+    accessConnString = "<access policy connection string>"
   }
 }
 ````
@@ -224,12 +221,10 @@ Example using environment settings:
 iothub-react {
 
   connection {
-    hubName        = ${?IOTHUB_EVENTHUB_NAME}
-    hubEndpoint    = ${?IOTHUB_EVENTHUB_ENDPOINT}
-    hubPartitions  = ${?IOTHUB_EVENTHUB_PARTITIONS}
-    accessPolicy   = ${?IOTHUB_ACCESS_POLICY}
-    accessKey      = ${?IOTHUB_ACCESS_KEY}
-    accessHostName = ${?IOTHUB_ACCESS_HOSTNAME}
+    hubName          = ${?IOTHUB_EVENTHUB_NAME}
+    hubEndpoint      = ${?IOTHUB_EVENTHUB_ENDPOINT}
+    hubPartitions    = ${?IOTHUB_EVENTHUB_PARTITIONS}
+    accessConnString = ${?IOTHUB_ACCESS_CONNSTRING}
   }
 }
 ````

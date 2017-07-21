@@ -23,34 +23,34 @@ class Device(deviceId: String) extends Logger {
   }
 
   // Load device credentials
-  private[this] lazy val credentials = Configuration.deviceCredentials(deviceId)
+  //private[this] lazy val credentials = Configuration.deviceCredentials(deviceId)
 
   // Prepare connection string for this device
-  private[this] lazy val connString = DeviceConnectionString.build(
-    Configuration.iotHubName, credentials.deviceId, credentials.primaryKey)
+  //  private[this] lazy val connString = DeviceConnectionString.build(
+  //    Configuration.iotHubName, credentials.deviceId, credentials.primaryKey)
 
   // Prepare client to send messages
-  private[this] lazy val client = {
-    log.info("Opening connection for device '{}'", deviceId)
-    new DeviceClient(connString, IotHubClientProtocol.AMQPS)
-  }
+  //  private[this] lazy val client = {
+  //    log.info("Opening connection for device '{}'", deviceId)
+  //    new DeviceClient(connString, IotHubClientProtocol.AMQPS)
+  //  }
 
-  def sendMessage(text: String, sequenceNumber: Int): Unit = {
-
-    if (!ready) {
-      waitConfirmation()
-      if (!ready) throw new RuntimeException(s"Device '${deviceId}', the client is busy")
-    }
-
-    ready = false
-
-    // Open internally checks if it is already connected
-    client.open()
-
-    log.debug("Device '{}' sending '{}'", deviceId, text)
-    val message = new Message(text)
-    client.sendEventAsync(message, new EventCallback(), sequenceNumber)
-  }
+  //  def sendMessage(text: String, sequenceNumber: Int): Unit = {
+  //
+  //    if (!ready) {
+  //      waitConfirmation()
+  //      if (!ready) throw new RuntimeException(s"Device '${deviceId}', the client is busy")
+  //    }
+  //
+  //    ready = false
+  //
+  //    // Open internally checks if it is already connected
+  //    client.open()
+  //
+  //    log.debug("Device '{}' sending '{}'", deviceId, text)
+  //    val message = new Message(text)
+  //    client.sendEventAsync(message, new EventCallback(), sequenceNumber)
+  //  }
 
   def waitConfirmation(): Unit = {
 
@@ -65,8 +65,8 @@ class Device(deviceId: String) extends Logger {
     if (!ready) log.debug("Device '{}', confirmation not received", deviceId)
   }
 
-  def disconnect(): Unit = {
-    client.closeNow()
-    log.debug("Device '{}' disconnected", deviceId)
-  }
+  //  def disconnect(): Unit = {
+  //    client.closeNow()
+  //    log.debug("Device '{}' disconnected", deviceId)
+  //  }
 }

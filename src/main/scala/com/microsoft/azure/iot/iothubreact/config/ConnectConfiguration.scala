@@ -15,14 +15,14 @@ trait IConnectConfiguration {
   // Hub storage partitions number. See: Endpoints ⇒ Messaging ⇒ Events ⇒ Partitions
   val iotHubPartitions: Int
 
-  // Hub access policy name. See: "IoT Hub" ⇒ your hub ⇒ "Shared access policies"
+  // See: "IoT Hub" ⇒ your hub ⇒ Shared access policies ⇒ key name ⇒ Connection string
+  val accessConnString: String
+
+  // See: "IoT Hub" ⇒ your hub ⇒ Shared access policies
   val accessPolicy: String
 
-  // Hub access policy key. see: Shared access policies ⇒ key name ⇒ Primary key (or secondary)
+  // See: "IoT Hub" ⇒ your hub ⇒ Shared access policies
   val accessKey: String
-
-  // Hostname used to send messages. See: Shared access policies ⇒ key name ⇒ Connection string ⇒ "HostName"
-  val accessHostname: String
 }
 
 object ConnectConfiguration {
@@ -44,11 +44,14 @@ class ConnectConfiguration(configData: Config) extends IConnectConfiguration {
   lazy val iotHubNamespace  = getNamespaceFromEndpoint(configData.getString(confConnPath + "hubEndpoint"))
   lazy val iotHubName       = configData.getString(confConnPath + "hubName")
   lazy val iotHubPartitions = configData.getInt(confConnPath + "hubPartitions")
-  lazy val accessPolicy     = configData.getString(confConnPath + "accessPolicy")
-  lazy val accessKey        = configData.getString(confConnPath + "accessKey")
-  lazy val accessHostname   = configData.getString(confConnPath + "accessHostName")
+
+  // Conn string format: "HostName=.......azure-devices.net;SharedAccessKeyName=......;SharedAccessKey=......"
+  lazy val accessConnString = configData.getString(confConnPath + "accessConnString")
+  lazy val accessPolicy     = getAccessPolicy(accessConnString)
+  lazy val accessKey        = getAccessKey(accessConnString)
 
   /** Extract namespace from endpoint string
+    * The namespace is used when reading commands feedback
     *
     * @param endpoint Endpoint string
     *
@@ -56,5 +59,19 @@ class ConnectConfiguration(configData: Config) extends IConnectConfiguration {
     */
   private[this] def getNamespaceFromEndpoint(endpoint: String): String = {
     endpoint.replaceFirst(".*://", "").replaceFirst("\\..*", "")
+  }
+
+  private[this] def getAccessPolicy(text: String): String = {
+    """.*SharedAccessKeyName=([^;]*).*""".r
+      .findFirstMatchIn(text)
+      .map(_ group 1)
+      .getOrElse("SharedAccessKeyNameNotFound")
+  }
+
+  private[this] def getAccessKey(text: String): String = {
+    """.*SharedAccessKey=([^;]*).*""".r
+      .findFirstMatchIn(text)
+      .map(_ group 1)
+      .getOrElse("SharedAccessKeyNotFound")
   }
 }

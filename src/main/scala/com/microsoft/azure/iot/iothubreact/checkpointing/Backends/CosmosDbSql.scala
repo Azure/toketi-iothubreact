@@ -1,11 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-package com.microsoft.azure.iot.iothubreact.checkpointing.Backends
+package com.microsoft.azure.iot.iothubreact.checkpointing.backends
 
 import com.microsoft.azure.documentdb._
 import com.microsoft.azure.iot.iothubreact.Logger
 import com.microsoft.azure.iot.iothubreact.checkpointing.ICPConfiguration
-import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 
 /**

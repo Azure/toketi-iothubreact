@@ -30,12 +30,9 @@ class MessageToDeviceSink(config: IConnectConfiguration)
   private[iothubreact] val protocol     = IotHubServiceClientProtocol.AMQPS
   private[iothubreact] val timeoutMsecs = 15000
 
-  private[this] val connString    = s"HostName=${config.accessHostname};" +
-    s"SharedAccessKeyName=${config.accessPolicy};" +
-    s"SharedAccessKey=${config.accessKey}"
-  private[this] val serviceClient = ServiceClient.createFromConnectionString(connString, protocol)
+  private[this] val serviceClient = ServiceClient.createFromConnectionString(config.accessConnString, protocol)
 
-  log.info("Connecting client to ${} ...", config.accessHostname)
+  log.info("Connecting client to ${} ...", config.iotHubName)
   serviceClient.open()
 
   def scalaSink(): ScalaSink[MessageToDevice, scala.concurrent.Future[Done]] =
@@ -58,4 +55,5 @@ class MessageToDeviceSink(config: IConnectConfiguration)
       serviceClient.sendAsync(m.deviceId, m.message)
     }
   }
+
 }
