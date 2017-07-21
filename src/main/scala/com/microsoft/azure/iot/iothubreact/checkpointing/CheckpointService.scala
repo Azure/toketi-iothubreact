@@ -8,7 +8,7 @@ import java.util.concurrent.Executors
 import akka.actor.{Actor, Stash}
 import com.microsoft.azure.iot.iothubreact.Logger
 import com.microsoft.azure.iot.iothubreact.checkpointing.Backends.CosmosDbSql
-import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{GetOffset, StoreOffset, UpdateOffset}
+import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{ReadCheckpoint, CheckpointToStorage, CheckpointInMemory}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.{AzureBlob, CassandraTable}
 import com.microsoft.azure.iot.iothubreact.scaladsl.IoTHubPartition
 
@@ -17,13 +17,13 @@ import scala.concurrent.ExecutionContext
 private[iothubreact] object CheckpointService {
 
   // Command used to read the current partition position
-  case object GetOffset
+  case object ReadCheckpoint
 
   // Command used to update the position stored in memory
-  case class UpdateOffset(value: String)
+  case class CheckpointInMemory(value: String)
 
   // Command use to write the position from memory to storage
-  case object StoreOffset
+  case object CheckpointToStorage
 
   // TODO: Support plugins
   def getCheckpointBackend(implicit config: ICPConfiguration) = config.checkpointBackendType.toUpperCase match {
@@ -88,7 +88,7 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
     }
   }
 
-  // While reading the offset, we stash all commands, to avoid concurrent GetOffset commands
+  // While reading the offset, we stash all commands, to avoid concurrent ReadCheckpoint commands
   def busyReading: Receive = {
     case _ ⇒ stash()
   }
@@ -96,11 +96,11 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
   // After loading the offset from the storage, the actor is ready process all commands
   def ready: Receive = {
 
-    case GetOffset ⇒ sender() ! currentOffset
+    case ReadCheckpoint ⇒ sender() ! currentOffset
 
-    case UpdateOffset(value: String) ⇒ updateOffsetAction(value)
+    case CheckpointInMemory(value: String) ⇒ checkpointInMemoryAction(value)
 
-    case StoreOffset ⇒ {
+    case CheckpointToStorage ⇒ {
       try {
         if (queue.size > 0) {
           context.become(busyWriting)
@@ -138,22 +138,22 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
     }
   }
 
-  // While writing we discard StoreOffset signals
+  // While writing we discard CheckpointToStorage signals
   def busyWriting: Receive = {
 
-    case GetOffset ⇒ sender() ! currentOffset
+    case ReadCheckpoint ⇒ sender() ! currentOffset
 
-    case UpdateOffset(value: String) ⇒ updateOffsetAction(value)
+    case CheckpointInMemory(value: String) ⇒ checkpointInMemoryAction(value)
 
-    case StoreOffset ⇒ {}
+    case CheckpointToStorage ⇒ {}
   }
 
-  def updateOffsetAction(offset: String) = {
+  def checkpointInMemoryAction(offset: String) = {
 
     if (!schedulerStarted) {
       val time = cpconfig.checkpointFrequency
       schedulerStarted = true
-      context.system.scheduler.schedule(time, time, self, StoreOffset)
+      context.system.scheduler.schedule(time, time, self, CheckpointToStorage)
       log.info("Scheduled checkpoint for partition {} every {} ms", partition, time.toMillis)
     }
 
@@ -161,8 +161,8 @@ private[iothubreact] class CheckpointService(cpconfig: ICPConfiguration, partiti
       val epoch = Instant.now.getEpochSecond
 
       // Reminder:
-      //  queue.enqueue -> queue.last == queue(queue.size -1)
-      //  queue.dequeue -> queue.head == queue(0)
+      //  queue.enqueue --> queue.last == queue(queue.size -1)
+      //  queue.dequeue --> queue.head == queue(0)
 
       // If the tail of the queue contains an offset stored in the current second, then increment
       // the count of messages for that second. Otherwise enqueue a new element.

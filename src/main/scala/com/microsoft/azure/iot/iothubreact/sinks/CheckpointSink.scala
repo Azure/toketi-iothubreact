@@ -9,7 +9,7 @@ import akka.actor.ActorRef
 import akka.japi.function.Procedure
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.UpdateOffset
+import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.CheckpointInMemory
 import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, IOffsetLoader}
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
@@ -17,13 +17,13 @@ import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 
-private[iothubreact] final case class OffsetSaveSink(
+private[iothubreact] final case class CheckpointSink(
     config: IConfiguration,
     offsetLoader: IOffsetLoader)
   extends ISink[MessageFromDevice]
     with Logger {
 
-  // The service responsible for writing the offset to the storage
+  // The service responsible for writing offsets to the storage
   lazy val checkpointService = (0 until config.connect.iotHubPartitions).map {
     p ⇒
       p → CheckpointActorSystem(config.checkpointing).getCheckpointService(p)
@@ -59,13 +59,13 @@ private[iothubreact] final case class OffsetSaveSink(
 
   private[this] def doWrite(m: MessageFromDevice) = {
     m.runtimeInfo.partitionInfo.partitionNumber.map {
-      p =>
+      p ⇒
         synchronized {
           val os: Long = m.offset.toLong
           val cur: Long = current.getOrElse(p, -1)
           if (os > cur) {
             log.debug(s"Committing offset ${m.offset} on partition ${p}")
-            checkpointService(p) ! UpdateOffset(m.offset)
+            checkpointService(p) ! CheckpointInMemory(m.offset)
             current += p → os
           } else {
             log.debug(s"Ignoring offset ${m.offset} since it precedes ${cur}")

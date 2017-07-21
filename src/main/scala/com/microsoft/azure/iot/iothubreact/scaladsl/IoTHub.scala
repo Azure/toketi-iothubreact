@@ -10,7 +10,7 @@ import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
 import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
-import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetSaveSink}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, CheckpointSink}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -71,10 +71,11 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger
     DevicePropertiesSink(config).scalaSink()
 
   /**
-    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
+    * Provides a sink that can be used for at-least-once delivery, saving the stream
+    * offset after processing a message
     */
-  def offsetSaveSink() =
-    OffsetSaveSink(config, offsetLoader).scalaSink()
+  def checkpointSink() =
+    CheckpointSink(config, offsetLoader).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise

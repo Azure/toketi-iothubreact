@@ -83,9 +83,9 @@ pomExtra :=
 
 // Assembly
 assemblyMergeStrategy in assembly := {
-  case m if m.startsWith("META-INF") ? MergeStrategy.discard
-  case m if m.contains(".txt")       ? MergeStrategy.discard
-  case x                             ? (assemblyMergeStrategy in assembly).value(x)
+  case m if m.startsWith("META-INF") ⇒ MergeStrategy.discard
+  case m if m.contains(".txt")       ⇒ MergeStrategy.discard
+  case x                             ⇒ (assemblyMergeStrategy in assembly).value(x)
 }
 
 /** Miscs

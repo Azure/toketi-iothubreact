@@ -15,7 +15,7 @@ private[iothubreact] case class CheckpointRecord(partition: Int, offset: String)
     */
   override def toJsonValues: String = {
     val now = java.time.Instant.now.toString
-    val json = ("partition" -> partition) ~ ("offset" -> offset) ~ ("lastUpdate" -> now)
+    val json = ("partition" → partition) ~ ("offset" → offset) ~ ("lastUpdate" → now)
     compact(render(json))
   }
 }

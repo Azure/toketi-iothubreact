@@ -12,8 +12,8 @@ class OffsetLoaderTest extends FunSuite with MockitoSugar {
 
     val config = mock[IConfiguration]
     val cnConfig = mock[IConnectConfiguration]
-    when(config.connect) thenReturn(cnConfig)
-    when(cnConfig.iotHubPartitions) thenReturn(10)
+    when(config.connect) thenReturn (cnConfig)
+    when(cnConfig.iotHubPartitions) thenReturn (10)
     val loader = StubbedLoader(config)
     loader.GetSavedOffsets should be(Map(0 → "Offset 0", 1 → "Offset 1", 3 → "Offset 3"))
   }
@@ -29,5 +29,4 @@ class OffsetLoaderTest extends FunSuite with MockitoSugar {
       }
     }
   }
-
 }

@@ -157,8 +157,8 @@ class APIIsBackwardCompatible
         .fromStart
         .fromStart()
         .fromTime(java.time.Instant.now)
-        .fromSavedOffsets()
-        .fromSavedOffsets(java.time.Instant.now)
+        .fromCheckpoint()
+        .fromCheckpoint(java.time.Instant.now)
         .allPartitions
         .allPartitions()
         .partitions(0, 2, 4)
@@ -167,8 +167,8 @@ class APIIsBackwardCompatible
         .fromOffsets("1", "2")
         .fromOffsets(Seq("1", "2"))
         .fromOffsets(Array("1", "2"))
-        .saveOffsetsOnPull
-        .saveOffsetsOnPull()
+        .checkpointOnPull
+        .checkpointOnPull()
         .withRuntimeInfo
         .withRuntimeInfo()
     }

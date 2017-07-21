@@ -83,12 +83,12 @@ iothub-react{
 
 For a full configuration detail, see the Configuration section below.
 
-The checkpointing feature is not enabled by default, so the library will not save the stream offsets
-automatically. To use checkpointing with automatic commits, use the `saveOffsetsOnPull` option when
+The checkpointing feature is not enabled by default, so the library will not checkpoint
+automatically. To use checkpointing with automatic commits, use the `checkpointOnPull` option when
 creating the stream:
 
 ```scala
-val options = SourceOptions().saveOffsetsOnPull()
+val options = SourceOptions().checkpointOnPull()
 
 IoTHub().source(options)
     .map( /* ... */ )
@@ -151,10 +151,10 @@ The out-of-process checkpointing is useful when the risk of skipping messages is
 instance when processing the last message in the stream is more important than processing each
 individual event.
 
-To use out-of-process checkpointing, just use the `saveOffsetsOnPull` option:
+To use out-of-process checkpointing, just use the `checkpointOnPull` option:
 
 ```scala
-val options = SourceOptions().saveOffsetsOnPull()
+val options = SourceOptions().checkpointOnPull()
 
 IoTHub().source(options)
     .map( /* ... */ )
@@ -168,11 +168,11 @@ IoTHub().source(options)
 At-least-once delivery semantic (ALOS) guarantees that stream offsets are saved after, and only
 after, the processing task is complete. This in turn requires a different approach
 to building Akka streaming graphs. All configuration options listed above still apply, but the code
-needs some extra logic to save the the stream offset **after** processing the messages.
+needs some extra logic to checkpoint **after** processing the messages.
 
 The most important coding aspect, is that regardless of messages transformation (e.g.
-using `map()`), the original message needs to be carried through the streaming graph, and passed
-in input to the `offsetSaveSink` which saves the stream offset.
+using `map()`), the original message needs to flow through the streaming graph, and passed
+in input to `checkpointSink` which saves the position reached.
 
 The following example illustrates how the code looks like. The example maps the original stream
 message to a `TemperatureWithPassThrough` object, filters out temperatures lower than 100, outputs
@@ -183,7 +183,7 @@ case class TemperatureWithPassThrough(
   temp: Temperature,
   passThrough: MessageFromDevice) // hold the original message
 
-val options = SourceOptions().fromSavedOffsets()
+val options = SourceOptions().fromCheckpoint()
 val hub = IoTHub()
 
 hub.source(options)
@@ -193,7 +193,7 @@ hub.source(options)
       println(s"Temperature: ${in.temp}")
       in.passThrough // return the original message
     }
-    .to(hub.offsetSaveSink()) // save the offset
+    .to(hub.checkpointSink()) // save the offset of the message successfully processed
     .run()
 ```
 
@@ -201,7 +201,7 @@ Things to note about the example:
 * all processing occurs upstream of the offset save
 * the `TemperatureWithPassThrough` class holds a copy of the original message
 * the `map` function returns the original message
-* `hub.offsetSaveSink()` is the last step in the flow
+* `hub.checkpointSink()` is the last step in the flow
 
 Checkpointing behavior
 ======================
@@ -228,16 +228,16 @@ The following table describes the system behavior, based on **API parameters** a
 | Checkpointing | Start point | Saved position | Behavior |
 |:---:|:---:|:-------:|---|
 | No  | No  | No      | The stream starts from the beginning
-| No  | No  | **Yes** | The stream starts from the beginning, unless you use `fromSavedPosition`
+| No  | No  | **Yes** | The stream starts from the beginning, unless you use `fromCheckpoint`
 | No  | Yes | No      | The stream starts from the 'start point' provided
 | No  | Yes | **Yes** | The stream starts from the 'start point' provided
 | Yes | No  | No      | The stream starts from the beginning
-| Yes | No  | **Yes** | The stream starts from the beginning, unless you use `fromSavedPosition`
+| Yes | No  | **Yes** | The stream starts from the beginning, unless you use `fromCheckpoint`
 | Yes | Yes | No      | The stream starts from the 'start point' provided
 | Yes | Yes | **Yes** | The stream starts from the saved position
 
 Legend:
-* **Checkpointing**: whether saving the stream offset is enabled (with `saveOffsetsOnPull`)
+* **Checkpointing**: whether saving the stream offset is enabled (with `checkpointOnPull`)
 * **Start point**: whether the client provides a starting position (date or offset) or ask for all
 the events from the beginning
 * **Saved position**: whether there is a position saved in the storage

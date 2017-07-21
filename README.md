@@ -290,12 +290,12 @@ React API works. All the demos require an instance of Azure IoT hub, with some d
 1. **PrintTemperature** [Scala]: stream all Temperature events and print data to the console.
 1. **Throughput** [Scala]: stream all events and display statistics about the throughput.
 1. **Throttling** [Scala]: throttle the incoming stream to a defined speed of events/second.
-1. **StoreOffsets_While_Processing** [Scala]: demonstrates how the stream can be restarted without
+1. **Checkpoint_While_Processing** [Scala]: demonstrates how the stream can be restarted without
     losing its position, using an optimistic approach (the position is stored in parallel, with some
     configurable delay fomr the moment of processing). The current position is stored in a Cassandra
     table (we suggest to run a docker container for the purpose of the demo,
     e.g. `docker run -ip 9042:9042 --rm cassandra`).
-1. **StoreOffsets_After_Processing** [Scala]: demonstrates how the stream can be restarted without
+1. **Checkpoint_After_Processing** [Scala]: demonstrates how the stream can be restarted without
     losing its position, using At Least Once Delivery semantic (this guarantees that every event
     is delivered at least once, regardless of frequency and crashes).The current position is stored
     in a Cassandra table (we suggest to run a docker container for

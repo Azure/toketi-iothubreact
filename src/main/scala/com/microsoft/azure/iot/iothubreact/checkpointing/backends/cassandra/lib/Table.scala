@@ -57,6 +57,6 @@ private[iothubreact] case class Table[T <: ToCassandra](session: Session, keyspa
       })
     }
 
-    ("partition" -> partition) ~ ("offset" -> offset)
+    ("partition" → partition) ~ ("offset" → offset)
   }
 }

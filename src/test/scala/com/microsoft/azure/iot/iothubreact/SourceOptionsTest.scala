@@ -29,8 +29,8 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       assert(o.getStartOffsets(conf).size == pcount)
       assert(o.getStartOffsets(conf).filter(x ⇒ x == IoTHubPartition.OffsetStartOfStream).size == pcount)
       assert(o.isFromStart)
-      assert(!o.isSaveOffsetsOnPull)
-      assert(!o.isFromSavedOffsets)
+      assert(!o.isCheckpointOnPull)
+      assert(!o.isFromCheckpoint)
       assert(!o.isFromTime)
       assert(!o.isFromOffsets)
       assert(!o.isWithRuntimeInfo)
@@ -55,7 +55,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
     Scenario("Streaming from the start") {
       val o: SourceOptions = SourceOptions().fromStart
       assert(o.isFromStart)
-      assert(!o.isFromSavedOffsets)
+      assert(!o.isFromCheckpoint)
       assert(!o.isFromTime)
       assert(!o.isFromOffsets)
       assert(o.getStartOffsets(conf).size == pcount)
@@ -63,7 +63,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
 
       o.fromTime(Instant.now).fromStart
       assert(o.isFromStart)
-      assert(!o.isFromSavedOffsets)
+      assert(!o.isFromCheckpoint)
       assert(!o.isFromTime)
       assert(!o.isFromOffsets)
       assert(o.getStartOffsets(conf).size == pcount)
@@ -76,7 +76,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       assert(o.isFromTime)
       assert(o.getStartTime.get == time)
       assert(!o.isFromStart)
-      assert(!o.isFromSavedOffsets)
+      assert(!o.isFromCheckpoint)
       assert(!o.isFromOffsets)
 
       val time2 = Instant.now.minusSeconds(2000)
@@ -84,7 +84,7 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       assert(o.isFromTime)
       assert(o.getStartTime.get == time2)
       assert(!o.isFromStart)
-      assert(!o.isFromSavedOffsets)
+      assert(!o.isFromCheckpoint)
       assert(!o.isFromOffsets)
     }
 
@@ -94,41 +94,41 @@ class SourceOptionsTest extends FeatureSpec with MockitoSugar {
       assert(o.isFromOffsets)
       assert(!o.isFromTime)
       assert(!o.isFromStart)
-      assert(!o.isFromSavedOffsets)
+      assert(!o.isFromCheckpoint)
 
-      o.fromSavedOffsets().fromOffsets("20", "2400", "21", "22", "244", "210")
+      o.fromCheckpoint().fromOffsets("20", "2400", "21", "22", "244", "210")
       assert(o.getStartOffsets(conf) == Seq("20", "2400", "21", "22", "244", "210"))
       assert(o.isFromOffsets)
       assert(!o.isFromTime)
       assert(!o.isFromStart)
-      assert(!o.isFromSavedOffsets)
+      assert(!o.isFromCheckpoint)
     }
 
     Scenario("Streaming from saved offsets") {
-      val o: SourceOptions = SourceOptions().fromSavedOffsets()
+      val o: SourceOptions = SourceOptions().fromCheckpoint()
       assert(o.getStartTimeOnNoCheckpoint.get == Instant.MIN)
-      assert(o.isFromSavedOffsets)
-      assert(!o.isSaveOffsetsOnPull)
+      assert(o.isFromCheckpoint)
+      assert(!o.isCheckpointOnPull)
       assert(!o.isFromOffsets)
       assert(!o.isFromTime)
       assert(!o.isFromStart)
 
       val time = Instant.now.minusSeconds(1000)
-      o.fromStart.fromSavedOffsets(time)
+      o.fromStart.fromCheckpoint(time)
       assert(o.getStartTimeOnNoCheckpoint.get == time)
-      assert(o.isFromSavedOffsets)
-      assert(!o.isSaveOffsetsOnPull)
+      assert(o.isFromCheckpoint)
+      assert(!o.isCheckpointOnPull)
       assert(!o.isFromOffsets)
       assert(!o.isFromTime)
       assert(!o.isFromStart)
     }
 
-    Scenario("Save offsets while streaming") {
+    Scenario("Checkpointing while streaming") {
       val o: SourceOptions = SourceOptions()
-      assert(!o.isSaveOffsetsOnPull)
+      assert(!o.isCheckpointOnPull)
 
-      o.saveOffsetsOnPull()
-      assert(o.isSaveOffsetsOnPull)
+      o.checkpointOnPull()
+      assert(o.isCheckpointOnPull)
     }
 
     Scenario("Include runtime information in the stream") {
