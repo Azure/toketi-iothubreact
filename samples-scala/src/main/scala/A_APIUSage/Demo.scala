@@ -78,20 +78,64 @@ object OnlyTwoPartitions extends App {
 }
 
 /** Stream and save the position while streaming
+  *
+  * Note: the offset is stored based on a configurable frequence. If the frequence is too low,
+  * and if the application crashes, the offset stored might be ahead of the last "processed"
+  * event. See the next demo for a more robust checkpointing approach.
+  *
+  * Note how the streaming graph doesn't include any checkpointing logic, because everything
+  * happen in the background, asynchronously.
   */
-object StoreOffsetsWhileStreaming extends App {
+object Checkpoint_While_Processing extends App {
 
-  println(s"Streaming messages and save offsets while streaming")
+  println(s"Stream messages and checkpointing while streaming")
 
-  val messages = IoTHub().source(SourceOptions().saveOffsetsOnPull())
+  val messages = IoTHub().source(SourceOptions().fromCheckpoint().checkpointOnPull())
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
   }
 
+  // Build and execute streaming graph
   messages
 
+    // do some processing
     .to(console)
+
+    .run()
+}
+
+/** Stream and save the position while streaming
+  *
+  * Note: this demo is quite similar to the previous one, with one important difference:
+  * the stream offset is saved "after" an event is "processed". In other words, if the application
+  * crashes, after a restart it will never skip a record that hasn't been processed yet.
+  *
+  * Note how the checkpointing logic is explicitly called out in the streaming graph.
+  * The most important aspect here, is that the `hub.checkpointSink` is the last step,
+  * to ensure At Least Once Delivery.
+  */
+object Checkpoint_After_Processing extends App {
+
+  println(s"Stream messages and checkpointing after processing")
+
+  val hub         = IoTHub()
+  val messages    = hub.source(SourceOptions().fromCheckpoint())
+  val saveOffsets = hub.checkpointSink()
+
+  val console = Flow[MessageFromDevice].map {
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
+      m
+  }
+
+  // Build and execute streaming graph
+  messages
+
+    // do some processing
+    .via(console)
+
+    // when processing is complete, save the position
+    .to(saveOffsets)
 
     .run()
 }
@@ -102,7 +146,7 @@ object StartFromStoredOffsetsButDontWriteNewOffsets extends App {
 
   println(s"Streaming messages from a saved position, without updating the position stored")
 
-  val messages = IoTHub().source(SourceOptions().fromSavedOffsets())
+  val messages = IoTHub().source(SourceOptions().fromCheckpoint())
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
@@ -143,7 +187,7 @@ object StartFromStoredOffsetsIfAvailableOrByTimeOtherwise extends App {
 
   println(s"Streaming messages from a saved position, without updating the position stored. If there is no position saved, start from one hour in the past.")
 
-  val messages = IoTHub().source(SourceOptions().fromSavedOffsets(Instant.now().minusSeconds(3600)))
+  val messages = IoTHub().source(SourceOptions().fromCheckpoint(Instant.now().minusSeconds(3600)))
 
   val console = Sink.foreach[MessageFromDevice] {
     m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
@@ -181,7 +225,7 @@ object MultipleStreamingOptionsAndSyntaxSugar extends App {
   val options = SourceOptions()
     .partitions(0, 2, 3)
     .fromOffsets("614", "64365", "123512")
-    .saveOffsetsOnPull()
+    .checkpointOnPull()
 
   val messages = IoTHub().source(options)
 

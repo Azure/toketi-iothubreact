@@ -39,12 +39,12 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, offsetLo
   def source(options: SourceOptions): Source[MessageFromDevice, NotUsed] = {
 
     // Load the partition offset saved in the checkpoint storage
-    val savedOffset = if (!options.isFromSavedOffsets)
+    val savedOffset = if (!options.isFromCheckpoint)
                         None
                       else {
                         val savedOffset = offsetLoader.GetSavedOffset(partition)
                         if (savedOffset.isDefined) {
-                          log.info("Starting partition {} from saved offset {}", partition, savedOffset.get)
+                          log.info("Starting partition {} from checkpoint, offset {}", partition, savedOffset.get)
                           savedOffset
                         } else if (options.getStartTimeOnNoCheckpoint.isEmpty) {
                           // The user didn't provide a start time for missing
@@ -61,7 +61,7 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, offsetLo
     // Define the start point offset
     val startOffsets = if (options.isFromStart) Some(IoTHubPartition.OffsetStartOfStream)
                        else if (options.isFromOffsets) Some(options.getStartOffsets(config.connect)(partition))
-                       else if (options.isFromSavedOffsets) savedOffset
+                       else if (options.isFromCheckpoint) savedOffset
                        else if (options.isFromTime) None
                        else None
 
@@ -83,9 +83,9 @@ private[iothubreact] case class IoTHubPartition(config: IConfiguration, offsetLo
                    MessageFromDeviceSource(config, partition, startOffsets.get).filter(Ignore.keepAlive)
 
     // Inject a flow to store the stream position after each pull
-    if (options.isSaveOffsetsOnPull) {
+    if (options.isCheckpointOnPull) {
       log.debug("Adding checkpointing flow to the partition {} stream", partition)
-      source.via(new SaveOffsetOnPull(config, partition))
+      source.via(new CheckpointOnPull(config, partition))
     } else {
       source
     }

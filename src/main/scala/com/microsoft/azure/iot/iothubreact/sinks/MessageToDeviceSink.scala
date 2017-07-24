@@ -30,11 +30,24 @@ class MessageToDeviceSink(config: IConnectConfiguration)
   private[iothubreact] val protocol     = IotHubServiceClientProtocol.AMQPS
   private[iothubreact] val timeoutMsecs = 15000
 
-  private[this] val connString    = s"HostName=${config.accessHostname};" +
-    s"SharedAccessKeyName=${config.accessPolicy};" +
-    s"SharedAccessKey=${config.accessKey}"
-  private[this] val serviceClient = ServiceClient.createFromConnectionString(connString, protocol)
+  private[this] val serviceClient = ServiceClient.createFromConnectionString(config.accessConnString, protocol)
 
+  log.info("Connecting client to ${} ...", config.iotHubName)
+  serviceClient.open()
+
+  def scalaSink(): ScalaSink[MessageToDevice, scala.concurrent.Future[Done]] =
+    ScalaSink.foreach[MessageToDevice](
+      m ⇒ {
+        log.info("Sending message to device {}", m.deviceId)
+        serviceClient.sendAsync(m.deviceId, m.message)
+      })
+
+  def javaSink(): JavaSink[MessageToDevice, CompletionStage[Done]] =
+    JavaSink.foreach[MessageToDevice] {
+      JavaSinkProcedure
+    }
+
+  // Required for Scala 2.11
   private[this] object JavaSinkProcedure extends Procedure[MessageToDevice] {
     @scala.throws[Exception](classOf[Exception])
     override def apply(m: MessageToDevice): Unit = {
@@ -43,19 +56,4 @@ class MessageToDeviceSink(config: IConnectConfiguration)
     }
   }
 
-  log.info("Connecting client to ${} ...", config.accessHostname)
-  serviceClient.open()
-
-  def scalaSink(): ScalaSink[MessageToDevice, scala.concurrent.Future[Done]] =
-    ScalaSink.foreach[MessageToDevice] {
-      m ⇒ {
-        log.info("Sending message to device {}", m.deviceId)
-        serviceClient.sendAsync(m.deviceId, m.message)
-      }
-    }
-
-  def javaSink(): JavaSink[MessageToDevice, CompletionStage[Done]] =
-    JavaSink.foreach[MessageToDevice] {
-      JavaSinkProcedure
-    }
 }

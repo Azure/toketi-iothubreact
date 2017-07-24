@@ -12,6 +12,10 @@ import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, ICh
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetSaveSink}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
+import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
+import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, CheckpointSink}
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
@@ -19,6 +23,9 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader, locator: IChec
 
   // Parameterless ctor
   def this() = this(Configuration(), new OffsetLoader(Configuration()), CheckpointService)
+
+  // Allows to inject configuration at runtime
+  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()), CheckpointService)
 
   private lazy val iotHub = IoTHubScalaDSL(config)
 
@@ -38,8 +45,8 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader, locator: IChec
   /**
     * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
     */
-  def offsetSink(parallelism: Int): Sink[MessageFromDevice, CompletionStage[Done]] =
-    OffsetSaveSink(parallelism, config, offsetLoader).javaSink()
+  def checkpointSink(): Sink[MessageFromDevice, CompletionStage[Done]] =
+    CheckpointSink(config, offsetLoader).javaSink()
 
   /** Sink to call synchronous methods on IoT devices
     *

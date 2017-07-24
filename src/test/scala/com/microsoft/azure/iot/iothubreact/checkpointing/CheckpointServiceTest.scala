@@ -1,7 +1,7 @@
 package com.microsoft.azure.iot.iothubreact.checkpointing
 
 import akka.actor.{ActorSystem, Props}
-import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{GetOffset, StoreOffset, UpdateOffset}
+import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.{ReadCheckpoint, CheckpointInMemory, CheckpointToStorage}
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.config.{IConfiguration, IConnectConfiguration}
 import org.scalatest.{FeatureSpec, GivenWhenThen}
@@ -45,12 +45,12 @@ class CheckpointServiceTest extends FeatureSpec with GivenWhenThen with MockitoS
       val cpconfig = mock[ICPConfiguration]
 
       //not mocked to take advantage of hashing
-      val cconfig = new IConnectConfiguration {val accessHostname  : String = ""
-                                               val iotHubPartitions: Int    = 1
+      val cconfig = new IConnectConfiguration {val iotHubNamespace : String = "sb://iothub-ns-mything-pm1-987654-a3be9917ba.servicebus.windows.net/"
+                                               val iotHubName      : String = ""
+                                               val iotHubPartitions: Int                        = 1
+                                               val accessConnString: String = ""
                                                val accessPolicy    : String = ""
                                                val accessKey       : String = ""
-                                               val iotHubName      : String = ""
-                                               val iotHubNamespace : String = "sb://iothub-ns-mything-pm1-987654-a3be9917ba.servicebus.windows.net/"
       }
       val locator = mock[ICheckpointServiceLocator]
       when(locator.getCheckpointBackend(any())).thenReturn(backend)
@@ -66,12 +66,12 @@ class CheckpointServiceTest extends FeatureSpec with GivenWhenThen with MockitoS
 
       backend.writes.size should be(0)
 
-      actor ! UpdateOffset("10")
-      actor ! UpdateOffset("100")
+      actor ! CheckpointInMemory("10")
+      actor ! CheckpointInMemory("100")
 
       backend.writes.size should be(0)
 
-      actor ! StoreOffset
+      actor ! CheckpointToStorage
 
       //wait for asynch
       Thread.sleep(100)
@@ -83,7 +83,7 @@ class CheckpointServiceTest extends FeatureSpec with GivenWhenThen with MockitoS
       //set up a second actor using the same backend and query it
       implicit val to: Timeout = Timeout(10 seconds)
       val another = actorSystem.actorOf(Props(new CheckpointService(config, partition, locator)), "testing2")
-      Await.result((another ? GetOffset).mapTo[String], 10 seconds) should be("100")
+      Await.result((another ? ReadCheckpoint).mapTo[String], 10 seconds) should be("100")
     }
   }
 

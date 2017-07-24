@@ -5,14 +5,14 @@ package com.microsoft.azure.iot.iothubreact.checkpointing
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
-import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.UpdateOffset
+import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.CheckpointInMemory
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 
 /** Flow receiving and emitting IoT messages, while keeping note of the last offset seen
   *
   * @param partition IoT hub partition number
   */
-private[iothubreact] class SaveOffsetOnPull(config: IConfiguration, partition: Int)
+private[iothubreact] class CheckpointOnPull(config: IConfiguration, partition: Int)
   extends GraphStage[FlowShape[MessageFromDevice, MessageFromDevice]] {
 
   val in   = Inlet[MessageFromDevice]("Checkpoint.Flow.in")
@@ -42,7 +42,7 @@ private[iothubreact] class SaveOffsetOnPull(config: IConfiguration, partition: I
       // when asked for more data we consider the saved offset processed and save it
       setHandler(out, new OutHandler {
         override def onPull(): Unit = {
-          if (lastOffsetSent != none) checkpointService ! UpdateOffset(lastOffsetSent)
+          if (lastOffsetSent != none) checkpointService ! CheckpointInMemory(lastOffsetSent)
           pull(in)
         }
       })

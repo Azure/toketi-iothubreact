@@ -13,10 +13,14 @@ import org.json4s.JsonAST
   */
 private[iothubreact] class CassandraTable(cpconfig: ICPConfiguration) extends CheckpointBackend with Logger {
 
+  log.debug("New instance of CassandraTable")
+
   val schema     = new CheckpointsTableSchema(checkpointNamespace(cpconfig), "checkpoints")
   val connection = Connection(cpconfig.cassandraCluster, cpconfig.cassandraReplicationFactor, cpconfig.cassandraAuth, schema)
   val table      = connection.getTable[CheckpointRecord]()
 
+  // Note: if these were to run concurrently, with multiple attempts to create keyspace+table,
+  // Cassandra doesn't seem to respond well to that and crashes due to contentions
   connection.createKeyspaceIfNotExists()
   connection.createTableIfNotExists()
 

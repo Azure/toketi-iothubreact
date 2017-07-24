@@ -41,85 +41,85 @@ class DeviceIoTMessagesAreDeliveredInOrder extends FeatureSpec with GivenWhenThe
 
       // Note: messages are sent in parallel to obtain some level of mix in the
       // storage, so do not refactor, i.e. don't do one device at a time.
-      Scenario("Customer needs to process IoT messages in the right order") {
-
-        // How many seconds we allow the test to wait for messages from the stream
-        val TestTimeout = 120 seconds
-        val DevicesCount = 25
-        val MessagesPerDevice = 100
-        val expectedMessageCount = DevicesCount * MessagesPerDevice
-
-        // Initialize device objects
-        val devices = new collection.mutable.ListMap[Int, Device]()
-        for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber) = new Device("device" + (10000 + deviceNumber))
-
-        // We'll use this as the streaming start date
-        val startTime = Instant.now().minusSeconds(30)
-        log.info("Test run: {}, Start time: {}", testRunId, startTime)
-
-        Given("An IoT hub is configured")
-        val hub = IoTHub()
-        val messages = hub.source(SourceOptions().fromTime(startTime))
-
-        And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
-        for (msgNumber ← 1 to MessagesPerDevice) {
-          for (deviceNumber ← 0 until DevicesCount) {
-            devices(deviceNumber).sendMessage(testRunId, msgNumber)
-            // temporary workaround for issue 995
-            if (msgNumber == 1) devices(deviceNumber).waitConfirmation()
-          }
-
-          for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).waitConfirmation()
-        }
-        for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).disconnect()
-        log.info("Messages sent: {}", expectedMessageCount)
-
-        When("A client application processes messages from the stream")
-
-        Then("Then the client receives all the messages ordered within each device")
-        counter ! "reset"
-        val cursors = new mutable.ParHashMap[String, Long]
-        val verifier = Sink.foreach[MessageFromDevice] {
-          m ⇒ {
-            counter ! "inc"
-            log.debug("device: {}, seq: {} ", m.deviceId, m.sequenceNumber)
-
-            if (!cursors.contains(m.deviceId)) {
-              cursors.put(m.deviceId, m.sequenceNumber)
-            }
-            if (cursors(m.deviceId) > m.sequenceNumber) {
-              fail(s"Message out of order. " +
-                s"Device ${m.deviceId}, message ${m.sequenceNumber} arrived " +
-                s"after message ${cursors(m.deviceId)}")
-            }
-            cursors.put(m.deviceId, m.sequenceNumber)
-          }
-        }
-
-        messages
-          .filter(m ⇒ m.contentAsString contains (testRunId))
-          .runWith(verifier)
-
-        // Wait till all messages have been verified
-        var time = TestTimeout.toMillis.toInt
-        val pause = time / 12
-        var actualMessageCount = readCounter
-        while (time > 0 && actualMessageCount < expectedMessageCount) {
-          Thread.sleep(pause)
-          time -= pause
-          actualMessageCount = readCounter
-          log.info("Messages received so far: {} of {} [Time left {} secs]", actualMessageCount, expectedMessageCount, time / 1000)
-        }
-
-        log.info("Stopping stream")
-        hub.close()
-
-        log.info("actual messages {}", actualMessageCount)
-
-        assert(
-          actualMessageCount == expectedMessageCount,
-          s"Expecting ${expectedMessageCount} messages but received ${actualMessageCount}")
-      }
+      //      Scenario("Customer needs to process IoT messages in the right order") {
+      //
+      //        // How many seconds we allow the test to wait for messages from the stream
+      //        val TestTimeout = 120 seconds
+      //        val DevicesCount = 25
+      //        val MessagesPerDevice = 100
+      //        val expectedMessageCount = DevicesCount * MessagesPerDevice
+      //
+      //        // Initialize device objects
+      //        val devices = new collection.mutable.ListMap[Int, Device]()
+      //        for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber) = new Device("device" + (10000 + deviceNumber))
+      //
+      //        // We'll use this as the streaming start date
+      //        val startTime = Instant.now().minusSeconds(30)
+      //        log.info("Test run: {}, Start time: {}", testRunId, startTime)
+      //
+      //        Given("An IoT hub is configured")
+      //        val hub = IoTHub()
+      //        val messages = hub.source(SourceOptions().fromTime(startTime))
+      //
+      //        And(s"${DevicesCount} devices have sent ${MessagesPerDevice} messages each")
+      //        for (msgNumber ← 1 to MessagesPerDevice) {
+      //          for (deviceNumber ← 0 until DevicesCount) {
+      //            devices(deviceNumber).sendMessage(testRunId, msgNumber)
+      //            // temporary workaround for issue 995
+      //            if (msgNumber == 1) devices(deviceNumber).waitConfirmation()
+      //          }
+      //
+      //          for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).waitConfirmation()
+      //        }
+      //        for (deviceNumber ← 0 until DevicesCount) devices(deviceNumber).disconnect()
+      //        log.info("Messages sent: {}", expectedMessageCount)
+      //
+      //        When("A client application processes messages from the stream")
+      //
+      //        Then("Then the client receives all the messages ordered within each device")
+      //        counter ! "reset"
+      //        val cursors = new mutable.ParHashMap[String, Long]
+      //        val verifier = Sink.foreach[MessageFromDevice] {
+      //          m ⇒ {
+      //            counter ! "inc"
+      //            log.debug("device: {}, seq: {} ", m.deviceId, m.sequenceNumber)
+      //
+      //            if (!cursors.contains(m.deviceId)) {
+      //              cursors.put(m.deviceId, m.sequenceNumber)
+      //            }
+      //            if (cursors(m.deviceId) > m.sequenceNumber) {
+      //              fail(s"Message out of order. " +
+      //                s"Device ${m.deviceId}, message ${m.sequenceNumber} arrived " +
+      //                s"after message ${cursors(m.deviceId)}")
+      //            }
+      //            cursors.put(m.deviceId, m.sequenceNumber)
+      //          }
+      //        }
+      //
+      //        messages
+      //          .filter(m ⇒ m.contentAsString contains (testRunId))
+      //          .runWith(verifier)
+      //
+      //        // Wait till all messages have been verified
+      //        var time = TestTimeout.toMillis.toInt
+      //        val pause = time / 12
+      //        var actualMessageCount = readCounter
+      //        while (time > 0 && actualMessageCount < expectedMessageCount) {
+      //          Thread.sleep(pause)
+      //          time -= pause
+      //          actualMessageCount = readCounter
+      //          log.info("Messages received so far: {} of {} [Time left {} secs]", actualMessageCount, expectedMessageCount, time / 1000)
+      //        }
+      //
+      //        log.info("Stopping stream")
+      //        hub.close()
+      //
+      //        log.info("actual messages {}", actualMessageCount)
+      //
+      //        assert(
+      //          actualMessageCount == expectedMessageCount,
+      //          s"Expecting ${expectedMessageCount} messages but received ${actualMessageCount}")
+      //      }
     }
   }
 }

@@ -8,7 +8,7 @@ import akka.Done
 import akka.actor.ActorRef
 import akka.stream.javadsl.{Sink ⇒ JavaSink}
 import akka.stream.scaladsl.{Sink ⇒ ScalaSink}
-import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.UpdateOffset
+import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.CheckpointInMemory
 import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointActorSystem, IOffsetLoader}
 import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 import com.microsoft.azure.iot.iothubreact.{Logger, MessageFromDevice}
@@ -35,7 +35,7 @@ final case class OffsetSaveSink(parallelism: Int, config: IConfiguration, offset
           val cur: Long = current.getOrElse(p, -1)
           if (os > cur) {
             log.debug(s"Committing offset ${m.offset} on partition ${p}")
-            checkpointService(p) ! UpdateOffset(m.offset)
+            checkpointService(p) ! CheckpointInMemory(m.offset)
             current += p → os
           } else {
               log.debug(s"Ignoring offset ${m.offset} since it precedes ${cur}")

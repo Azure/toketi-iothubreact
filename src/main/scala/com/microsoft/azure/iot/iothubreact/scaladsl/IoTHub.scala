@@ -12,6 +12,9 @@ import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, ICh
 import com.microsoft.azure.iot.iothubreact.checkpointing.backends.CheckpointBackend
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, OffsetSaveSink}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
+import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
+import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, CheckpointSink}
 
 import scala.concurrent.Future
 import scala.language.postfixOps
@@ -20,6 +23,7 @@ object IoTHub {
   def apply(): IoTHub = new IoTHub()
 
   def apply(config: IConfiguration): IoTHub = new IoTHub(config, new OffsetLoader(config), CheckpointService)
+
 }
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
@@ -30,6 +34,9 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader, locator: IChec
 
   // Parameterless ctor
   def this() = this(Configuration(), new OffsetLoader(Configuration()), CheckpointService)
+
+  // Allows to inject configuration at runtime
+  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()), CheckpointService)
 
   private[this] val streamManager = new StreamManager
 
@@ -74,11 +81,11 @@ class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader, locator: IChec
     DevicePropertiesSink(config).scalaSink()
 
   /**
-    * Provides an offset sink that can be incorporated into a graph for at-least-once semantics
+    * Provides a sink that can be used for at-least-once delivery, saving the stream
+    * offset after processing a message
     */
-  def offsetSink(parallelism: Int)
-    (implicit backend: CheckpointBackend = commitSinkBackend): Sink[MessageFromDevice, Future[Done]] =
-    OffsetSaveSink(parallelism, config, offsetLoader).scalaSink()
+  def checkpointSink() =
+    CheckpointSink(config, offsetLoader).scalaSink()
 
   /** Stream returning all the messages from all the configured partitions.
     * If checkpointing the stream starts from the last position saved, otherwise

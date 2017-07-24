@@ -1,15 +1,14 @@
 jdk: oraclejdk8
 language: scala
 scala:
-- 2.11.8
+- 2.11.11
 - 2.12.1
+- 2.12.2
 cache:
   directories:
   - "$HOME/.ivy2"
   - "$HOME/.sbt"
   - "$HOME/.m2"
-before_install:
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then openssl aes-256-cbc -K $encrypted_cbef0ff679f7_key -iv $encrypted_cbef0ff679f7_iv -in devices.json.enc -out src/test/resources/devices.json -d ; fi
 notifications:
   slack:
     rooms:

@@ -29,7 +29,7 @@ class SourceOptions() {
   private[this] var _startTime              : Option[Instant]     = None
   private[this] var _startTimeOnNoCheckpoint: Option[Instant]     = None
   private[this] var _startOffsets           : Option[Seq[String]] = None
-  private[this] var _isSaveOffsetsOnPull    : Boolean             = false
+  private[this] var _isCheckpointOnPull     : Boolean             = false
   private[this] var _isWithRuntimeInfo      : Boolean             = false
 
   /** Set the options to retrieve events from all the Hub partitions
@@ -151,13 +151,13 @@ class SourceOptions() {
     */
   def fromOffsets(values: Array[java.lang.String]): SourceOptions = fromOffsets(values.toSeq)
 
-  /** Set the options to start streaming for the saved offsets
+  /** Set the options to start streaming from the saved offsets
     *
     * @param startTimeIfMissing
     *
     * @return Current instance
     */
-  def fromSavedOffsets(startTimeIfMissing: Instant = Instant.MIN): SourceOptions = {
+  def fromCheckpoint(startTimeIfMissing: Instant = Instant.MIN): SourceOptions = {
     _isFromStart = false
     _isFromOffsets = false
     _isFromTime = false
@@ -172,8 +172,8 @@ class SourceOptions() {
     *
     * @return Current instance
     */
-  def saveOffsetsOnPull(): SourceOptions = {
-    _isSaveOffsetsOnPull = true
+  def checkpointOnPull(): SourceOptions = {
+    _isCheckpointOnPull = true
     this
   }
 
@@ -213,9 +213,9 @@ class SourceOptions() {
 
   private[iothubreact] def isFromTime: Boolean = _isFromTime
 
-  private[iothubreact] def isFromSavedOffsets: Boolean = _isFromCheckpoint
+  private[iothubreact] def isFromCheckpoint: Boolean = _isFromCheckpoint
 
-  private[iothubreact] def isSaveOffsetsOnPull: Boolean = _isSaveOffsetsOnPull
+  private[iothubreact] def isCheckpointOnPull: Boolean = _isCheckpointOnPull
 
   private[iothubreact] def isWithRuntimeInfo: Boolean = _isWithRuntimeInfo
 }

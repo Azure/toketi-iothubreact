@@ -63,6 +63,14 @@ trait ICPConfiguration {
   /** Cassandra authentication credentials
     */
   val cassandraAuth: Option[Auth]
+
+  /** CosmosDb SQL endpoint URI
+    */
+  val cosmosDbSqlUri: String
+
+  /** CosmosDb SQL authentication key
+    */
+  val cosmosDbSqlkey: String
 }
 
 object CPConfiguration {
@@ -184,6 +192,14 @@ class CPConfiguration(configData: Config) extends ICPConfiguration {
       case _                              ⇒ None
     }
 
+  /** CosmosDb SQL endpoint URI
+    */
+  lazy val cosmosDbSqlUri: String = extractCosmosDbSqlUri(configData.getString(confPath + "storage.cosmosdbsql.connString"))
+
+  /** CosmosDb SQL authentication key
+    */
+  lazy val cosmosDbSqlkey: String = extractCosmosDbSqlKey(configData.getString(confPath + "storage.cosmosdbsql.connString"))
+
   /** Load Azure blob connection string, taking care of the Azure storage emulator case
     *
     * @return Connection string
@@ -226,5 +242,19 @@ class CPConfiguration(configData: Config) extends ICPConfiguration {
       FiniteDuration(value, TimeUnit.MILLISECONDS)
     else
       default
+  }
+
+  private[this] def extractCosmosDbSqlUri(text: String): String = {
+    """.*AccountEndpoint=(.*);.*""".r
+      .findFirstMatchIn(text)
+      .map(_ group 1)
+      .getOrElse("https://ENDPOINT-NOT-FOUND.documents.azure.com:443/")
+  }
+
+  private[this] def extractCosmosDbSqlKey(text: String): String = {
+    """.*AccountKey=(.*);""".r
+      .findFirstMatchIn(text)
+      .map(_ group 1)
+      .getOrElse("")
   }
 }
