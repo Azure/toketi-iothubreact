@@ -4,7 +4,6 @@ package A_APIUSage
 
 import java.time.Instant
 
-import akka.Done
 import akka.stream.scaladsl.{Flow, Sink}
 import com.microsoft.azure.iot.iothubreact.ResumeOnError._
 import com.microsoft.azure.iot.iothubreact.filters._
@@ -13,7 +12,6 @@ import com.microsoft.azure.iot.iothubreact.{MessageFromDevice, MessageToDevice, 
 import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
