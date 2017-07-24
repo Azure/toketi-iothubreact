@@ -4,12 +4,13 @@ package com.microsoft.azure.iot.iothubreact.checkpointing
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 
 import scala.language.{implicitConversions, postfixOps}
 
 /** The actors infrastructure for storing the stream position
   */
-private[iothubreact] case class CheckpointActorSystem(cpconfig: ICPConfiguration) {
+private[iothubreact] case class CheckpointActorSystem(config: IConfiguration) {
 
   implicit private[this] val actorSystem  = ActorSystem("IoTHubReact")
   implicit private[this] val materializer = ActorMaterializer(ActorMaterializerSettings(actorSystem))
@@ -28,7 +29,7 @@ private[iothubreact] case class CheckpointActorSystem(cpconfig: ICPConfiguration
       case Some(actorRef) ⇒ actorRef
 
       case None ⇒
-        val actorRef = actorSystem.actorOf(Props(new CheckpointService(cpconfig, partition)), actorPath)
+        val actorRef = actorSystem.actorOf(Props(new CheckpointService(config, partition, CheckpointService)), actorPath)
         localRegistry += Tuple2(actorPath, actorRef)
         actorRef
     }

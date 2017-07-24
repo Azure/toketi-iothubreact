@@ -19,7 +19,7 @@ import scala.concurrent.Future
 final case class OffsetSaveSink(parallelism: Int, config: IConfiguration, offsetLoader: IOffsetLoader) extends ISink[MessageFromDevice] with Logger {
 
   lazy val checkpointService = (0 until config.connect.iotHubPartitions).map { p ⇒
-    p → CheckpointActorSystem(config.checkpointing).getCheckpointService(p)
+    p → CheckpointActorSystem(config).getCheckpointService(p)
   }(collection.breakOut): Map[Int, ActorRef]
 
   val current: TrieMap[Int, Long] = TrieMap()

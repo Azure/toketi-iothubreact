@@ -23,7 +23,7 @@ class OffsetLoader(config: IConfiguration) extends IOffsetLoader with Logger {
     import scala.language.postfixOps
     import scala.concurrent.duration._
     import akka.pattern.ask
-    val partitionCp = CheckpointActorSystem(config.checkpointing).getCheckpointService(partition)
+    val partitionCp = CheckpointActorSystem(config).getCheckpointService(partition)
     implicit val rwTimeout = Timeout(config.checkpointing.checkpointRWTimeout)
     try {
       Retry(3, 5 seconds) {

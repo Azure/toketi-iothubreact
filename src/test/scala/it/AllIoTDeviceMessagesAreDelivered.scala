@@ -38,16 +38,19 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
       Await.result(counter.ask("get")(5 seconds), 5 seconds).asInstanceOf[Long]
     }
 
-    var commits = TrieMap[Int, Seq[String]]()
+    var commits = TrieMap[String, TrieMap[Int, Seq[String]]]()
     class CustomBackend extends CheckpointBackend {
 
-      override def readOffset(partition: Int): String = {
-        return commits.getOrElse(partition, Seq()).lastOption.getOrElse("-1")
+      override def readOffset(endpoint: String, partition: Int): String = {
+        return commits.getOrElse(endpoint, TrieMap()).getOrElse(partition, Seq()).lastOption.getOrElse("-1")
       }
 
-      override def writeOffset(partition: Int, offset: String): Unit = {
-        val row = commits.getOrElse(partition, Seq()) :+ offset
-        commits += partition → row
+      override def writeOffset(endpoint: String, partition: Int, offset: String): Unit = {
+        val row = commits.getOrElse(endpoint, TrieMap())
+        val col = row.getOrElse(partition, Seq()) :+ offset
+
+        row += partition → col
+        commits += endpoint → row
       }
     }
 
@@ -128,10 +131,11 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
           s"Expecting ${expectedMessageCount} messages but received ${actualMessageCount}")
 
         Then("Then the offsets should be saved in ascending order")
-        assert(commits.size >= 1, "Commits should have at least one partition to them")
-        assert(commits.head._2.size >= 1, "Commits should have at least one commit")
+        assert(commits.size >= 1, "Commits should have at least one endpoint to them")
+        assert(commits.head._2.size >= 1, "Commits should have at least one partition to them")
+        assert(commits.head._2.head._2.size >= 1, "Commits should have at least one commit")
 
-        commits.map { case (partition, offsets) ⇒
+        commits.head._2.map { case (partition, offsets) ⇒
           assert(offsets.last.toLong == maxOffset(partition), s"Partition ${partition} should have last stored the max offset (${offsets.last} vs. ${maxOffset(partition)})")
         }
 

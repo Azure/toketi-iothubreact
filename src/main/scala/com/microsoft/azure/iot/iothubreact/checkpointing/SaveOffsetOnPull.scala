@@ -6,12 +6,13 @@ import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
 import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import com.microsoft.azure.iot.iothubreact.MessageFromDevice
 import com.microsoft.azure.iot.iothubreact.checkpointing.CheckpointService.UpdateOffset
+import com.microsoft.azure.iot.iothubreact.config.IConfiguration
 
 /** Flow receiving and emitting IoT messages, while keeping note of the last offset seen
   *
   * @param partition IoT hub partition number
   */
-private[iothubreact] class SaveOffsetOnPull(cpconfig: ICPConfiguration, partition: Int)
+private[iothubreact] class SaveOffsetOnPull(config: IConfiguration, partition: Int)
   extends GraphStage[FlowShape[MessageFromDevice, MessageFromDevice]] {
 
   val in   = Inlet[MessageFromDevice]("Checkpoint.Flow.in")
@@ -26,7 +27,7 @@ private[iothubreact] class SaveOffsetOnPull(cpconfig: ICPConfiguration, partitio
   override def createLogic(attr: Attributes): GraphStageLogic = {
     new GraphStageLogic(shape) {
 
-      val checkpointService = CheckpointActorSystem(cpconfig).getCheckpointService(partition)
+      val checkpointService = CheckpointActorSystem(config).getCheckpointService(partition)
       var lastOffsetSent    = none
 
       // when a message enters the stage we safe its offset

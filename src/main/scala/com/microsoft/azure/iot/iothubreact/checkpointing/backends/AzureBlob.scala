@@ -53,8 +53,8 @@ private[iothubreact] class AzureBlob(cpconfig: ICPConfiguration) extends Checkpo
     *
     * @return Offset of the last record (already) processed
     */
-  override def readOffset(partition: Int): String = {
-    val file = getBlockBlobReference(partition)
+  override def readOffset(endpoint: String, partition: Int): String = {
+    val file = getBlockBlobReference(endpoint, partition)
     try {
       file.downloadText()
     } catch {
@@ -81,16 +81,16 @@ private[iothubreact] class AzureBlob(cpconfig: ICPConfiguration) extends Checkpo
     * @param partition IoT hub partition number
     * @param offset    IoT hub partition offset
     */
-  override def writeOffset(partition: Int, offset: String): Unit = {
-    val file = getBlockBlobReference(partition)
+  override def writeOffset(endpoint: String, partition: Int, offset: String): Unit = {
+    val file = getBlockBlobReference(endpoint, partition)
     val leaseId = acquireLease(file)
     writeAndRelease(file, leaseId, offset)
   }
 
-  private[this] def getBlockBlobReference(partition: Int): CloudBlockBlob = {
+  private[this] def getBlockBlobReference(endpoint: String, partition: Int): CloudBlockBlob = {
     try {
       Retry(2, 2 seconds) {
-        container.getBlockBlobReference(filename(partition))
+        container.getBlockBlobReference(filename(endpoint, partition))
       }
     } catch {
 
@@ -160,5 +160,5 @@ private[iothubreact] class AzureBlob(cpconfig: ICPConfiguration) extends Checkpo
     }
   }
 
-  private[this] def filename(partition: Int): String = "partition-" + partition
+  private[this] def filename(endpoint: String, partition: Int): String = "endpoint-" + endpoint + "|partition-" + partition
 }

@@ -26,8 +26,8 @@ private[iothubreact] class CassandraTable(cpconfig: ICPConfiguration) extends Ch
     *
     * @return Offset of the last record (already) processed
     */
-  override def readOffset(partition: Int): String = {
-    val result: JsonAST.JObject = table.select(s"partition = ${partition}")
+  override def readOffset(endpoint: String, partition: Int): String = {
+    val result: JsonAST.JObject = table.select(s"endpoint = '${endpoint}' and partition = ${partition}")
 
     if (result.values("partition").asInstanceOf[BigInt] < 0) {
       IoTHubPartition.OffsetCheckpointNotFound
@@ -41,7 +41,7 @@ private[iothubreact] class CassandraTable(cpconfig: ICPConfiguration) extends Ch
     * @param partition IoT hub partition number
     * @param offset    IoT hub partition offset
     */
-  override def writeOffset(partition: Int, offset: String): Unit = {
-    table.updateRow(CheckpointRecord(partition, offset))
+  override def writeOffset(endpoint: String, partition: Int, offset: String): Unit = {
+    table.updateRow(CheckpointRecord(endpoint, partition, offset))
   }
 }
