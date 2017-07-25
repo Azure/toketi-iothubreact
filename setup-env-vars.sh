@@ -1,3 +1,10 @@
+# Usage: source ./scripts/setup-env-vars.sh
+#
+# IMPORTANT NOTES:
+# * use "source" in front of the script path, so that variables are exported in your shell
+# * the variables are set only in the current shell, run this script every time, or automate
+#   the setup using your `~/.bash_profile`.
+
 # You can use this script to set the required environment variables when running samples and
 # tests from the command line.
 #

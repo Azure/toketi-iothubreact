@@ -4,7 +4,9 @@ name := "iothub-react"
 organization := "com.microsoft.azure.iot"
 
 //version := "0.10.0"
-version := "0.10.0-DEV.170721a"
+
+//https://bintray.com/microsoftazuretoketi/toketi-repo/iothub-react
+version := "0.10.0-DEV.170724b"
 
 scalaVersion := "2.12.2"
 crossScalaVersions := Seq("2.11.11", "2.12.2")

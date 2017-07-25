@@ -44,17 +44,7 @@ private[iothubreact] final case class CheckpointSink(
   }
 
   def javaSink(): JavaSink[MessageFromDevice, CompletionStage[Done]] = {
-    JavaSink.foreach[MessageFromDevice] {
-      JavaSinkProcedure
-    }
-  }
-
-  // Required for Scala 2.11
-  private[this] object JavaSinkProcedure extends Procedure[MessageFromDevice] {
-    @scala.throws[Exception](classOf[Exception])
-    override def apply(m: MessageFromDevice): Unit = {
-      doWrite(m)
-    }
+    new JavaSink(scalaSink().toCompletionStage())
   }
 
   private[this] def doWrite(m: MessageFromDevice) = {

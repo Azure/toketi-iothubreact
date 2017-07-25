@@ -314,7 +314,7 @@ with your credentials, or set the corresponding environment variables.
 Follow the instructions described in the previous section on how to set the correct values.
 
 The root folder includes also a script showing how to set the environment variables in
-[Linux/MacOS](setup-env-vars.sh) and [Windows](setup-env-vars.bat).
+[Linux/MacOS](setup-env-vars.sh) and [Windows](setup-env-vars.cmd).
 
 The demos can be executed using the scripts included in the root folder (`run_<language>_samples.sh`
 and `run_<language>_samples.cmd`):
