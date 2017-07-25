@@ -41,7 +41,7 @@ public class Main extends ReactiveStreamingApp
         messages
                 .filter(m -> m.messageSchema().equals("temperature"))
                 .map(m -> parseTemperature(m))
-                .filter(x -> x != null && (x.value < 18 || x.value > 22))
+                .filter(x -> x != null && x.value != null && (x.value < 18 || x.value > 22))
                 .via(console())
                 .to(hub.checkpointSink())
                 .run(streamMaterializer);
@@ -51,13 +51,19 @@ public class Main extends ReactiveStreamingApp
     {
         return Flow.of(Temperature.class).map(m ->
         {
-            if (m.value <= 18)
+            // Check if the value is not null, otherwise the next conditional
+            // will cause an error in the stream and close it
+            if (m.value != null)
             {
-                out.println("Device: " + m.deviceId + ": temperature too LOW: " + m.value);
-            } else
-            {
-                out.println("Device: " + m.deviceId + ": temperature to HIGH: " + m.value);
+                if (m.value <= 18)
+                {
+                    out.println("Device: " + m.deviceId + ": temperature too LOW: " + m.value);
+                } else
+                {
+                    out.println("Device: " + m.deviceId + ": temperature to HIGH: " + m.value);
+                }
             }
+
             return m.passThrough;
         });
     }
@@ -65,17 +71,20 @@ public class Main extends ReactiveStreamingApp
     @SuppressWarnings("unchecked")
     public static Temperature parseTemperature(MessageFromDevice m)
     {
+        // Note: regardless of the failure, make sure that the object
+        // returned contains the original MessageFromDevice
+        Temperature t = new Temperature();
+        t.passThrough = m;
+
         try
         {
             Map<String, Object> hash = jsonParser.readValue(m.contentAsString(), Map.class);
-            Temperature t = new Temperature();
             t.value = Double.parseDouble(hash.get("value").toString());
             t.deviceId = m.deviceId();
-            t.passThrough = m;
-            return t;
         } catch (Exception e)
         {
-            return null;
         }
+
+        return t;
     }
 }
