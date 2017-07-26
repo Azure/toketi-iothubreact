@@ -10,16 +10,18 @@ trait CheckpointBackend {
 
   /** Read the offset of the last record processed for the given partition
     *
+    * @param endpoint IoT hub endpoint identifier
     * @param partition IoT hub partition number
     *
     * @return Offset of the last record (already) processed
     */
-  def readOffset(partition: Int): String
+  def readOffset(endpoint: String, partition: Int): String
 
   /** Store the offset for the given IoT hub partition
     *
+    * @param endpoint IoT hub endpoint identifier
     * @param partition IoT hub partition number
     * @param offset    IoT hub partition offset
     */
-  def writeOffset(partition: Int, offset: String): Unit
+  def writeOffset(endpoint: String, partition: Int, offset: String): Unit
 }

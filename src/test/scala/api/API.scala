@@ -3,7 +3,7 @@
 // NOTE: Namespace chosen to avoid access to internal classes
 package api
 
-import com.microsoft.azure.iot.iothubreact.checkpointing.IOffsetLoader
+import com.microsoft.azure.iot.iothubreact.checkpointing.{ICheckpointServiceLocator, IOffsetLoader}
 
 // NOTE: No global imports from the library, to make easier detecting breaking changes
 
@@ -73,11 +73,11 @@ class APIIsBackwardCompatible
 
       class CustomBackend extends CheckpointBackend {
 
-        override def readOffset(partition: Int): String = {
+        override def readOffset(endpoint: String, partition: Int): String = {
           return ""
         }
 
-        override def writeOffset(partition: Int, offset: String): Unit = {}
+        override def writeOffset(endpoint: String, partition: Int, offset: String): Unit = {}
       }
 
       val backend: CustomBackend = new CustomBackend()
@@ -133,7 +133,7 @@ class APIIsBackwardCompatible
       import com.microsoft.azure.iot.iothubreact.javadsl.IoTHub
 
       val hub1: IoTHub = new IoTHub()
-      val hub2: IoTHub = new IoTHub(mock[IConfiguration], mock[IOffsetLoader])
+      val hub2: IoTHub = new IoTHub(mock[IConfiguration], mock[IOffsetLoader], mock[ICheckpointServiceLocator])
 
       val partitions: java.util.List[java.lang.Integer] = java.util.Arrays.asList(0, 1, 3)
       val options = new SourceOptions()
@@ -167,6 +167,7 @@ class APIIsBackwardCompatible
         .fromOffsets("1", "2")
         .fromOffsets(Seq("1", "2"))
         .fromOffsets(Array("1", "2"))
+
         .checkpointOnPull
         .checkpointOnPull()
         .withRuntimeInfo

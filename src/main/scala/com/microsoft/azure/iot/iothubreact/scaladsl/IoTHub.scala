@@ -8,8 +8,9 @@ import akka.stream._
 import akka.stream.scaladsl._
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, ICheckpointServiceLocator, IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, CheckpointSink}
 
 import scala.concurrent.Future
@@ -18,26 +19,29 @@ import scala.language.postfixOps
 object IoTHub {
   def apply(): IoTHub = new IoTHub()
 
-  def apply(config: IConfiguration): IoTHub = new IoTHub(config, new OffsetLoader(config))
+  def apply(config: IConfiguration): IoTHub = new IoTHub(config, new OffsetLoader(config), CheckpointService)
+
 }
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   *
   * TODO: Provide ClearCheckpoints() method to clear the state
   */
-class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) extends Logger {
+class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader, locator: ICheckpointServiceLocator) extends Logger {
 
   // Parameterless ctor
-  def this() = this(Configuration(), new OffsetLoader(Configuration()))
+  def this() = this(Configuration(), new OffsetLoader(Configuration()), CheckpointService)
 
   // Allows to inject configuration at runtime
-  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()))
+  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()), CheckpointService)
 
   private[this] val streamManager = new StreamManager
 
   private[this] def allPartitions = Some(0 until config.connect.iotHubPartitions)
 
   private[this] def fromStart = Some(List.fill[String](config.connect.iotHubPartitions)(IoTHubPartition.OffsetStartOfStream))
+
+  private lazy val commitSinkBackend = locator.getCheckpointBackend(config.checkpointing)
 
   /** Stop the stream
     */

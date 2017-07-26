@@ -157,6 +157,27 @@ object StartFromStoredOffsetsButDontWriteNewOffsets extends App {
     .run()
 }
 
+/** Streaming messages from a saved position, without updating the position stored
+  */
+object StartFromStoredOffsetsWithAtLeastOnceSemantics extends App {
+
+  val PARALLELISM = 32
+  println(s"Streaming messages from a saved position using at least once delivery semantics")
+
+  val hub = IoTHub()
+  val messages = hub.source(SourceOptions().fromSavedOffsets())
+
+  val console = Flow[MessageFromDevice].map {
+    m ⇒ println(s"${m.received} - ${m.deviceId} - ${m.messageSchema} - ${m.contentAsString}")
+    m
+  }
+
+  messages
+    .via(console)
+    .to(hub.offsetSink(PARALLELISM))
+    .run()
+}
+
 /** Streaming messages from a saved position, without updating the position stored.
   * If there is no position saved, start from one hour in the past.
   */

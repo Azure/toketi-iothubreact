@@ -32,9 +32,9 @@ private[iothubreact] class CosmosDbSql(cpconfig: ICPConfiguration) extends Check
     *
     * @return Offset of the last record (already) processed
     */
-  override def readOffset(partition: Int): String = {
+  override def readOffset(endpoint: String, partition: Int): String = {
     try {
-      val docId = getId(partition)
+      val docId = getId(endpoint, partition)
       this.connection.readDocument(s"/dbs/$dbName/colls/$collName/docs/$docId", null)
         .getResource().getString("offset")
     }
@@ -53,9 +53,9 @@ private[iothubreact] class CosmosDbSql(cpconfig: ICPConfiguration) extends Check
     * @param partition IoT hub partition number
     * @param offset    IoT hub partition offset
     */
-  override def writeOffset(partition: Int, offset: String): Unit = {
+  override def writeOffset(endpoint: String, partition: Int, offset: String): Unit = {
     var doc = new Document()
-    doc.setId(getId(partition))
+    doc.setId(getId(endpoint, partition))
     doc.set("partition", partition)
     doc.set("offset", offset)
 
@@ -73,7 +73,7 @@ private[iothubreact] class CosmosDbSql(cpconfig: ICPConfiguration) extends Check
     }
   }
 
-  private[this] def getId(partition: Int) = "partition" + partition
+  private[this] def getId(endpoint: String, partition: Int) = "endpoint" + endpoint + "|" + "partition" + partition
 
   private[this] def createDatabaseIfNotExists(name: String): Unit = {
 

@@ -2,6 +2,9 @@
 
 package com.microsoft.azure.iot.iothubreact.config
 
+import java.security.MessageDigest
+import java.util.Base64
+
 import com.typesafe.config.{Config, ConfigFactory}
 
 trait IConnectConfiguration {
@@ -23,6 +26,10 @@ trait IConnectConfiguration {
 
   // See: "IoT Hub" ⇒ your hub ⇒ Shared access policies
   val accessKey: String
+
+  // Hashed value of namespace to represent an identifier for the series
+  lazy val hashedNamespace: String = new String(Base64.getUrlEncoder.encode(MessageDigest.getInstance("MD5").digest(iotHubNamespace.getBytes)))
+
 }
 
 object ConnectConfiguration {

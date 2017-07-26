@@ -41,11 +41,11 @@ class AllIoTDeviceMessagesAreDelivered extends FeatureSpec with GivenWhenThen {
     var commits = TrieMap[Int, Seq[String]]()
     class CustomBackend extends CheckpointBackend {
 
-      override def readOffset(partition: Int): String = {
+      override def readOffset(endpoint: String, partition: Int): String = {
         return commits.getOrElse(partition, Seq()).lastOption.getOrElse("-1")
       }
 
-      override def writeOffset(partition: Int, offset: String): Unit = {
+      override def writeOffset(endpoint: String, partition: Int, offset: String): Unit = {
         val row = commits.getOrElse(partition, Seq()) :+ offset
         commits += partition → row
       }

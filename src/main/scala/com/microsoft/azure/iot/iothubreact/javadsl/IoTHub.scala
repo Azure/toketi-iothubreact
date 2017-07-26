@@ -8,22 +8,24 @@ import java.util.concurrent.CompletionStage
 import akka.stream.javadsl.{Sink, Source ⇒ JavaSource}
 import akka.{Done, NotUsed}
 import com.microsoft.azure.iot.iothubreact._
-import com.microsoft.azure.iot.iothubreact.checkpointing.{IOffsetLoader, OffsetLoader}
+import com.microsoft.azure.iot.iothubreact.checkpointing.{CheckpointService, ICheckpointServiceLocator, IOffsetLoader, OffsetLoader}
 import com.microsoft.azure.iot.iothubreact.config.{Configuration, IConfiguration}
 import com.microsoft.azure.iot.iothubreact.scaladsl.{IoTHub ⇒ IoTHubScalaDSL}
 import com.microsoft.azure.iot.iothubreact.sinks.{DevicePropertiesSink, MessageToDeviceSink, MethodOnDeviceSink, CheckpointSink}
 
 /** Provides a streaming source to retrieve messages from Azure IoT Hub
   */
-class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader) {
+class IoTHub(config: IConfiguration, offsetLoader: IOffsetLoader, locator: ICheckpointServiceLocator) {
 
   // Parameterless ctor
-  def this() = this(Configuration(), new OffsetLoader(Configuration()))
+  def this() = this(Configuration(), new OffsetLoader(Configuration()), CheckpointService)
 
   // Allows to inject configuration at runtime
-  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()))
+  def this(config: IConfiguration) = this(config, new OffsetLoader(Configuration()), CheckpointService)
 
   private lazy val iotHub = IoTHubScalaDSL(config)
+
+  private lazy val commitSinkBackend = locator.getCheckpointBackend(config.checkpointing)
 
   /** Stop the stream
     */

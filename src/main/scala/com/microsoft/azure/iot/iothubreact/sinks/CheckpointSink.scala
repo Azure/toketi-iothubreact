@@ -26,7 +26,7 @@ private[iothubreact] final case class CheckpointSink(
   // The service responsible for writing offsets to the storage
   lazy val checkpointService = (0 until config.connect.iotHubPartitions).map {
     p ⇒
-      p → CheckpointActorSystem(config.checkpointing).getCheckpointService(p)
+      p → CheckpointActorSystem(config).getCheckpointService(p)
   }(collection.breakOut): Map[Int, ActorRef]
 
   // The offset stored (value) for each partition (key)
