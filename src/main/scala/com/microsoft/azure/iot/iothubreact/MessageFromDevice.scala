@@ -89,10 +89,16 @@ class MessageFromDevice(
   lazy val sequenceNumber: Long = systemProps.getSequenceNumber
 
   // ID of the device who sent the message
-  lazy val deviceId: String = systemProps.get(deviceIdProperty).toString
+  lazy val deviceId: String = {
+    val p = systemProps.get(deviceIdProperty)
+    if (p != null) p.toString else ""
+  }
 
   // Message ID
-  lazy val messageId: String = systemProps.get(messageIdProperty).toString
+  lazy val messageId: String = {
+    val p = systemProps.get(messageIdProperty)
+    if (p != null) p.toString else ""
+  }
 
   // IoT message content bytes
   lazy val content: Array[Byte] = data.get.getBytes
