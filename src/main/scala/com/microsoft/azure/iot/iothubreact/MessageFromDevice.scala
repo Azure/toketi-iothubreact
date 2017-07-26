@@ -104,7 +104,7 @@ class MessageFromDevice(
   lazy val runtimeInfo: SourceRuntimeInfo =
     if (partNumber.isEmpty) {
       new SourceRuntimeInfo(new SourcePartitionInfo(None, None, None, None))
-    } else if (partInfo.isEmpty) {
+    } else if (partInfo.isEmpty || partInfo.get == null) {
       new SourceRuntimeInfo(new SourcePartitionInfo(partNumber, None, None, None))
     } else {
       new SourceRuntimeInfo(new SourcePartitionInfo(

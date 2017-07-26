@@ -15,6 +15,7 @@ case object StopOnError extends Logger {
   private[this] val decider: Supervision.Decider = {
     case e: Exception ⇒ {
       log.error(e, e.getMessage)
+      e.printStackTrace()
       Supervision.Stop
     }
   }
